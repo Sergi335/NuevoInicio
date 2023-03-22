@@ -2,9 +2,10 @@ const express = require("express"),
       path = require("path"),
       cors = require("cors"),
       favicon = require("serve-favicon"),
+      faviconURL = `${__dirname}/public/img/favicon.ico`,
+      morgan = require("morgan"),
       pug = require("pug")
       routes = require("./app/routes/index"),
-      faviconURL = `${__dirname}/public/img/favicon.png`,
       publicDir = express.static(path.join(`${__dirname}/public`)),
       viewDir = `${__dirname}/views`,
       port = (process.env.port || 3000),
@@ -21,16 +22,14 @@ app
     //Ejecutando middlewares
      .use(cors())
      .use(favicon(faviconURL))
+     .use(morgan('dev'))
      .use(publicDir)
     //Ejecutando el middleware enrutador
      .use('/', routes)
 
 app.listen(port, () => {
     console.log('Eyyy tu app corre por el puerto ' + port);
+    console.log(faviconURL);
 })
-
-// app.get("/", (req, res) => {
-//     res.send("Hola Mundo/Hello World")
-// })
 
 //module.exports(app)

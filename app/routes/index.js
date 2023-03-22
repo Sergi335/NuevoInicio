@@ -1,8 +1,17 @@
 const express = require("express"),
       router = express.Router()
 
+
+function pug(req, res, next) {
+    let locals = {
+        title : "Sergio Start Page"
+    }
+
+    res.render("index", locals)
+}
+
 router.get("/", (req, res) => {
-    res.end("<h1>Terminamos configuraci&oacute;n</h1>")
-})
+        res.render("index.pug")
+})     .get("/pug", pug)
 
 module.exports = router
