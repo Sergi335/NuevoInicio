@@ -1,5 +1,8 @@
+require("dotenv").config()
+
 const express = require("express"),
       path = require("path"),
+      dbConnect = require("./config/mongo"),
       cors = require("cors"),
       favicon = require("serve-favicon"),
       faviconURL = `${__dirname}/public/img/favicon.ico`,
@@ -32,4 +35,5 @@ app.listen(port, () => {
     console.log(faviconURL);
 })
 
+dbConnect()
 //module.exports(app)
