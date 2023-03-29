@@ -25,6 +25,7 @@ app
     //Ejecutando middlewares
      .use(cors())
      .use(favicon(faviconURL))
+     .use(express.json())
      .use(morgan('dev'))
      .use(publicDir)
     //Ejecutando el middleware enrutador
@@ -32,7 +33,6 @@ app
 
 app.listen(port, () => {
     console.log('Eyyy tu app corre por el puerto ' + port);
-    console.log(faviconURL);
 })
 
 dbConnect()
