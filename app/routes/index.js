@@ -1,8 +1,8 @@
 const express = require("express"),
       router = express.Router();
       
-const {getItems, getItem, createItem} = require("../controllers/links")
-const {ajaxTest, getDeskItems} = require("../controllers/escritorios")
+const {getItems, getItem, createItem, deleteItem} = require("../controllers/links")
+const {getDeskItems, deleteDeskItem, createDeskItem} = require("../controllers/escritorios")
 const {getColItems, createColItem, deleteColItem} = require("../controllers/columnas")
 
 
@@ -19,12 +19,15 @@ function pug(req, res, next) {
 // })     .get("/pug", pug)
 router.get("/columnas", getColItems);
 router.get("/escritorios", getDeskItems);
-router.get("/", getItems); 
+router.get("/links", getItems); 
 router.get("/:id", getItem); 
 router.post("/", createItem);
-router.post("/ajax", ajaxTest);
+router.post("/escritorios", createDeskItem);
+router.post("/links", createItem);
 router.post("/columnas", createColItem);
 router.delete("/columnas", deleteColItem);
+router.delete("/links", deleteItem);
+router.delete("/escritorios", deleteDeskItem);
 
 /*.get("/~", (req, res) => {
     almacenar ruta peticion en variable para comparar en db

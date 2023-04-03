@@ -1,4 +1,5 @@
 const {columnasModel} = require("../models/index");
+const {linksModel} = require("../models/index");
 
 /**
  * Obtener lista de enlaces
@@ -29,9 +30,11 @@ const deleteColItem = async (req, res) => {
     objeto.name = body.nombre;
     objeto.escritorio = body.escritorio;
     console.log(objeto);
+    const linksinCol = await linksModel.deleteMany({panel: `${objeto.name}`})
     const data = await columnasModel.deleteOne({name: `${objeto.name}`})
     const lista = await columnasModel.find({escritorio: `${objeto.escritorio}`});
     console.log(data);
+    console.log(linksinCol);
     res.send(lista);
     //res.send("Borrado")
 }
