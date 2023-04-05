@@ -38,7 +38,8 @@ const createItem = async (req, res) => {
     objeto.panel = body.columna;
     console.log(objeto);
     const data = await linksModel.create(objeto);
-    const lista = await linksModel.find({panel: objeto.panel})
+    const lista = await linksModel.find({panel: `${objeto.panel}`, escritorio: `${objeto.escritorio}`});
+    console.log(lista);
     res.send(lista);
 }
 /**
@@ -66,7 +67,33 @@ const deleteItem = async (req, res) => {
     res.send(lista);
     //res.send("Borrado")
 }
+const editItem = async (req, res) => {
+    const {body} = req;
+    //console.log(body);
+    const objeto = new Object();
+    objeto.nameOld = body.nombreOld;
+    objeto.name = body.nombre;
+    objeto.URL = body.URL;
+    objeto.imgURL = body.imgURL;
+    objeto.escritorio = body.escritorio;
+    objeto.panel = body.columna;
+    //console.log(objeto);
+    try {
+        const documentoActualizado = await linksModel.findOneAndUpdate(
+            { name: `${objeto.nameOld}`, escritorio: `${objeto.escritorio}`, panel: `${objeto.panel}` }, // El filtro para buscar el documento
+            { $set: { name: `${objeto.name}`, escritorio: `${objeto.escritorio}`, panel: `${objeto.panel}`, URL: `${objeto.URL}`, imgURL: `${objeto.imgURL}` } }, // La propiedad a actualizar
+            { new: true } // Opciones adicionales (en este caso, devuelve el documento actualizado)   
+        );
+        console.log(documentoActualizado);
+    } catch (error) {
+        console.log(error); // Manejo de errores
+        res.send(error)
+    }
+    const lista = await linksModel.find({panel: `${objeto.panel}`, escritorio: `${objeto.escritorio}`});
+    //console.log(lista);
+    res.send(lista);
+}
 
 
 
-module.exports = { getItem, getItems, createItem, updateItem, deleteItem};
+module.exports = { getItem, getItems, createItem, updateItem, deleteItem, editItem};
