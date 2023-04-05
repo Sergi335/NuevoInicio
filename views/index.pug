@@ -1,12 +1,82 @@
 doctype html
-html(lang="es")
-    head
-        meta(charset="UTF-8")
-        meta(http-equiv="X-UA-Compatible", content="IE=edge")
-        meta(name="viewport", content="width=device-width, initial-scale=1.0")
-        title Document
-        link(rel="stylesheet", href="/css/style.css")
-        script(src="/js/scripts.js") 
-    body
-        h1 #{title}
-        a(href='' + URL) #{name}
+head
+  meta(charset='UTF-8')
+  meta(http-equiv='X-UA-Compatible' content='IE=edge')
+  meta(name='viewport' content='width=device-width, initial-scale=1.0')
+  title Document
+  link(rel='stylesheet' href='/css/style.css')
+  link(rel='stylesheet' href='/css/icofont/icofont/icofont.min.css')
+  script(src='/js/scripts2.js')
+.container
+  h1 Sergios Start Page
+  .dropdown
+    button.dropbtn Escritorios
+    #drpEscritorios.dropdown-content
+.container
+  .cuerpo
+    h1#deskTitle.deskTitle Vacas
+    .bodcontrols
+      span#editDesk.icofont-ui-edit
+      span#removeDesk.icofont-recycle
+      span#addCol.icofont-ghost
+      span#addDesk.icofont-plus
+    #cols.cuerpo
+      .columna
+        .headercolumn
+          h2.ctitle Inicio
+          .ccontrols
+            span.icofont-ui-edit
+            span.icofont-recycle.borracol
+            span#addLink.icofont-plus
+        .link
+          img(src='https://www.google.com/s2/favicons?domain=https://www.google.es/' alt='google')
+          a(href='http://google.es') Google
+          .lcontrols
+            span.icofont-ui-edit
+            span.icofont-recycle
+      .columna
+        .link
+          img(src='' alt='' srcset='')
+          a(href='http://google.es') Google
+      .columna
+        .link
+          img(src='' alt='' srcset='')
+          a(href='http://google.es') Google
+      .columna
+        .link
+          img(src='' alt='' srcset='')
+          a(href='http://google.es') Google
+.container
+  #addDeskForm.deskForm
+    h2 A&ntilde;ade Escritorio
+    input#deskName(type='text' name='deskName')
+    button#deskSubmit(type='submit') Enviar
+    p#deskError
+  #editDeskForm.deskForm
+    h2 Edita Escritorio
+    input#editdeskName(type='text' name='deskName')
+    button#editdeskSubmit(type='submit') Modificar
+    p#editdeskError
+  #addColForm.deskForm
+    h2 A&ntilde;ade Columna
+    input#colName(type='text' name='colName')
+    button#colSubmit(type='submit') Enviar
+  #addLinkForm.deskForm
+    h2 A&ntilde;ade Link
+    p Nombre
+    input#linkName(type='text' name='linkName')
+    p URL
+    input#linkURL(type='text' name='linkURL')
+    button#linkSubmit(type='submit') Enviar
+  #editColForm.deskForm
+    h2 Edita Columna
+    input#editcolName(type='text' name='colName')
+    button#editcolSubmit(type='submit') Modificar
+    p#editcolError
+  #editLinkForm.deskForm
+    h2 Edita Link
+    p Nombre
+    input#editlinkName(type='text' name='editlinkName')
+    p URL
+    input#editlinkURL(type='text' name='editlinkURL')
+    button#editlinkSubmit(type='submit') Modificar

@@ -14,9 +14,9 @@ function pug(req, res, next) {
     res.render("index", locals)
 }
 
-// router.get("/", (req, res) => {
-//         res.render("index.pug")
-// })     .get("/pug", pug)
+router.get("/", (req, res) => {
+        res.render("index.pug")
+})     //.get("/pug", pug)
 router.get("/columnas", getColItems);
 router.get("/escritorios", getDeskItems);
 router.get("/links", getItems); 
