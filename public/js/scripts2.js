@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', cargaWeb);
 document.addEventListener('click', escondeDialogos);
 
@@ -77,15 +76,14 @@ async function cargaWeb(deskName) {
     }, {});
 
     for (const panel in groupByPanel) {
-        console.log(`Elementos en el panel ${panel}:`);
+        //console.log(`Elementos en el panel ${panel}:`);
         const items = groupByPanel[panel];
-        console.log(items);
+        //console.log(items);
         refreshLinks(items, `${panel}`);
-        //insertaNodos(items, `${panel}`, "link");
+        ordenaItems(panel);
     }
 
     addLinkEvents();
-
 }
 
 //Manejo de Eventos
@@ -149,7 +147,7 @@ function addLinkEvents(params) {
 function selectDesktop(event) {
     event.stopPropagation();
     console.log("Se ejecuta la función de selección de escritorio");
-    console.log(event.target.innerText);
+    //console.log(event.target.innerText);
     let deskName = event.target.innerText;
     cargaWeb(deskName);
     document.body.setAttribute('data-desk', deskName);
@@ -174,8 +172,8 @@ async function editDesktop(params) {
     if (firstKey === "error") {
         $error = document.getElementById('editdeskError');
         $error.innerText = `${firstKey}, ${firstValue}`;
-        console.log(firstKey);
-        console.log(firstValue);
+        //console.log(firstKey);
+        //console.log(firstValue);
     } else {
         let dialog = document.getElementById('editDeskForm');
         let visible = dialog.style.display === 'flex';
@@ -183,7 +181,7 @@ async function editDesktop(params) {
         refreshDesktops(json);
         addDesktopEvents();
     }
-
+    document.getElementById('deskTitle').innerText = `${nombre}`;
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
 async function createDesktop(params) {
@@ -205,13 +203,13 @@ async function createDesktop(params) {
     if (firstKey === "error") {
         $error = document.getElementById('deskError');
         $error.innerText = `${firstKey}, ${firstValue}`;
-        console.log(firstKey);
-        console.log(firstValue);
+        //console.log(firstKey);
+        //console.log(firstValue);
     } else {
         let dialog = document.getElementById('addDeskForm');
         let visible = dialog.style.display === 'flex';
         dialog.style.display = visible ? 'none' : 'flex';
-        console.log(json);
+        //console.log(json);
         refreshDesktops(json);
         addDesktopEvents();
     }
@@ -234,7 +232,7 @@ async function deleteDesktop() {
             body: body
         })
         let json = await res.json();
-        console.log(json);
+        //console.log(json);
         cargaWeb(json[0].name);
     } else {
         alert('Borrado Cancelado')
@@ -274,7 +272,7 @@ async function editColumn(params) {
     let nombreOld = document.body.getAttribute('data-panel');
     let body = { 'nombre': nombre, 'nombreOld': nombreOld, 'escritorio': escritorio }
     body = JSON.stringify(body)
-    console.log(JSON.stringify(body));
+    //console.log(JSON.stringify(body));
     let res = await fetch("http://localhost:3001/columnas", {
         method: 'PUT',
         headers: {
@@ -309,9 +307,9 @@ async function editColumn(params) {
     }, {});
 
     for (const panel in groupByPanel) {
-        console.log(`Elementos en el panel ${panel}:`);
+        //console.log(`Elementos en el panel ${panel}:`);
         const items = groupByPanel[panel];
-        console.log(items);
+        //console.log(items);
         refreshLinks(items, `${panel}`);
         //insertaNodos(items, `${panel}`, "link");
     }
@@ -323,7 +321,7 @@ async function createColumn() {
     let escritorio = document.body.getAttribute('data-desk');
     let body = { 'nombre': nombre, 'escritorio': `${escritorio}` }
     body = JSON.stringify(body)
-    console.log(JSON.stringify(body));
+    //console.log(JSON.stringify(body));
     let res = await fetch("http://localhost:3001/columnas", {
         method: 'POST',
         headers: {
@@ -358,9 +356,9 @@ async function createColumn() {
     }, {});
 
     for (const panel in groupByPanel) {
-        console.log(`Elementos en el panel ${panel}:`);
+        //console.log(`Elementos en el panel ${panel}:`);
         const items = groupByPanel[panel];
-        console.log(items);
+        //console.log(items);
         refreshLinks(items, `${panel}`);
         //insertaNodos(items, `${panel}`, "link");
     }
@@ -404,9 +402,9 @@ async function deleteColumn(event) {
     }, {});
 
     for (const panel in groupByPanel) {
-        console.log(`Elementos en el panel ${panel}:`);
+        //console.log(`Elementos en el panel ${panel}:`);
         const items = groupByPanel[panel];
-        console.log(items);
+        //console.log(items);
         refreshLinks(items, `${panel}`);
         //insertaNodos(items, `${panel}`, "link");
     }
@@ -417,6 +415,7 @@ function refreshColumns(lista) {
     //console.log($raiz);
     const arr = Array.from(lista);
     //console.log(arr);
+    let sortable2 = Sortable.create($raiz);
 
 
     if ($raiz.hasChildNodes()) {
@@ -429,6 +428,10 @@ function refreshColumns(lista) {
         const $columna = document.createElement("div");
         $columna.setAttribute("class", "columna");
         $columna.setAttribute("id", `${element.name}`);
+
+        const $envolt = document.createElement("div");
+        $envolt.setAttribute("class", "envolt");
+
         const $headerColumn = document.createElement("div");
         $headerColumn.setAttribute("class", "headercolumn");
         const $header = document.createElement("h2");
@@ -451,9 +454,12 @@ function refreshColumns(lista) {
         $headerColumn.appendChild($header)
         $headerColumn.appendChild($ccontrols)
 
-        $columna.appendChild($headerColumn)
+        $envolt.appendChild($headerColumn)
+
+        $columna.appendChild($envolt)
 
         $raiz.appendChild($columna)
+        
         //Agregar evento de clic al botón de borrar columnas
         document.querySelectorAll('.borracol').forEach(item => {
             item.removeEventListener('click', deleteColumn);
@@ -481,13 +487,13 @@ async function editLink(params) {
     let nombre = document.querySelector('#editlinkName').value;
     let linkURL = document.querySelector('#editlinkURL').value;
     let imgURL = `https://www.google.com/s2/favicons?domain=${linkURL}`;
-    //console.log("Submit link",nombreOld, nombre, linkURL, imgURL, columna, escritorio);
+    //console.log(nombreOld, nombre, linkURL, imgURL, columna, escritorio);
 
     let dialog = document.getElementById('editLinkForm');
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
     let body = { 'nombreOld': nombreOld, 'nombre': nombre, 'URL': linkURL, 'imgURL': imgURL, 'escritorio': escritorio, 'columna': columna }
-    console.log(body);
+    //console.log(body);
     body = JSON.stringify(body)
     //console.log(JSON.stringify(body));
     let res = await fetch("http://localhost:3001/links", {
@@ -498,16 +504,17 @@ async function editLink(params) {
         body: body
     })
     let json = await res.json();
-    console.log(`Lista desde editLink: ${JSON.stringify(json)}`);
+    //console.log(`Lista desde editLink: ${JSON.stringify(json)}`);
 
     const $raiz = document.getElementById(`${columna}`)
-    console.log($raiz);
+    //console.log($raiz);
     if ($raiz.hasChildNodes()) {
         while ($raiz.childNodes.length > 1) {
             $raiz.removeChild($raiz.lastChild);
         }
     }
     refreshLinks(json, columna)
+    ordenaItems(columna)
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
 async function createLink() {
@@ -518,15 +525,15 @@ async function createLink() {
     let nombre = document.querySelector('#linkName').value;
     let linkURL = document.querySelector('#linkURL').value;
     let imgURL = `https://www.google.com/s2/favicons?domain=${linkURL}`;
-    console.log("Submit link", nombre.value, linkURL.value, imgURL, columna, escritorio);
+    //console.log("Submit link", nombre.value, linkURL.value, imgURL, columna, escritorio);
 
     let dialog = document.getElementById('addLinkForm');
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
     let body = { 'nombre': nombre, 'URL': linkURL, 'imgURL': imgURL, 'escritorio': escritorio, 'columna': columna }
-    console.log(body);
+    //console.log(body);
     body = JSON.stringify(body)
-    console.log(JSON.stringify(body));
+    //console.log(JSON.stringify(body));
     let res = await fetch("http://localhost:3001/links", {
         method: 'POST',
         headers: {
@@ -535,23 +542,25 @@ async function createLink() {
         body: body
     })
     let json = await res.json();
-    console.log(`Lista desde createLink: ${JSON.stringify(json)}`);
+    //console.log(`Lista desde createLink: ${JSON.stringify(json)}`);
 
     const $raiz = document.getElementById(`${columna}`)
-    console.log($raiz);
+    //console.log($raiz);
     if ($raiz.hasChildNodes()) {
         while ($raiz.childNodes.length > 1) {
             $raiz.removeChild($raiz.lastChild);
         }
     }
     refreshLinks(json, columna)
+    ordenaItems(columna)
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
 async function deleteLink(event) {
-    let nombre = event.target.parentNode.parentNode.childNodes[1].innerText;
+    let nombre = event.target.parentNode.parentNode.childNodes[0].innerText;
+    //console.log(nombre);
     let panel = event.target.parentNode.parentNode.parentNode.id
     let escritorio = document.body.getAttribute('data-desk');
-    console.log(nombre, panel)
+    //console.log(nombre, panel)
     //Falta el escritorio actual
     let body = { 'nombre': nombre, 'panel': panel, 'escritorio': escritorio }
     body = JSON.stringify(body)
@@ -564,21 +573,22 @@ async function deleteLink(event) {
         body: body
     })
     let json = await res.json();
-    console.log(json);
+    //console.log(json);
     const $raiz = document.getElementById(`${panel}`)
-    console.log($raiz);
+    //console.log($raiz);
     if ($raiz.hasChildNodes()) {
         while ($raiz.childNodes.length > 1) {
             $raiz.removeChild($raiz.lastChild);
         }
     }
     refreshLinks(json, panel)
+    ordenaItems(panel)
 
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 
 }
 function refreshLinks(lista, panel) {
-    console.log("Se ejecuta refreshLinks");
+    //console.log("Se ejecuta refreshLinks");
     const $raiz = document.getElementById(`${panel}`);
     //console.log($raiz);
     const arr = Array.from(lista);
@@ -590,7 +600,6 @@ function refreshLinks(lista, panel) {
     //         $raiz.removeChild($raiz.firstChild);
     //     }
     // }
-
     arr.forEach(element => {
         const $div = document.createElement("div");
         $div.setAttribute("class", "link");
@@ -609,8 +618,9 @@ function refreshLinks(lista, panel) {
 
         $lcontrols.appendChild($editControl)
         $lcontrols.appendChild($deleteControl)
+        $link.appendChild($img)
         $link.appendChild($textos)
-        $div.appendChild($img)
+       
         $div.appendChild($link)
         $div.appendChild($lcontrols)
 
@@ -625,7 +635,14 @@ function refreshLinks(lista, panel) {
             item.addEventListener('click', toggleDialogEditLink);
         })
     })
-
+    // let links = document.querySelectorAll('.link');
+    // let contador = 1;
+    // links.forEach(element => {
+    //     element.setAttribute('data-id', contador);
+    //     //console.log(element);
+    //     contador++;
+    // })
+    // ordenaItems();
 }
 
 //funciones auxiliares para mostrar/ocultar cuadros de diálogo
@@ -637,7 +654,7 @@ function toggleDialogColumn() {
     dialog.style.display = visible ? 'none' : 'flex';
 }
 function toggleDialogEditColumn(event) {
-    console.log("entra");
+    //console.log("entra");
     let panel = event.target.parentNode.parentNode.childNodes[0].innerText;
     document.body.setAttribute('data-panel', `${panel}`);
     let dialog = document.getElementById('editColForm');
@@ -669,10 +686,10 @@ function toggleDialogLink(event) {
 }
 function toggleDialogEditLink(event) {
 
-    let linkName = event.target.parentNode.parentNode.childNodes[1].innerText;
-    console.log(linkName);
+    let linkName = event.target.parentNode.parentNode.childNodes[0].innerText;
+    //console.log(linkName);
     let panel = event.target.parentNode.parentNode.parentNode.childNodes[0].innerText;
-    console.log(panel);
+    //console.log(panel);
     document.body.setAttribute('data-panel', `${panel}`);
     document.body.setAttribute('data-link', `${linkName}`);
     let dialog = document.getElementById('editLinkForm');
@@ -714,11 +731,11 @@ function escondeDialogos(event) {
             event.stopPropagation();
         });
     })
-    console.log(cuadros);
+    //console.log(cuadros);
 
     //Si se ha hecho click fuera de cualquier boton y dialogo
     if (!cuadros.includes(event.target)) {
-        console.log(event.target);
+        //console.log(event.target);
         cuadros.forEach(element => {
             element.addEventListener('click', (event) => {
                 event.stopPropagation();
@@ -730,4 +747,43 @@ function escondeDialogos(event) {
         })
         
     }
+}
+
+function ordenaItems(panel) {
+    console.log("Se ejecuta ordenaItems");
+    let el = [];
+    el.push(document.getElementById(`${panel}`));
+    //console.log(el);
+    let counter = 1;
+    el.forEach(element => {
+        
+        const sortableList = Sortable.create(element, {
+            group: element.id,
+            filter: '.headercolumn',
+            options: {
+                sort: true
+            },
+            store: {
+                /**
+                 * Get the order of elements. Called once during initialization.
+                 * @param   {Sortable}  sortable
+                 * @returns {Array}
+                 */
+                get: function (sortable) {
+                    var order = localStorage.getItem(sortable.options.group.name);
+                    //console.log(order);
+                    return order ? order.split('|') : [];
+                },
+        
+                /**
+                 * Save the order of elements. Called onEnd (when the item is dropped).
+                 * @param {Sortable}  sortable
+                 */
+                set: function (sortable) {
+                    var order = sortable.toArray();
+                    localStorage.setItem(sortable.options.group.name, order.join('|'));
+                }
+            }
+        })
+    })
 }

@@ -1,3 +1,9 @@
+body {
+    background: url(/img/background1.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 h1 {
     color: bisque;
     text-align: center;
@@ -16,33 +22,54 @@ h1.deskTitle {
 .cuerpo {
     display: flex;
     padding: 25px;
-    border: 1px solid #cdcdcd;
     flex-wrap: wrap;
     justify-content: center;
-    width: 70vw;
+    width: 100%;
 }
 #cols {
     padding: 0;
     border: 0;
 }
 .columna {
-    width: 23%;
-    border: 1px solid #ccc;
+    width: 240px;
+    margin-right: 45px;
+    margin-bottom: 45px;
+    /* box-shadow: 2px 3px 19px #00000073; */
+    padding-top: 50px;
+    background-color: #f0f8ff33;
+    height: fit-content;
+}
+.link:hover {
+    background-color: #3b7fa6;
 }
 .link {
-    margin: 5px;
+    height: 45px;
+    background-color: white;
+    /* margin: 5px;
     border: 1px solid #eee;
     border-radius: 15px;
     height: 50px;
     display: flex;
-    align-items: center;
+    align-items: center; */
+}
+.link a {
+    display: block;
+    height: 45px;
+    line-height: 44px;
+    padding-left: 12px;
+    text-decoration: none;
+    color: black;
+    font-size: 13px;
 }
 .link img {
-    margin: 15px;
+    vertical-align: text-top;
+    margin-right: 12px;
 }
 .lcontrols {
     position: relative;
-    left: 50%;
+    left: 79%;
+    width: fit-content;
+    top: -32px;
     display: none;
 }
 .lcontrols span {
@@ -55,18 +82,29 @@ h1.deskTitle {
     display: block;
 }
 .headercolumn {
-    display: flex;
-    align-items: center;
+    height: 50px;
 }
 .ccontrols {
-    margin-left: 60%;
+    position: relative;
+    left: 78%;
+    top: -42px;
+    width: fit-content;
     display: none;
+
 }
 .headercolumn:hover {
     cursor: pointer;
 }
 .headercolumn:hover .ccontrols {
     display: block;
+}
+.headercolumn h2 {
+    padding-left: 18px;
+    height: 50px;
+    background-color: #3b7fa6;
+    color: white;
+    margin: 0;
+    padding-top: 11px;
 }
 .bodcontrols {
     display: flex;
