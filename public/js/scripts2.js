@@ -7,10 +7,7 @@ document.addEventListener('click', escondeDialogos);
 
 async function cargaWeb(deskName) {
 
-    console.log("Se ejecuta la carga Web");
-
     //Cargamos la lista de escritorios
-
     let res = await fetch("http://localhost:3001/escritorios", {
         method: 'GET',
         headers: {
@@ -21,24 +18,59 @@ async function cargaWeb(deskName) {
     let json = await res.json();
 
     let escritorioActual = "";
-
+    //Si viene de recargar la página (DOMContentLoaded) usamos el primero
     if (typeof (deskName) === "object") {
 
         escritorioActual = json[0].name;
 
+    //Si no el pasado como parametro
     } else {
 
         escritorioActual = deskName;
     }
 
-    console.log(`Se carga el escritorio: ${escritorioActual}`);
-
+    //Establecemos el valor de data-desk del body para identificarlo luego
     document.body.setAttribute('data-desk', `${escritorioActual}`);
 
+    //Cambiamos el título según el escritorio que sea
     document.getElementById('deskTitle').innerText = `${escritorioActual}`;
 
-
+    //Recargamos la lista de escritorios disponibles
     refreshDesktops(json);
+    
+    //Almacenamos en variable la lista de escritorios para usarla luego
+    const escritorios = json;
+
+    const groupByPanel0 = escritorios.reduce((acc, elem) => {
+        if (acc[elem.panel]) {
+            acc[elem.panel].push(elem.name);
+        } else {
+            acc[elem.panel] = [elem.name];
+        }
+        return acc;
+    }, {});
+
+    for (const panel in groupByPanel0) {
+        //console.log(`Elementos en el array:`);
+        const items = groupByPanel0[panel];
+        //console.log(items);
+        const $raiz = document.getElementById('cols');
+            if ($raiz.hasChildNodes()) {
+                while ($raiz.childNodes.length >= 1) {
+                    $raiz.removeChild($raiz.firstChild);
+                }
+            }
+        items.forEach(element => {
+            
+            const $div = document.createElement('div');
+            $div.setAttribute('class', 'cuerpo');
+            $div.setAttribute('id', `${element.trim().replace(/\s+/g, '')}Cols`)
+            $raiz.appendChild($div);
+
+            //ordenaCols(element)
+
+        })
+    }
 
     //Cargamos las columnas del escritorio elegido
 
@@ -65,7 +97,6 @@ async function cargaWeb(deskName) {
     })
 
     json = await res.json();
-
     const groupByPanel = json.reduce((acc, elem) => {
         if (acc[elem.panel]) {
             acc[elem.panel].push(elem);
@@ -79,10 +110,12 @@ async function cargaWeb(deskName) {
         //console.log(`Elementos en el panel ${panel}:`);
         const items = groupByPanel[panel];
         //console.log(items);
+        
         refreshLinks(items, `${panel}`);
-        ordenaItems(panel);
+        //ordenaItems(panel);
     }
-
+    //Tiene que estar AQUI no antes o no funciona : por que?
+    ordenaCols(groupByPanel0);
     addLinkEvents();
 }
 
@@ -90,7 +123,7 @@ async function cargaWeb(deskName) {
 
 function addDesktopEvents(params) {
 
-    console.log("Se adjudican los eventos de Escritorio");
+    //console.log("Se adjudican los eventos de Escritorio");
 
     //Agregar evento click a cada elemento de la lista de escritorios
     document.querySelectorAll('.deskList').forEach(item => {
@@ -146,11 +179,12 @@ function addLinkEvents(params) {
 
 function selectDesktop(event) {
     event.stopPropagation();
-    console.log("Se ejecuta la función de selección de escritorio");
+    //console.log("Se ejecuta la función de selección de escritorio");
     //console.log(event.target.innerText);
     let deskName = event.target.innerText;
-    cargaWeb(deskName);
     document.body.setAttribute('data-desk', deskName);
+    cargaWeb(deskName);
+    
 }
 async function editDesktop(params) {
     let nombreOld = document.body.getAttribute('data-desk');
@@ -238,15 +272,18 @@ async function deleteDesktop() {
         alert('Borrado Cancelado')
     }
 }
+/**
+ * FUnción que recarga la lista de escritorios disponibles
+ * cuando carga la Web
+ * @param {*} lista 
+ */
 function refreshDesktops(lista) {
 
-    console.log("Se ejecuta refreshDesktops");
+    //Declaramos la raiz donde va la lista de escritorios
     const $raiz = document.getElementById('drpEscritorios');
-    //console.log($raiz);
+    //Convertimos el Json en Array
     const arr = Array.from(lista);
-    //console.log(arr);
-
-
+    //Si la raiz tiene hijos los vaciamos todos
     if ($raiz.hasChildNodes()) {
         while ($raiz.childNodes.length >= 1) {
             $raiz.removeChild($raiz.firstChild);
@@ -266,7 +303,7 @@ function refreshDesktops(lista) {
 //Manejo de columnas
 
 async function editColumn(params) {
-    console.log("Se ejecuta editColumn");
+    //console.log("Se ejecuta editColumn");
     let nombre = document.getElementById('editcolName').value;
     let escritorio = document.body.getAttribute('data-desk');
     let nombreOld = document.body.getAttribute('data-panel');
@@ -316,7 +353,7 @@ async function editColumn(params) {
 }
 async function createColumn() {
 
-    console.log("Se ejecuta createColumn");
+    //console.log("Se ejecuta createColumn");
     let nombre = document.getElementById('colName').value;
     let escritorio = document.body.getAttribute('data-desk');
     let body = { 'nombre': nombre, 'escritorio': `${escritorio}` }
@@ -410,13 +447,12 @@ async function deleteColumn(event) {
     }
 }
 function refreshColumns(lista) {
-    console.log("Se ejecuta refreshColumns");
-    const $raiz = document.getElementById('cols');
-    //console.log($raiz);
+    //console.log("Se ejecuta refreshColumns");
+    const escritorioActual = document.body.getAttribute('data-desk');
+    const $raiz = document.getElementById(`${escritorioActual.trim().replace(/\s+/g, '')}Cols`);
+    //console.log(lista);
     const arr = Array.from(lista);
-    //console.log(arr);
-    let sortable2 = Sortable.create($raiz);
-
+    //console.log("Lista " + arr);
 
     if ($raiz.hasChildNodes()) {
         while ($raiz.childNodes.length >= 1) {
@@ -475,12 +511,15 @@ function refreshColumns(lista) {
             item.addEventListener('click', toggleDialogEditColumn);
         })
     })
+    //No es necesario ejecutar aqui
+    // console.log(`Desde RefreshColumns ${escritorioActual}`);
+    //ordenaCols(escritorioActual);
 }
 
 //Manejo de links
 
 async function editLink(params) {
-    console.log("Edita el link");
+    //console.log("Edita el link");
     let nombreOld = document.body.getAttribute('data-link');
     let escritorio = document.body.getAttribute('data-desk');
     let columna = document.body.getAttribute('data-panel');
@@ -518,7 +557,7 @@ async function editLink(params) {
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
 async function createLink() {
-    console.log("Entra a la function");
+    //console.log("Entra a la function");
     // //Falta el escritorio actual
     let escritorio = document.body.getAttribute('data-desk');
     let columna = document.body.getAttribute('data-panel');
@@ -665,7 +704,7 @@ function toggleDialogDesktop() {
     
     let dialog = document.getElementById('addDeskForm');
     let visible = dialog.style.display === 'flex';
-    console.log(visible);
+    //console.log(visible);
     dialog.style.display = visible ? 'none' : 'flex';
 }
 
@@ -750,11 +789,11 @@ function escondeDialogos(event) {
 }
 
 function ordenaItems(panel) {
-    console.log("Se ejecuta ordenaItems");
+    //console.log("Se ejecuta ordenaItems");
     let el = [];
     el.push(document.getElementById(`${panel}`));
     //console.log(el);
-    let counter = 1;
+
     el.forEach(element => {
         
         const sortableList = Sortable.create(element, {
@@ -785,5 +824,56 @@ function ordenaItems(panel) {
                 }
             }
         })
+        //console.log(sortableList);
     })
+}
+
+function ordenaCols(escritorios) {
+
+    let arr = Object.values(escritorios);
+    arr = arr.flat();
+    console.log(arr);
+    let el = [];
+    
+    arr.forEach(element => {
+        console.log(element);
+        el.push(document.getElementById(`${element.trim().replace(/\s+/g, '')}Cols`));
+    })
+    
+    console.log(el);
+
+    el.forEach(element => {
+        
+        Sortable.create(element, {
+            
+            group: `Grupo${element.id}`,
+            options: {
+                sort: true,
+            },
+            store: {
+                /**
+                 * Get the order of elements. Called once during initialization.
+                 * @param   {Sortable}  sortable
+                 * @returns {Array}
+                 */
+                get: function (sortable) {
+                    var order = localStorage.getItem(sortable.options.group.name);
+                    //console.log(order);
+                    return order ? order.split('|') : [];
+                },
+        
+                /**
+                 * Save the order of elements. Called onEnd (when the item is dropped).
+                 * @param {Sortable}  sortable
+                 */
+                set: function (sortable) {
+                    var order = sortable.toArray();
+                    localStorage.setItem(sortable.options.group.name, order.join('|'));
+                }
+            }
+        })
+        //console.log(sortableList)
+    })
+       
+    
 }
