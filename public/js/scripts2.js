@@ -1,10 +1,9 @@
 document.addEventListener('DOMContentLoaded', cargaWeb);
 document.addEventListener('click', escondeDialogos);
-
-//Función que rellena la Web según el escritorio elegido
-//Si se le pasa parámetro, carga el escritorio segun el nombre pasado como param
-//Si no carga el primero de la lista
-
+/**
+ * Función que rellena la Web según el escritorio elegido, Si se le pasa parámetro, carga el      escritorio segun el nombre pasado como param Si no carga el primero de la lista
+ * @param {*} deskName 
+ */
 async function cargaWeb(deskName) {
 
     //Cargamos la lista de escritorios
@@ -37,41 +36,7 @@ async function cargaWeb(deskName) {
 
     //Recargamos la lista de escritorios disponibles
     refreshDesktops(json);
-    
-    //Almacenamos en variable la lista de escritorios para usarla luego
-    const escritorios = json;
-
-    const groupByPanel0 = escritorios.reduce((acc, elem) => {
-        if (acc[elem.panel]) {
-            acc[elem.panel].push(elem.name);
-        } else {
-            acc[elem.panel] = [elem.name];
-        }
-        return acc;
-    }, {});
-
-    for (const panel in groupByPanel0) {
-        //console.log(`Elementos en el array:`);
-        const items = groupByPanel0[panel];
-        //console.log(items);
-        const $raiz = document.getElementById('cols');
-            if ($raiz.hasChildNodes()) {
-                while ($raiz.childNodes.length >= 1) {
-                    $raiz.removeChild($raiz.firstChild);
-                }
-            }
-        items.forEach(element => {
-            
-            const $div = document.createElement('div');
-            $div.setAttribute('class', 'cuerpo');
-            $div.setAttribute('id', `${element.trim().replace(/\s+/g, '')}Cols`)
-            $raiz.appendChild($div);
-
-            //ordenaCols(element)
-
-        })
-    }
-
+    constructDesktops(json);
     //Cargamos las columnas del escritorio elegido
 
     res = await fetch(`http://localhost:3001/columnas?escritorio=${escritorioActual}`, {
@@ -84,6 +49,7 @@ async function cargaWeb(deskName) {
     json = await res.json();
 
     addDesktopEvents();
+    let el = document.getElementById(`${escritorioActual}Cols`);
     refreshColumns(json);
     addColumnEvents();
 
@@ -112,16 +78,16 @@ async function cargaWeb(deskName) {
         //console.log(items);
         
         refreshLinks(items, `${panel}`);
-        //ordenaItems(panel);
+        ordenaItems(panel);
     }
     //Tiene que estar AQUI no antes o no funciona : por que?
-    ordenaCols(groupByPanel0);
+    ordenaCols(el);
     addLinkEvents();
 }
 
 //Manejo de Eventos
 
-function addDesktopEvents(params) {
+function addDesktopEvents() {
 
     //console.log("Se adjudican los eventos de Escritorio");
 
@@ -156,7 +122,7 @@ function addDesktopEvents(params) {
 
 
 }
-function addColumnEvents(params) {
+function addColumnEvents() {
     document.querySelector('#colSubmit').removeEventListener('click', createColumn);
     document.querySelector('#colSubmit').addEventListener('click', createColumn);
 
@@ -164,7 +130,7 @@ function addColumnEvents(params) {
     document.querySelector('#editcolSubmit').addEventListener('click', editColumn);
     
 }
-function addLinkEvents(params) {
+function addLinkEvents() {
     // Agregar evento de clic al botón de envío dentro del cuadro de diálogo
     document.querySelector('#linkSubmit').removeEventListener('click', createLink);
     document.querySelector('#linkSubmit').addEventListener('click', createLink);
@@ -177,14 +143,45 @@ function addLinkEvents(params) {
 
 //Manejo de escritorios
 
+function constructDesktops(json) {
+    console.log(json);
+    const groupByPanel = json.reduce((acc, elem) => {
+        if (acc[elem.panel]) {
+            acc[elem.panel].push(elem.name);
+        } else {
+            acc[elem.panel] = [elem.name];
+        }
+        return acc;
+    }, {});
+
+    for (const panel in groupByPanel) {
+        const items = groupByPanel[panel];
+        console.log(items);
+        const $raiz = document.getElementById('cols');
+        if ($raiz.hasChildNodes()) {
+            while ($raiz.childNodes.length >= 1) {
+                $raiz.removeChild($raiz.firstChild);
+            }
+        }
+        items.forEach(element  => {
+            console.log(element);
+            const $div = document.createElement('div');
+            $div.setAttribute('class', 'cuerpo');
+            $div.setAttribute('id', `${element}Cols`);
+            $div.setAttribute('data-id', 'columns');
+            $raiz.appendChild($div); 
+        })
+    }
+    
+}
+
 function selectDesktop(event) {
     event.stopPropagation();
-    //console.log("Se ejecuta la función de selección de escritorio");
-    //console.log(event.target.innerText);
     let deskName = event.target.innerText;
     document.body.setAttribute('data-desk', deskName);
-    cargaWeb(deskName);
-    
+    // let elemento = document.querySelector('[data-id="columns"]');
+    // elemento.setAttribute('id', `${deskName}Cols`);
+    cargaWeb(deskName);   
 }
 async function editDesktop(params) {
     let nombreOld = document.body.getAttribute('data-desk');
@@ -449,8 +446,9 @@ async function deleteColumn(event) {
 function refreshColumns(lista) {
     //console.log("Se ejecuta refreshColumns");
     const escritorioActual = document.body.getAttribute('data-desk');
-    const $raiz = document.getElementById(`${escritorioActual.trim().replace(/\s+/g, '')}Cols`);
-    //console.log(lista);
+    console.log(escritorioActual);
+    const $raiz = document.getElementById(`${escritorioActual}Cols`);
+    console.log($raiz);
     const arr = Array.from(lista);
     //console.log("Lista " + arr);
 
@@ -788,6 +786,8 @@ function escondeDialogos(event) {
     }
 }
 
+//Funciones para aplicar Sortablejs
+
 function ordenaItems(panel) {
     //console.log("Se ejecuta ordenaItems");
     let el = [];
@@ -824,56 +824,47 @@ function ordenaItems(panel) {
                 }
             }
         })
-        //console.log(sortableList);
+        console.log(sortableList);
     })
 }
 
-function ordenaCols(escritorios) {
+var arr = [];
 
-    let arr = Object.values(escritorios);
-    arr = arr.flat();
-    console.log(arr);
-    let el = [];
-    
-    arr.forEach(element => {
-        console.log(element);
-        el.push(document.getElementById(`${element.trim().replace(/\s+/g, '')}Cols`));
-    })
-    
-    console.log(el);
+function ordenaCols(element) {
 
-    el.forEach(element => {
+        arr.push(element);
+        console.log(arr);
         
-        Sortable.create(element, {
+        arr.forEach(element => {
+            const sortablelist2 = Sortable.create(element, {
             
-            group: `Grupo${element.id}`,
-            options: {
-                sort: true,
-            },
-            store: {
-                /**
-                 * Get the order of elements. Called once during initialization.
-                 * @param   {Sortable}  sortable
-                 * @returns {Array}
-                 */
-                get: function (sortable) {
-                    var order = localStorage.getItem(sortable.options.group.name);
-                    //console.log(order);
-                    return order ? order.split('|') : [];
+                group: `Grupo${element.id}`,
+                options: {
+                    sort: true
                 },
-        
-                /**
-                 * Save the order of elements. Called onEnd (when the item is dropped).
-                 * @param {Sortable}  sortable
-                 */
-                set: function (sortable) {
-                    var order = sortable.toArray();
-                    localStorage.setItem(sortable.options.group.name, order.join('|'));
+                store: {
+                    /**
+                     * Get the order of elements. Called once during initialization.
+                     * @param   {Sortable}  sortable
+                     * @returns {Array}
+                     */
+                    get: function (sortable) {
+                        var order = localStorage.getItem(sortable.options.group.name);
+                        //console.log(order);
+                        return order ? order.split('|') : [];
+                    },
+            
+                    /**
+                     * Save the order of elements. Called onEnd (when the item is dropped).
+                     * @param {Sortable}  sortable
+                     */
+                    set: function (sortable) {
+                        var order = sortable.toArray();
+                        localStorage.setItem(sortable.options.group.name, order.join('|'));
+                    }
                 }
-            }
+            })
+            console.log(sortablelist2);
         })
-        //console.log(sortableList)
-    })
-       
-    
-}
+        
+    }
