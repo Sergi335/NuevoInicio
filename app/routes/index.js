@@ -1,7 +1,7 @@
 const express = require("express"),
       router = express.Router();
       
-const {getItems, getItem, createItem, deleteItem, editItem} = require("../controllers/links")
+const {getItems, getItem, createItem, deleteItem, editItem, updateIDs} = require("../controllers/links")
 const {getDeskItems, deleteDeskItem, createDeskItem, editDeskItem} = require("../controllers/escritorios")
 const {getColItems, createColItem, deleteColItem, editColItem} = require("../controllers/columnas")
 const {registraUsuario} = require("../controllers/auth");
@@ -33,6 +33,8 @@ router.put("/escritorios", editDeskItem);
 router.put("/columnas", editColItem);
 router.put("/links", editItem);
 router.post("/login", registraUsuario);
+
+router.put("/linksupdt", updateIDs);
 
 /*.get("/~", (req, res) => {
     almacenar ruta peticion en variable para comparar en db

@@ -15,6 +15,9 @@ const LinkSchema = new mongoose.Schema({
     },
     panel: {
         type: String
+    },
+    idpanel: {
+        type: String
     }
 }, {
     timestamps: true,

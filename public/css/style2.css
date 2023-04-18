@@ -1,11 +1,12 @@
 body {
-    background: url(/img/background1.jpg);
+    /* background: url(/img/background1.jpg); */
     background-size: cover;
     background-repeat: no-repeat;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: whitesmoke;
 }
 h1 {
-    color: bisque;
+    color: #4e4e4e;
     text-align: center;
     width: 70vw;
     font-weight: 100;
@@ -45,9 +46,10 @@ h1.deskTitle {
     margin-bottom: 45px;
     box-shadow: 2px 3px 19px #00000073;
     border-radius: 15px;
+    height: fit-content;
 }
 .link:hover {
-    background-color: #3b7fa6;
+    background-color: #9d9d9d;
 }
 .link {
     height: 45px;
@@ -108,7 +110,7 @@ h1.deskTitle {
 .headercolumn h2 {
     padding-left: 18px;
     height: 50px;
-    background-color: #3b7fa6;
+    background-color: #9d9d9d;
     color: white;
     margin: 0;
     padding-top: 11px;
@@ -138,7 +140,7 @@ h1.deskTitle {
 }
 /* W3C SCHOOLS -----------------------------------*/
 .dropbtn {
-    background-color: #4CAF50;
+    background-color: #9d9d9d;
     color: white;
     padding: 16px;
     font-size: 16px;
@@ -177,5 +179,5 @@ h1.deskTitle {
   }
   
   .dropdown:hover .dropbtn {
-    background-color: #3e8e41;
+    background-color: #c7c7c7;
   }

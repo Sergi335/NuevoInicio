@@ -4,7 +4,7 @@ document.addEventListener('click', escondeDialogos);
  * Función que rellena la Web según el escritorio elegido. 
  * Si se le pasa parámetro, carga el escritorio segun el nombre pasado como param. 
  * Si no carga el primero de la lista
- * @param {*} deskName 
+ * @param {object|String} deskName 
  */
 async function cargaWeb(deskName) {
 
@@ -40,7 +40,7 @@ async function cargaWeb(deskName) {
 
     //Recargamos la lista de escritorios disponibles
     refreshDesktops(json);
-    constructDesktops(json);
+    constructDesktops(json, escritorioActual);
 
     //Cargamos las columnas del escritorio elegido
     //TODO Control de errores si falla el fetch
@@ -60,7 +60,9 @@ async function cargaWeb(deskName) {
     let el = document.getElementById(`${escritorioActual}Cols`);
 
     //Refrescamos las columnas
-    refreshColumns(json);
+    //console.log(localStorage.getItem(`Grupo${escritorioActual}Cols`));
+    let ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
+    refreshColumns(json, ordenCols);
 
     //Añadimos los eventos de columnas
     addColumnEvents();
@@ -84,10 +86,12 @@ async function cargaWeb(deskName) {
         }
         return acc;
     }, {});
+    //console.log(groupByPanel);
 
     for (const panel in groupByPanel) {
         const items = groupByPanel[panel];
         refreshLinks(items);
+        //console.log(panel);
         ordenaItems(panel);
     }
 
@@ -95,17 +99,17 @@ async function cargaWeb(deskName) {
     addLinkEvents();
 
     //Tiene que estar AQUI no antes o no funciona : por que?
-    ordenaCols(el);
-
-
-
+    //ordenaCols(el);
 }
 
 //Manejo de Eventos
 
+/**
+ * Carga los manejadores de eventos para la manipulación de escritorios
+ */
 function addDesktopEvents() {
 
-    //Agregar evento click a cada elemento de la lista de escritorios
+    //Agregar evento click a cada elemento de la lista de de selección escritorios
     document.querySelectorAll('.deskList').forEach(item => {
         item.removeEventListener('click', selectDesktop);
         item.addEventListener('click', selectDesktop);
@@ -123,6 +127,7 @@ function addDesktopEvents() {
     document.querySelector('#editDesk').removeEventListener('click', toggleDialogEditDesktop);
     document.querySelector('#editDesk').addEventListener('click', toggleDialogEditDesktop);
 
+    // Agregar evento de clic al botón submit de editar un escritorio
     document.querySelector('#editdeskSubmit').removeEventListener('click', editDesktop);
     document.querySelector('#editdeskSubmit').addEventListener('click', editDesktop);
 
@@ -130,12 +135,15 @@ function addDesktopEvents() {
     document.querySelector('#removeDesk').removeEventListener('click', deleteDesktop);
     document.querySelector('#removeDesk').addEventListener('click', deleteDesktop);
 
-    //Añadir eventos en botones submit
+    //Añadir eventos en botones submit de crear escritorio
     document.querySelector('#deskSubmit').removeEventListener('click', createDesktop);
     document.querySelector('#deskSubmit').addEventListener('click', createDesktop);
 
 
 }
+/**
+ * Carga los manejadores de eventos para la manipulación de columnas
+ */
 function addColumnEvents() {
     document.querySelector('#colSubmit').removeEventListener('click', createColumn);
     document.querySelector('#colSubmit').addEventListener('click', createColumn);
@@ -144,11 +152,13 @@ function addColumnEvents() {
     document.querySelector('#editcolSubmit').addEventListener('click', editColumn);
 
 }
+/**
+ * Carga los manejadores de eventos para la manipulación de links
+ */
 function addLinkEvents() {
     // Agregar evento de clic al botón de envío dentro del cuadro de diálogo
     document.querySelector('#linkSubmit').removeEventListener('click', createLink);
     document.querySelector('#linkSubmit').addEventListener('click', createLink);
-
 
     // Agregar evento de clic al botón de envío dentro del cuadro de diálogo
     document.querySelector('#editlinkSubmit').removeEventListener('click', editLink);
@@ -157,8 +167,14 @@ function addLinkEvents() {
 
 //Manejo de escritorios
 
-function constructDesktops(json) {
-    //Añadir ID diferente si tienen el mismo nombre? que implicaciones tiene?
+/**
+ * Inserta un nodo en el DOM según la cantidad de escritorios
+ * Oculta los inactivos y muestra el activo
+ * @param {Object} json 
+ * @param {String} escritorioActual 
+ */
+function constructDesktops(json, escritorioActual) {
+    
     const groupByPanel = json.reduce((acc, elem) => {
         if (acc[elem.panel]) {
             acc[elem.panel].push(elem.name);
@@ -183,17 +199,22 @@ function constructDesktops(json) {
             $div.setAttribute('id', `${element}Cols`);
             $div.setAttribute('data-id', 'columns');
             $raiz.appendChild($div);
+            $div.style.display = "none";
+            if(`${element}Cols` === `${escritorioActual}Cols`) {
+                $div.style.display = "flex";
+            }
         })
     }
 
 }
-
+/**
+ * 
+ * @param {Object} event 
+ */
 function selectDesktop(event) {
     event.stopPropagation();
     let deskName = event.target.innerText;
     document.body.setAttribute('data-desk', deskName);
-    // let elemento = document.querySelector('[data-id="columns"]');
-    // elemento.setAttribute('id', `${deskName}Cols`);
     cargaWeb(deskName);
 }
 async function editDesktop(params) {
@@ -201,7 +222,7 @@ async function editDesktop(params) {
     let nombre = document.getElementById('editdeskName').value;
     let body = { 'nombre': nombre, 'nombreOld': nombreOld }
     body = JSON.stringify(body)
-    //console.log(JSON.stringify(body));
+
     let res = await fetch("http://localhost:3001/escritorios", {
         method: 'PUT',
         headers: {
@@ -209,6 +230,7 @@ async function editDesktop(params) {
         },
         body: body
     })
+    if (!res.ok) throw { status: res.status, statusText: res.statusText }
     let json = await res.json();
     const firstKey = Object.keys(json)[0];
     const firstValue = json[firstKey];
@@ -216,8 +238,7 @@ async function editDesktop(params) {
     if (firstKey === "error") {
         $error = document.getElementById('editdeskError');
         $error.innerText = `${firstKey}, ${firstValue}`;
-        //console.log(firstKey);
-        //console.log(firstValue);
+        
     } else {
         let dialog = document.getElementById('editDeskForm');
         let visible = dialog.style.display === 'flex';
@@ -226,7 +247,13 @@ async function editDesktop(params) {
         addDesktopEvents();
     }
     document.getElementById('deskTitle').innerText = `${nombre}`;
-    if (!res.ok) throw { status: res.status, statusText: res.statusText }
+
+    //TODO Local storage
+    let ordenCols = localStorage.getItem(`Grupo${nombreOld}Cols`);
+    localStorage.setItem(`Grupo${nombre}Cols`, ordenCols);
+    localStorage.removeItem(`Grupo${nombreOld}Cols`);
+    console.log(ordenCols);
+    
 }
 async function createDesktop(params) {
     let nombre = document.getElementById('deskName').value;
@@ -312,16 +339,16 @@ function refreshDesktops(lista) {
 
 //Manejo de columnas
 
-async function editColumn(params) {
+async function editColumn(event) {
     //console.log("Se ejecuta editColumn");
     let nombre = document.getElementById('editcolName').value;
     let escritorio = document.body.getAttribute('data-desk');
     let nombreOld = document.body.getAttribute('data-panel');
     let dbID = document.getElementById('editcolSubmit').getAttribute('sender');
-    //console.log(dbID);
+    console.log(dbID);
     let body = { 'nombre': nombre, 'nombreOld': nombreOld, 'escritorio': escritorio }
     body = JSON.stringify(body)
-    //console.log(JSON.stringify(body));
+
     let res = await fetch("http://localhost:3001/columnas", {
         method: 'PUT',
         headers: {
@@ -335,9 +362,10 @@ async function editColumn(params) {
     let dialog = document.getElementById('editColForm');
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
-    //console.log(json);
-    //Hay que recargar solo la columna TODO
-    refreshColumns(json);
+
+    let creado = true;
+    refreshColumns(json, null, creado);
+
     res = await fetch(`http://localhost:3001/links?escritorio=${escritorio}`, {
         method: 'GET',
         headers: {
@@ -359,9 +387,12 @@ async function editColumn(params) {
         //console.log(`Elementos en el panel ${panel}:`);
         const items = groupByPanel[panel];
         const id = document.getElementById(`${escritorio}${panel}`).getAttribute('data-db');
-        refreshLinks(items, `${id}`);
+        refreshLinks(items);
         //insertaNodos(items, `${panel}`, "link");
     }
+    //let el = document.getElementById(`${escritorio}Cols`);
+    // console.log(typeof(el))
+    //ordenaCols(el);
 }
 async function createColumn() {
 
@@ -370,7 +401,7 @@ async function createColumn() {
     let escritorio = document.body.getAttribute('data-desk');
     let body = { 'nombre': nombre, 'escritorio': `${escritorio}` }
     body = JSON.stringify(body)
-    //console.log(JSON.stringify(body));
+
     let res = await fetch("http://localhost:3001/columnas", {
         method: 'POST',
         headers: {
@@ -385,7 +416,8 @@ async function createColumn() {
     dialog.style.display = visible ? 'none' : 'flex';
     //console.log(json);
     //Hay que recargar solo la columna TODO
-    refreshColumns(json);
+    let creado = true;
+    refreshColumns(json, null, creado);
     res = await fetch(`http://localhost:3001/links?escritorio=${escritorio}`, {
         method: 'GET',
         headers: {
@@ -419,7 +451,7 @@ async function deleteColumn(event) {
     //Pasarle el id del elemento a borrar ver como afecta en el servidor
     let escritorio = document.body.getAttribute('data-desk');
     //let nombre = event.target.parentNode.parentNode.childNodes[0].innerText;
-    let elementoId = event.target.parentNode.parentNode.parentNode.parentNode;
+    let elementoId = event.target.parentNode.parentNode.parentNode.childNodes[1];
     console.log(elementoId);
     elementoId = elementoId.getAttribute('data-db');
     let body = { 'id': elementoId, 'escritorio': `${escritorio}` }
@@ -462,7 +494,7 @@ async function deleteColumn(event) {
         //insertaNodos(items, `${panel}`, "link");
     }
 }
-function refreshColumns(lista) {
+function refreshColumns(lista, ordenCols = null, creado) {
 
     const escritorioActual = document.body.getAttribute('data-desk');
     const $raiz = document.getElementById(`${escritorioActual}Cols`);
@@ -474,25 +506,27 @@ function refreshColumns(lista) {
         }
     }
     let counter = 0;
+    let counter2 = 0;
     let arr2 = [];
     arr.forEach((element, index, arr) => {
         const $columna = document.createElement("div");
         $columna.setAttribute("class", "columna");
+        //Permite detectar duplicados y darles un id distinto incremental
         if (arr.map(e => e.name).indexOf(element.name) !== index) {
 
             arr2.push(`${element.name}${counter}`);
             $columna.setAttribute("id", `${escritorioActual}${arr2[counter]}`);
             counter++;
-            console.log(arr2);
 
         } else {
 
             $columna.setAttribute("id", `${escritorioActual}${element.name}`);
         }
 
-        $columna.setAttribute("data-db", `${element._id}`)
+        $columna.setAttribute("data-db", `${element._id}`) 
         const $envolt = document.createElement("div");
         $envolt.setAttribute("class", "envolt");
+        $envolt.setAttribute("data-id", `${counter2}`);
         const $headerColumn = document.createElement("div");
         $headerColumn.setAttribute("class", "headercolumn");
         const $header = document.createElement("h2");
@@ -516,10 +550,9 @@ function refreshColumns(lista) {
         $headerColumn.appendChild($ccontrols)
 
         $envolt.appendChild($headerColumn)
+        $envolt.appendChild($columna)
 
-        $columna.appendChild($envolt)
-
-        $raiz.appendChild($columna)
+        $raiz.appendChild($envolt)
 
         //Agregar evento de clic al botón de borrar columnas
         document.querySelectorAll('.borracol').forEach(item => {
@@ -536,14 +569,44 @@ function refreshColumns(lista) {
             item.removeEventListener('click', toggleDialogEditColumn);
             item.addEventListener('click', toggleDialogEditColumn);
         })
+        counter2++;
     })
+    //console.log(`Último id creado: ${counter2 - 1}`);
 
+
+    
+    if(ordenCols === undefined || ordenCols === null) {
+
+        ordenaCols($raiz);
+        ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
+        //console.log(`Es undefined o null: ${ordenCols}`);
+        
+    } else {
+
+        //console.log(ordenCols);
+
+    }
+
+    if(ordenCols != null && creado === true) {
+
+        //console.log("Viene de crear o editar");
+        arrOrden = ordenCols.split('|');
+        const primerElemento = arrOrden.shift();
+        arrOrden.push(primerElemento);
+        //console.log(arrOrden);
+        localStorage.setItem(`Grupo${escritorioActual}Cols`, `${arrOrden.join('|')}`);
+        ordenaCols($raiz);
+
+    } else {
+
+        //console.log("Es una actualización");
+        ordenaCols($raiz);
+    }
     if (arr2.length > 0) {
         arr2.forEach(element => {
             ordenaItems(element);
         })
     }
-
 }
 
 //Manejo de links
@@ -580,11 +643,11 @@ async function editLink(params) {
     const $raiz = document.querySelector(`[data-db="${dbID}"]`)
     //console.log($raiz);
     if ($raiz.hasChildNodes()) {
-        while ($raiz.childNodes.length > 1) {
+        while ($raiz.childNodes.length >= 1) {
             $raiz.removeChild($raiz.lastChild);
         }
     }
-    refreshLinks(json, dbID)
+    refreshLinks(json)
     ordenaItems(columna)
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
@@ -624,14 +687,14 @@ async function createLink(event) {
 
     //La vaciamos
     if ($raiz.hasChildNodes()) {
-        while ($raiz.childNodes.length > 1) {
+        while ($raiz.childNodes.length >= 1) {
             $raiz.removeChild($raiz.lastChild);
         }
     }
     //La rellenamos con los datos del json
     refreshLinks(json)
     //Llamamos a Sortable y le pasamos la columna
-    //ordenaItems(columna) // Aqui tmb hara falta ID?? -> no se a q se refiere, si se desactiva desaparece el problema de que se monta el link nuevo, pero no ordena, aunque al refrescar la pagina se vuelve a llamar a la función en carga web y se monta otra vez
+    ordenaItems(columna)
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
 async function deleteLink(event) {
@@ -639,12 +702,13 @@ async function deleteLink(event) {
 
     let nombre = event.target.parentNode.parentNode.childNodes[0].innerText;
     let panel = event.target.parentNode.parentNode.parentNode.id
+
     console.log(event.target.parentNode.parentNode.parentNode);
     let id = event.target.parentNode.parentNode.parentNode;
     id = id.getAttribute('data-db');
-    console.log(panel);
+
     let escritorio = document.body.getAttribute('data-desk');
-    //console.log(nombre, panel)
+
     let body = { 'nombre': nombre, 'panel': panel, 'escritorio': escritorio, 'id': id }
     body = JSON.stringify(body)
     console.log(JSON.stringify(body));
@@ -656,16 +720,17 @@ async function deleteLink(event) {
         body: body
     })
     let json = await res.json();
-    console.log(json);
+    //console.log(json);
     const $raiz = document.querySelector(`[data-db="${id}"]`)
     //console.log($raiz);
     if ($raiz.hasChildNodes()) {
-        while ($raiz.childNodes.length > 1) {
+        while ($raiz.childNodes.length >= 1) {
             $raiz.removeChild($raiz.lastChild);
         }
     }
-    refreshLinks(json, id)
+    refreshLinks(json)
     panel = panel.replace(escritorio, "");
+    //console.log(panel);
     ordenaItems(panel)
 
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
@@ -675,12 +740,13 @@ function refreshLinks(lista) {
 
     //Pasamos de objeto json a array
     const arr = Array.from(lista);
-
+    let contador = 0;
     arr.forEach(element => {
         //Por cada elemento construimos un link y lo insertamos en su raiz
         const $raiz = document.querySelector(`[data-db="${element.idpanel}"]`);
         const $div = document.createElement("div");
         $div.setAttribute("class", "link");
+        $div.setAttribute("data-id", contador);
         const $img = document.createElement("img");
         $img.setAttribute("src", `${element.imgURL}`);
         const $link = document.createElement("a");
@@ -712,7 +778,11 @@ function refreshLinks(lista) {
             item.removeEventListener('click', toggleDialogEditLink);
             item.addEventListener('click', toggleDialogEditLink);
         })
+        contador++;
+        
     })
+    // let columna = document.body.getAttribute('data-panel');
+    // ordenaItems(columna)
 }
 
 //funciones auxiliares para mostrar/ocultar cuadros de diálogo
@@ -726,8 +796,8 @@ function toggleDialogColumn() {
 function toggleDialogEditColumn(event) {
     //console.log("entra");
     let panel = event.target.parentNode.parentNode.childNodes[0].innerText;
-    let panelID = event.target.parentNode.parentNode.parentNode.parentNode.getAttribute('data-db');
-    //console.log(panelID);
+    let panelID = event.target.parentNode.parentNode.parentNode.childNodes[1].getAttribute('data-db');
+    console.log(panelID);
     let boton = document.getElementById('editcolSubmit');
     boton.setAttribute('sender', `${panelID}`);
     document.body.setAttribute('data-panel', `${panel}`);
@@ -753,7 +823,7 @@ function toggleDialogEditDesktop(event) {
 function toggleDialogLink(event) {
 
     let panel = event.target.parentNode.parentNode.childNodes[0].innerText;
-    let panelID = event.target.parentNode.parentNode.parentNode.parentNode.getAttribute('data-db');
+    let panelID = event.target.parentNode.parentNode.parentNode.childNodes[1].getAttribute('data-db');
     document.body.setAttribute('data-panel', `${panel}`);
     let boton = document.getElementById('linkSubmit');
     boton.setAttribute('sender', `${panelID}`);
@@ -766,9 +836,9 @@ function toggleDialogEditLink(event) {
 
     let linkName = event.target.parentNode.parentNode.childNodes[0].innerText;
     let panelID = event.target.parentNode.parentNode.parentNode.getAttribute('data-db');
-    //console.log(event.target.parentNode.parentNode.parentNode);
+    console.log(event.target.parentNode.parentNode.parentNode.parentNode.childNodes[0].childNodes[0].innerText);
     //console.log(linkName);
-    let panel = event.target.parentNode.parentNode.parentNode.childNodes[0].innerText;
+    let panel = event.target.parentNode.parentNode.parentNode.parentNode.childNodes[0].childNodes[0].innerText;
     //console.log(panel);
     let boton = document.getElementById('editlinkSubmit');
     boton.setAttribute('sender', `${panelID}`);
@@ -836,19 +906,26 @@ function escondeDialogos(event) {
 function ordenaItems(panel) {
 
     if (panel !== null) {
-        //console.log("Se ejecuta ordenaItems");
+
         let escritorioActual = document.body.getAttribute('data-desk');
         let el = [];
         el.push(document.getElementById(`${escritorioActual}${panel}`));
 
         el.forEach(element => {
 
+            let grupo;
+            if(escritorioActual === 'Test') {
+                grupo = `Shared${escritorioActual}`;
+            } else {
+                grupo = element.id;
+            }
+
             const sortableList = Sortable.create(element, {
-                group: element.id,
+                group: grupo,
                 filter: '.envolt',
                 options: {
-                    sort: false,
-                    direction: 'vertical'
+                    sort: true,
+                    dataIdAttr: 'data-id'
                 },
                 store: {
                     /**
@@ -870,6 +947,16 @@ function ordenaItems(panel) {
                         var order = sortable.toArray();
                         localStorage.setItem(sortable.options.group.name, order.join('|'));
                     }
+                },
+                onEnd: function (evt) {
+                    var itemEl = evt.item;
+                    var listaOrigen = evt.from;
+                    console.log(itemEl);
+                    console.log('Viejo Index' + evt.oldIndex);
+                    console.log('Nuevo Index' + evt.newIndex);
+                    console.dir(listaOrigen);
+                    console.dir(evt.to);
+                    console.log(itemEl.parentNode.parentNode);
                 }
             })
             //console.log(sortableList);
@@ -880,20 +967,20 @@ function ordenaItems(panel) {
 
 }
 
-var arr = [];
+
 
 function ordenaCols(element) {
-
+    // console.log("Se ejecuta ordenacols");
+    let arr = [];
     arr.push(element);
-    //console.log(arr);
+    // console.log(arr);
 
     arr.forEach(element => {
         const sortablelist2 = Sortable.create(element, {
 
             group: `Grupo${element.id}`,
-            options: {
-                sort: true
-            },
+            sort: true,
+            dataIdAttr: 'data-id',
             store: {
                 /**
                  * Get the order of elements. Called once during initialization.
@@ -916,7 +1003,11 @@ function ordenaCols(element) {
                 }
             }
         })
-        //console.log(sortablelist2);
+        var order = sortablelist2.toArray();
+        localStorage.setItem(sortablelist2.options.group.name, order.join('|'));
+        // console.log(sortablelist2.toArray());
+
+        //Habrá que hacer un getItems y que lo añada al final o cualquier ostia
     })
 
 }

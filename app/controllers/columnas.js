@@ -27,11 +27,11 @@ const deleteColItem = async (req, res) => {
     const { body } = req;
     console.log(body);
     const objeto = new Object();
-    objeto.name = body.nombre;
+    objeto._id = body.id;
     objeto.escritorio = body.escritorio;
     console.log(objeto);
-    const linksinCol = await linksModel.deleteMany({ panel: `${objeto.name}` })
-    const data = await columnasModel.deleteOne({ name: `${objeto.name}` })
+    const linksinCol = await linksModel.deleteMany({ idpanel: `${objeto._id}` })
+    const data = await columnasModel.deleteOne({ _id: `${objeto._id}` })
     const lista = await columnasModel.find({ escritorio: `${objeto.escritorio}` });
     console.log(data);
     console.log(linksinCol);
