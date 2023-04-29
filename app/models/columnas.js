@@ -9,6 +9,9 @@ const ColumnSchema = new mongoose.Schema({
     },
     vacio: {
         type: Boolean
+    },
+    order: {
+        type: Number
     }
 }, {
     timestamps: true,

@@ -3,7 +3,7 @@ const express = require("express"),
       
 const {getItems, getItemsCount, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos} = require("../controllers/links")
 const {getDeskItems, deleteDeskItem, createDeskItem, editDeskItem} = require("../controllers/escritorios")
-const {getColItems, createColItem, deleteColItem, editColItem} = require("../controllers/columnas")
+const {getColItems, createColItem, deleteColItem, editColItem, actualizarOrdenColumnas} = require("../controllers/columnas")
 const {registraUsuario} = require("../controllers/auth");
 
 
@@ -34,6 +34,7 @@ router.put("/columnas", editColItem);
 router.put("/links", editItem);
 router.put("/draglinks", editdragItem);
 router.put("/draglink", actualizarOrdenElementos);
+router.put("/dragcol", actualizarOrdenColumnas)
 router.post("/login", registraUsuario);
 
 /*.get("/~", (req, res) => {

@@ -38,7 +38,7 @@ async function cargaWeb(deskName) {
     //Cambiamos el título según el escritorio que sea
     document.getElementById('deskTitle').innerText = `${escritorioActual}`;
 
-    //Recargamos la lista de escritorios disponibles
+    //Recargamos la lista y construimos escritorios disponibles
     refreshDesktops(json);
     constructDesktops(json, escritorioActual);
 
@@ -60,10 +60,11 @@ async function cargaWeb(deskName) {
     let el = document.getElementById(`${escritorioActual}Cols`);
 
     //Refrescamos las columnas
-    //console.log(localStorage.getItem(`Grupo${escritorioActual}Cols`));
-    let ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
-    let creado = false;
-    refreshColumns(json, ordenCols, creado);
+    // //Pasamos el orden actual de localstorage - DELETE
+    // let ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
+    // //No es creado viene de actualizar
+    // let creado = false;
+    refreshColumns(json);
 
     //Añadimos los eventos de columnas
     addColumnEvents();
@@ -87,28 +88,22 @@ async function cargaWeb(deskName) {
         }
         return acc;
     }, {});
-    //console.log(groupByPanel);
 
     for (const panel in groupByPanel) {
         const items = groupByPanel[panel];
         const $raiz = document.querySelector(`[id="${escritorioActual}${panel}"]`)
-        console.log($raiz);
+        // console.log($raiz);
         if ($raiz.hasChildNodes()) {
             while ($raiz.childNodes.length >= 1) {
                 $raiz.removeChild($raiz.lastChild);
             }
-            // refreshLinks(items);
         }
         refreshLinks(items);
-        //Solo reciben columnas que tengan links, por eso no funciona
-        //ordenaItems(panel);
     }
 
     //Añadimos los eventos de los links
     addLinkEvents();
-
-    //Tiene que estar AQUI no antes o no funciona : por que?
-    //ordenaCols(el);
+    ordenaCols(el)
 }
 
 //Manejo de Eventos
@@ -373,7 +368,7 @@ async function editColumn(event) {
     dialog.style.display = visible ? 'none' : 'flex';
 
     let creado = true;
-    refreshColumns(json, null, creado);
+    refreshColumns(json);
 
     res = await fetch(`http://localhost:3001/links?escritorio=${escritorio}`, {
         method: 'GET',
@@ -408,7 +403,12 @@ async function createColumn() {
     //console.log("Se ejecuta createColumn");
     let nombre = document.getElementById('colName').value;
     let escritorio = document.body.getAttribute('data-desk');
-    let body = { 'nombre': nombre, 'escritorio': `${escritorio}` }
+    let $raiz0 = document.getElementById(`${escritorio}Cols`);
+    let orden = $raiz0.childNodes.length;
+    orden = orden + 1;
+    console.log(orden);
+    //Meterle el orden
+    let body = { 'nombre': nombre, 'escritorio': `${escritorio}`, 'order': orden }
     body = JSON.stringify(body)
 
     let res = await fetch("http://localhost:3001/columnas", {
@@ -426,7 +426,7 @@ async function createColumn() {
     //console.log(json);
     //Hay que recargar solo la columna TODO
     let creado = true;
-    refreshColumns(json, null, creado);
+    refreshColumns(json);
     res = await fetch(`http://localhost:3001/links?escritorio=${escritorio}`, {
         method: 'GET',
         headers: {
@@ -481,7 +481,7 @@ async function deleteColumn(event) {
     let json = await res.json();
     //console.log(json);
     let creado = true;
-    refreshColumns(json, null, creado);
+    refreshColumns(json);
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
     res = await fetch(`http://localhost:3001/links?escritorio=${escritorio}`, {
         method: 'GET',
@@ -528,12 +528,12 @@ async function deleteColumn(event) {
  * @param {*} ordenCols 
  * @param {*} creado 
  */
-function refreshColumns(lista, ordenCols = null, creado) {
+function refreshColumns(lista) {
 
     const escritorioActual = document.body.getAttribute('data-desk');
     const $raiz = document.getElementById(`${escritorioActual}Cols`);
     const arr = Array.from(lista);
-    console.log(arr);
+    // console.log(arr);
 
     if ($raiz.hasChildNodes()) {
         while ($raiz.childNodes.length >= 1) {
@@ -542,7 +542,6 @@ function refreshColumns(lista, ordenCols = null, creado) {
     }
     //Contador para incrementar nombres de columna duplicados
     let counter = 0;
-    let counter2 = 0;
     //Array donde metemos los elementos duplicados
     let arr2 = [];
 
@@ -574,7 +573,7 @@ function refreshColumns(lista, ordenCols = null, creado) {
         }
         const $envolt = document.createElement("div");
         $envolt.setAttribute("class", "envolt");
-        $envolt.setAttribute("data-id", `${counter2}`);
+        $envolt.setAttribute("orden", `${element.order}`);
         const $headerColumn = document.createElement("div");
         $headerColumn.setAttribute("class", "headercolumn");
         const $header = document.createElement("h2");
@@ -617,47 +616,46 @@ function refreshColumns(lista, ordenCols = null, creado) {
             item.removeEventListener('click', toggleDialogEditColumn);
             item.addEventListener('click', toggleDialogEditColumn);
         })
-    
+
         ordenaItems(element.name);
-    
-        counter2++;
     })
     //console.log(`Último id creado: ${counter2 - 1}`);
 
 
 
-    if (ordenCols === undefined || ordenCols === null) {
+    // if (ordenCols === undefined || ordenCols === null) {
 
-        ordenaCols($raiz);
-        ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
-        //console.log(`Es undefined o null: ${ordenCols}`);
+    //     ordenaCols($raiz);
+    //     ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
+    //     //console.log(`Es undefined o null: ${ordenCols}`);
 
-    } else {
+    // } else {
 
-        //console.log(ordenCols);
+    //     //console.log(ordenCols);
 
-    }
+    // }
 
-    if (ordenCols != null && creado === true) {
+    // if (ordenCols != null && creado === true) {
 
-        //console.log("Viene de crear o editar");
-        arrOrden = ordenCols.split('|');
-        const primerElemento = arrOrden.shift();
-        arrOrden.push(primerElemento);
-        //console.log(arrOrden);
-        localStorage.setItem(`Grupo${escritorioActual}Cols`, `${arrOrden.join('|')}`);
-        ordenaCols($raiz);
+    //     //console.log("Viene de crear o editar");
+    //     arrOrden = ordenCols.split('|');
+    //     const primerElemento = arrOrden.shift();
+    //     arrOrden.push(primerElemento);
+    //     //console.log(arrOrden);
+    //     localStorage.setItem(`Grupo${escritorioActual}Cols`, `${arrOrden.join('|')}`);
+    //     ordenaCols($raiz);
 
-    } else {
+    // } else {
 
-        //console.log("Es una actualización");
-        ordenaCols($raiz);
-    }
+    //     //console.log("Es una actualización");
+    //     ordenaCols($raiz);
+    // }
     if (arr2.length > 0) {
         arr2.forEach(element => {
             ordenaItems(element);
         })
     }
+    ordenaCols($raiz);
 }
 
 //Manejo de links
@@ -740,6 +738,7 @@ async function createLink(event) {
         },
         body: body
     })
+    if (!res.ok) throw { status: res.status, statusText: res.statusText }
     //La respuesta son todos los links con el id del panel donde se crea el link
     let json = await res.json();
 
@@ -753,7 +752,7 @@ async function createLink(event) {
     refreshLinks(json)
     //Llamamos a Sortable y le pasamos la columna
     ordenaItems(columna)
-    if (!res.ok) throw { status: res.status, statusText: res.statusText }
+
 }
 async function deleteLink(event) {
 
@@ -814,7 +813,7 @@ function refreshLinks(lista) {
     arr.forEach(element => {
         //Por cada elemento construimos un link y lo insertamos en su raiz
         const $raiz = document.querySelector(`[data-db="${element.idpanel}"]`);
-        
+
         const $div = document.createElement("div");
         $div.setAttribute("class", "link");
         $div.setAttribute("orden", `${element.orden}`);
@@ -1175,32 +1174,40 @@ function ordenaCols(element) {
         const sortablelist2 = Sortable.create(element, {
 
             group: `Grupo${element.id}`,
-            sort: true,
+            sort: false,
             dataIdAttr: 'data-id',
-            store: {
-                /**
-                 * Get the order of elements. Called once during initialization.
-                 * @param   {Sortable}  sortable
-                 * @returns {Array}
-                 */
-                get: function (sortable) {
-                    var order = localStorage.getItem(sortable.options.group.name);
-                    //console.log(order);
-                    return order ? order.split('|') : [];
-                },
+            onEnd: async function (evt) {
+                let itemEl = evt.item;
+                console.log(itemEl);
+                let escritorio = document.body.getAttribute('data-desk');
+                let elements = document.getElementById(`${escritorio}Cols`).childNodes;
+                console.log(elements);
 
-                /**
-                 * Save the order of elements. Called onEnd (when the item is dropped).
-                 * @param {Sortable}  sortable
-                 */
-                set: function (sortable) {
-                    var order = sortable.toArray();
-                    localStorage.setItem(sortable.options.group.name, order.join('|'));
-                }
+                const sortedElements = Array.from(elements).sort((a, b) => {
+                    return a.dataset.orden - b.dataset.orden;
+                });
+                console.log(sortedElements);
+                let names = [];
+                sortedElements.forEach(element => {
+                    names.push(element.childNodes[1].dataset.db)
+                })
+                console.log(names);
+                let body = names;
+                body = JSON.stringify({ body })
+                let res = await fetch(`http://localhost:3001/dragcol?escritorio=${escritorio}`, {
+                    method: 'PUT',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: body
+                })
+                let json = await res.json();
+                console.log(json);
             }
+
         })
-        var order = sortablelist2.toArray();
-        localStorage.setItem(sortablelist2.options.group.name, order.join('|'));
+        // var order = sortablelist2.toArray();
+        // localStorage.setItem(sortablelist2.options.group.name, order.join('|'));
         // console.log(sortablelist2.toArray());
 
         //Habrá que hacer un getItems y que lo añada al final o cualquier ostia
