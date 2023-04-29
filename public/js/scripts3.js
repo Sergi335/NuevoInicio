@@ -62,7 +62,8 @@ async function cargaWeb(deskName) {
     //Refrescamos las columnas
     //console.log(localStorage.getItem(`Grupo${escritorioActual}Cols`));
     let ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
-    refreshColumns(json, ordenCols);
+    let creado = false;
+    refreshColumns(json, ordenCols, creado);
 
     //Añadimos los eventos de columnas
     addColumnEvents();
@@ -90,9 +91,17 @@ async function cargaWeb(deskName) {
 
     for (const panel in groupByPanel) {
         const items = groupByPanel[panel];
+        const $raiz = document.querySelector(`[id="${escritorioActual}${panel}"]`)
+        console.log($raiz);
+        if ($raiz.hasChildNodes()) {
+            while ($raiz.childNodes.length >= 1) {
+                $raiz.removeChild($raiz.lastChild);
+            }
+            // refreshLinks(items);
+        }
         refreshLinks(items);
-        //console.log(panel);
-        ordenaItems(panel);
+        //Solo reciben columnas que tengan links, por eso no funciona
+        //ordenaItems(panel);
     }
 
     //Añadimos los eventos de los links
@@ -132,8 +141,8 @@ function addDesktopEvents() {
     document.querySelector('#editdeskSubmit').addEventListener('click', editDesktop);
 
     // Agregar evento de clic al botón para eliminar un escritorio
-    document.querySelector('#removeDesk').removeEventListener('click', deleteDesktop);
-    document.querySelector('#removeDesk').addEventListener('click', deleteDesktop);
+    document.querySelector('#removeDesk').removeEventListener('click', toggleDeleteDialogDesk);
+    document.querySelector('#removeDesk').addEventListener('click', toggleDeleteDialogDesk);
 
     //Añadir eventos en botones submit de crear escritorio
     document.querySelector('#deskSubmit').removeEventListener('click', createDesktop);
@@ -174,7 +183,7 @@ function addLinkEvents() {
  * @param {String} escritorioActual 
  */
 function constructDesktops(json, escritorioActual) {
-    
+
     const groupByPanel = json.reduce((acc, elem) => {
         if (acc[elem.panel]) {
             acc[elem.panel].push(elem.name);
@@ -200,7 +209,7 @@ function constructDesktops(json, escritorioActual) {
             $div.setAttribute('data-id', 'columns');
             $raiz.appendChild($div);
             $div.style.display = "none";
-            if(`${element}Cols` === `${escritorioActual}Cols`) {
+            if (`${element}Cols` === `${escritorioActual}Cols`) {
                 $div.style.display = "flex";
             }
         })
@@ -238,7 +247,7 @@ async function editDesktop(params) {
     if (firstKey === "error") {
         $error = document.getElementById('editdeskError');
         $error.innerText = `${firstKey}, ${firstValue}`;
-        
+
     } else {
         let dialog = document.getElementById('editDeskForm');
         let visible = dialog.style.display === 'flex';
@@ -253,7 +262,7 @@ async function editDesktop(params) {
     localStorage.setItem(`Grupo${nombre}Cols`, ordenCols);
     localStorage.removeItem(`Grupo${nombreOld}Cols`);
     console.log(ordenCols);
-    
+
 }
 async function createDesktop(params) {
     let nombre = document.getElementById('deskName').value;
@@ -288,26 +297,26 @@ async function createDesktop(params) {
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
 async function deleteDesktop() {
-    let text = "Estás seguro de querer eliminar\neste escritorio?";
-    if (confirm(text) == true) {
 
-        let nombre = document.body.getAttribute('data-desk');
-        let body = { 'name': nombre }
-        body = JSON.stringify(body)
-        //console.log(JSON.stringify(body));
-        let res = await fetch("http://localhost:3001/escritorios", {
-            method: 'DELETE',
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: body
-        })
-        let json = await res.json();
-        //console.log(json);
-        cargaWeb(json[0].name);
-    } else {
-        alert('Borrado Cancelado')
-    }
+
+    let nombre = document.body.getAttribute('data-desk');
+    let body = { 'name': nombre }
+    body = JSON.stringify(body)
+    //console.log(JSON.stringify(body));
+    let res = await fetch("http://localhost:3001/escritorios", {
+        method: 'DELETE',
+        headers: {
+            'content-type': 'application/json'
+        },
+        body: body
+    })
+    let json = await res.json();
+    //console.log(json);
+    cargaWeb(json[0].name);
+    let dialog = document.getElementById('deleteDeskForm');
+    let visible = dialog.style.display === 'flex';
+    dialog.style.display = visible ? 'none' : 'flex';
+
 }
 /**
  * FUnción que recarga la lista de escritorios disponibles
@@ -440,6 +449,12 @@ async function createColumn() {
         //console.log(`Elementos en el panel ${panel}:`);
         const items = groupByPanel[panel];
         const id = document.getElementById(`${escritorio}${panel}`).getAttribute('data-db');
+        const $raiz = document.querySelector(`[data-db="${id}"]`);
+        if ($raiz.hasChildNodes()) {
+            while ($raiz.childNodes.length >= 1) {
+                $raiz.removeChild($raiz.lastChild);
+            }
+        }
         refreshLinks(items, `${id}`);
         //insertaNodos(items, `${panel}`, "link");
     }
@@ -451,9 +466,8 @@ async function deleteColumn(event) {
     //Pasarle el id del elemento a borrar ver como afecta en el servidor
     let escritorio = document.body.getAttribute('data-desk');
     //let nombre = event.target.parentNode.parentNode.childNodes[0].innerText;
-    let elementoId = event.target.parentNode.parentNode.parentNode.childNodes[1];
+    let elementoId = document.getElementById('confDeletecolSubmit').getAttribute('sender');
     console.log(elementoId);
-    elementoId = elementoId.getAttribute('data-db');
     let body = { 'id': elementoId, 'escritorio': `${escritorio}` }
     body = JSON.stringify(body)
     console.log(JSON.stringify(body));
@@ -466,7 +480,8 @@ async function deleteColumn(event) {
     })
     let json = await res.json();
     //console.log(json);
-    refreshColumns(json);
+    let creado = true;
+    refreshColumns(json, null, creado);
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
     res = await fetch(`http://localhost:3001/links?escritorio=${escritorio}`, {
         method: 'GET',
@@ -490,27 +505,52 @@ async function deleteColumn(event) {
         //console.log(`Elementos en el panel ${panel}:`);
         const items = groupByPanel[panel];
         const id = document.getElementById(`${escritorio}${panel}`).getAttribute('data-db');
+        const $raiz = document.querySelector(`[id="${escritorio}${panel}"]`)
+        console.log($raiz);
+        if ($raiz.hasChildNodes()) {
+            while ($raiz.childNodes.length >= 1) {
+                $raiz.removeChild($raiz.lastChild);
+            }
+            // refreshLinks(items);
+        }
         refreshLinks(items, `${id}`);
         //insertaNodos(items, `${panel}`, "link");
     }
+    let dialog = document.getElementById('deleteColForm');
+    let visible = dialog.style.display === 'flex';
+    dialog.style.display = visible ? 'none' : 'flex';
 }
+/**
+ * Función que reconstruye las columnas de cada escritorio
+ * Cuando carga la página, cuando se crea una columna ...
+ * Recibe lista con columnas del escritorio
+ * @param {json} lista  
+ * @param {*} ordenCols 
+ * @param {*} creado 
+ */
 function refreshColumns(lista, ordenCols = null, creado) {
 
     const escritorioActual = document.body.getAttribute('data-desk');
     const $raiz = document.getElementById(`${escritorioActual}Cols`);
     const arr = Array.from(lista);
+    console.log(arr);
 
     if ($raiz.hasChildNodes()) {
         while ($raiz.childNodes.length >= 1) {
             $raiz.removeChild($raiz.firstChild);
         }
     }
+    //Contador para incrementar nombres de columna duplicados
     let counter = 0;
     let counter2 = 0;
+    //Array donde metemos los elementos duplicados
     let arr2 = [];
+
     arr.forEach((element, index, arr) => {
+
         const $columna = document.createElement("div");
         $columna.setAttribute("class", "columna");
+
         //Permite detectar duplicados y darles un id distinto incremental
         if (arr.map(e => e.name).indexOf(element.name) !== index) {
 
@@ -523,7 +563,15 @@ function refreshColumns(lista, ordenCols = null, creado) {
             $columna.setAttribute("id", `${escritorioActual}${element.name}`);
         }
 
-        $columna.setAttribute("data-db", `${element._id}`) 
+        $columna.setAttribute("data-db", `${element._id}`);
+
+        //Si trae el flag vacio a true creamos el elemento dummy
+        //para poder arrastrar elementos aunque esté vacia la columna
+        if (element.vacio == true) {
+            const $div = document.createElement("div");
+            $div.setAttribute("class", "link");
+            $columna.appendChild($div)
+        }
         const $envolt = document.createElement("div");
         $envolt.setAttribute("class", "envolt");
         $envolt.setAttribute("data-id", `${counter2}`);
@@ -556,8 +604,8 @@ function refreshColumns(lista, ordenCols = null, creado) {
 
         //Agregar evento de clic al botón de borrar columnas
         document.querySelectorAll('.borracol').forEach(item => {
-            item.removeEventListener('click', deleteColumn);
-            item.addEventListener('click', deleteColumn);
+            item.removeEventListener('click', toggleDeleteDialogCol);
+            item.addEventListener('click', toggleDeleteDialogCol);
         })
         //Agregar evento de clic al botón de añadir links
         document.querySelectorAll('.addlink').forEach(item => {
@@ -569,25 +617,28 @@ function refreshColumns(lista, ordenCols = null, creado) {
             item.removeEventListener('click', toggleDialogEditColumn);
             item.addEventListener('click', toggleDialogEditColumn);
         })
+    
+        ordenaItems(element.name);
+    
         counter2++;
     })
     //console.log(`Último id creado: ${counter2 - 1}`);
 
 
-    
-    if(ordenCols === undefined || ordenCols === null) {
+
+    if (ordenCols === undefined || ordenCols === null) {
 
         ordenaCols($raiz);
         ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
         //console.log(`Es undefined o null: ${ordenCols}`);
-        
+
     } else {
 
         //console.log(ordenCols);
 
     }
 
-    if(ordenCols != null && creado === true) {
+    if (ordenCols != null && creado === true) {
 
         //console.log("Viene de crear o editar");
         arrOrden = ordenCols.split('|');
@@ -660,16 +711,26 @@ async function createLink(event) {
     let linkURL = document.querySelector('#linkURL').value;
     let imgURL = `https://www.google.com/s2/favicons?domain=${linkURL}`;
     let dbID = document.getElementById('linkSubmit').getAttribute('sender');
+    //Seleccionamos columna por id, por si hay dos con el mismo nombre
+    const $raiz = document.querySelector(`[data-db="${dbID}"]`);
 
+    let orden = $raiz.childNodes.length;
+    orden = orden + 1;
+    console.log(orden);
+
+    const elements = $raiz.childNodes;
+    const sortedElements = Array.from(elements).sort((a, b) => {
+        return a.dataset.orden - b.dataset.orden;
+    });
+    console.log(sortedElements);
     //Cerramos el cuadro de diálogo
     let dialog = document.getElementById('addLinkForm');
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
 
     //Declaramos el body para enviar y lo pasamos a cadena de texto
-    let body = { 'nombre': nombre, 'URL': linkURL, 'imgURL': imgURL, 'escritorio': escritorio, 'columna': columna, 'id': dbID }
+    let body = { 'nombre': nombre, 'URL': linkURL, 'imgURL': imgURL, 'escritorio': escritorio, 'columna': columna, 'id': dbID, 'orden': orden }
     body = JSON.stringify(body)
-
     //Enviamos el post con el link
     //TODO Control de errores del fetch
     let res = await fetch("http://localhost:3001/links", {
@@ -681,9 +742,6 @@ async function createLink(event) {
     })
     //La respuesta son todos los links con el id del panel donde se crea el link
     let json = await res.json();
-
-    //Seleccionamos columna por id, por si hay dos con el mismo nombre
-    const $raiz = document.querySelector(`[data-db="${dbID}"]`);
 
     //La vaciamos
     if ($raiz.hasChildNodes()) {
@@ -698,20 +756,18 @@ async function createLink(event) {
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
 async function deleteLink(event) {
-    //TODO Confirmación
 
-    let nombre = event.target.parentNode.parentNode.childNodes[0].innerText;
-    let panel = event.target.parentNode.parentNode.parentNode.id
+    let nombre = document.body.getAttribute('data-link');
+    let panel = document.body.getAttribute('data-panel');
 
-    console.log(event.target.parentNode.parentNode.parentNode);
-    let id = event.target.parentNode.parentNode.parentNode;
-    id = id.getAttribute('data-db');
+    //console.log(event.target.parentNode.parentNode.parentNode);
+    let id = document.getElementById('confDeletelinkSubmit').getAttribute('sender');
 
     let escritorio = document.body.getAttribute('data-desk');
 
     let body = { 'nombre': nombre, 'panel': panel, 'escritorio': escritorio, 'id': id }
     body = JSON.stringify(body)
-    console.log(JSON.stringify(body));
+    //console.log(JSON.stringify(body));
     let res = await fetch("http://localhost:3001/links", {
         method: 'DELETE',
         headers: {
@@ -720,18 +776,29 @@ async function deleteLink(event) {
         body: body
     })
     let json = await res.json();
-    //console.log(json);
+    //console.log(json.length);
     const $raiz = document.querySelector(`[data-db="${id}"]`)
+
     //console.log($raiz);
     if ($raiz.hasChildNodes()) {
         while ($raiz.childNodes.length >= 1) {
             $raiz.removeChild($raiz.lastChild);
         }
     }
+    if (json.length === 0) {
+        console.log("Era el último");
+        const $div = document.createElement("div");
+        $div.setAttribute("class", "link");
+        $raiz.appendChild($div)
+    }
     refreshLinks(json)
-    panel = panel.replace(escritorio, "");
+    //panel = panel.replace(escritorio, "");
     //console.log(panel);
     ordenaItems(panel)
+    let dialog = document.getElementById('deleteLinkForm');
+    let visible = dialog.style.display === 'flex';
+    console.log(visible);
+    dialog.style.display = visible ? 'none' : 'flex';
 
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 
@@ -740,13 +807,17 @@ function refreshLinks(lista) {
 
     //Pasamos de objeto json a array
     const arr = Array.from(lista);
-    let contador = 0;
+    //console.log(arr);
+    // if(lista.length === 0) {
+
+    // }
     arr.forEach(element => {
         //Por cada elemento construimos un link y lo insertamos en su raiz
         const $raiz = document.querySelector(`[data-db="${element.idpanel}"]`);
+        
         const $div = document.createElement("div");
         $div.setAttribute("class", "link");
-        $div.setAttribute("data-id", contador);
+        $div.setAttribute("orden", `${element.orden}`);
         const $img = document.createElement("img");
         $img.setAttribute("src", `${element.imgURL}`);
         const $link = document.createElement("a");
@@ -771,15 +842,14 @@ function refreshLinks(lista) {
         $raiz.appendChild($div)
 
         document.querySelectorAll('.borralink').forEach(item => {
-            item.removeEventListener('click', deleteLink);
-            item.addEventListener('click', deleteLink);
+            item.removeEventListener('click', toggleDeleteDialogLink);
+            item.addEventListener('click', toggleDeleteDialogLink);
         })
         document.querySelectorAll('.editalink').forEach(item => {
             item.removeEventListener('click', toggleDialogEditLink);
             item.addEventListener('click', toggleDialogEditLink);
         })
-        contador++;
-        
+
     })
     // let columna = document.body.getAttribute('data-panel');
     // ordenaItems(columna)
@@ -812,14 +882,12 @@ function toggleDialogDesktop() {
     //console.log(visible);
     dialog.style.display = visible ? 'none' : 'flex';
 }
-
 function toggleDialogEditDesktop(event) {
 
     let dialog = document.getElementById('editDeskForm');
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
 }
-
 function toggleDialogLink(event) {
 
     let panel = event.target.parentNode.parentNode.childNodes[0].innerText;
@@ -848,7 +916,52 @@ function toggleDialogEditLink(event) {
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
 }
+function toggleDeleteDialogLink(event) {
+    //nombre panel escritorio id
+    console.log(event.target);
+    let nombre = event.target.parentNode.parentNode.childNodes[0].innerText;
+    let panelId = event.target.parentNode.parentNode.parentNode.getAttribute('data-db');
+    let panel = event.target.parentNode.parentNode.parentNode.parentNode.childNodes[0].childNodes[0].innerText;
+    let boton = document.getElementById('confDeletelinkSubmit');
+    boton.setAttribute('sender', `${panelId}`);
+    document.body.setAttribute('data-panel', `${panel}`);
+    document.body.setAttribute('data-link', `${nombre}`);
+    console.log("Confirmación de Borrado");
+    let dialog = document.getElementById('deleteLinkForm');
+    let visible = dialog.style.display === 'flex';
+    dialog.style.display = visible ? 'none' : 'flex';
+}
+function toggleDeleteDialogCol(event) {
 
+    let id = event.target.parentNode.parentNode.parentNode.childNodes[1].getAttribute('data-db');
+    let boton = document.getElementById('confDeletecolSubmit');
+    boton.setAttribute('sender', `${id}`);
+    let dialog = document.getElementById('deleteColForm');
+    let visible = dialog.style.display === 'flex';
+    dialog.style.display = visible ? 'none' : 'flex';
+}
+function toggleDeleteDialogDesk(event) {
+    console.log("Confirmación borrar escritorio");
+    let dialog = document.getElementById('deleteDeskForm');
+    let visible = dialog.style.display === 'flex';
+    dialog.style.display = visible ? 'none' : 'flex';
+}
+function escondeDeleteDialog() {
+    let dialog = document.getElementById('deleteLinkForm');
+    let visible = dialog.style.display === 'flex';
+    console.log(visible);
+    dialog.style.display = visible ? 'none' : 'flex';
+}
+function escondeDeleteColDialog() {
+    let dialog = document.getElementById('deleteColForm');
+    let visible = dialog.style.display === 'flex';
+    dialog.style.display = visible ? 'none' : 'flex';
+}
+function escondeDeleteDeskDialog() {
+    let dialog = document.getElementById('deleteDeskForm');
+    let visible = dialog.style.display === 'flex';
+    dialog.style.display = visible ? 'none' : 'flex';
+}
 function escondeDialogos(event) {
     let cuadros = [];
     //Introducimos todos los formularios
@@ -858,6 +971,7 @@ function escondeDialogos(event) {
     cuadros.push(document.getElementById('addDesk'))
     cuadros.push(document.getElementById('addCol'))
     cuadros.push(document.getElementById('editDesk'))
+    cuadros.push(document.getElementById('removeDesk'))
 
     //Introducimos los botones de las columnas para añadir links
     cuadros.push(Array.from(document.querySelectorAll('.addlink')))
@@ -877,6 +991,22 @@ function escondeDialogos(event) {
     })
     //Introducimos los botones de los links para editar links
     cuadros.push(Array.from(document.querySelectorAll('.editalink')))
+    cuadros = [].concat.apply([], cuadros);
+    cuadros.forEach(element => {
+        element.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+    })
+    //Introducimos los botones de los links para borrar links
+    cuadros.push(Array.from(document.querySelectorAll('.borralink')))
+    cuadros = [].concat.apply([], cuadros);
+    cuadros.forEach(element => {
+        element.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+    })
+    //Introducimos los botones de las columnas para borrar columna
+    cuadros.push(Array.from(document.querySelectorAll('.borracol')))
     cuadros = [].concat.apply([], cuadros);
     cuadros.forEach(element => {
         element.addEventListener('click', (event) => {
@@ -909,57 +1039,123 @@ function ordenaItems(panel) {
 
         let escritorioActual = document.body.getAttribute('data-desk');
         let el = [];
+        //let order = [];
         el.push(document.getElementById(`${escritorioActual}${panel}`));
 
         el.forEach(element => {
 
-            let grupo;
-            if(escritorioActual === 'Test') {
-                grupo = `Shared${escritorioActual}`;
-            } else {
-                grupo = element.id;
-            }
+            let grupo = `Shared${escritorioActual}`;
 
             const sortableList = Sortable.create(element, {
                 group: grupo,
                 filter: '.envolt',
                 options: {
-                    sort: true,
+                    sort: false,
                     dataIdAttr: 'data-id'
                 },
-                store: {
-                    /**
-                     * Get the order of elements. Called once during initialization.
-                     * @param   {Sortable}  sortable
-                     * @returns {Array}
-                     */
-                    get: function (sortable) {
-                        var order = localStorage.getItem(sortable.options.group.name);
-                        //console.log(order);
-                        return order ? order.split('|') : [];
-                    },
-
-                    /**
-                     * Save the order of elements. Called onEnd (when the item is dropped).
-                     * @param {Sortable}  sortable
-                     */
-                    set: function (sortable) {
-                        var order = sortable.toArray();
-                        localStorage.setItem(sortable.options.group.name, order.join('|'));
+                //Al terminar de arrastrar el elemento, decidimos que hacer dependiendo de si
+                //se ha arrastrado en la misma columna o a una distinta
+                onEnd: async function (evt) {
+                    let itemEl = evt.item;
+                    let listaOrigen = evt.from;
+                    let listaDestino = evt.to;
+                    let newId = listaDestino.attributes[2].nodeValue;
+                    //console.log(newId);
+                    let escritorio = document.body.getAttribute('data-desk');
+                    //console.log(escritorio);
+                    let panel = itemEl.parentNode.parentNode.childNodes[0].innerText;
+                    //console.log(panel);
+                    let nombre = itemEl.childNodes[0].innerText;
+                    //console.log(`Nombre: ${nombre}`);
+                    let oldId = listaOrigen.attributes[2].nodeValue;
+                    if (document.querySelector(`[data-db="${oldId}"]`).childNodes.length === 0) {
+                        console.log("Era el último");
+                        const $raizOld = document.querySelector(`[data-db="${oldId}"]`)
+                        const $div = document.createElement("div");
+                        $div.setAttribute("class", "link");
+                        $raizOld.appendChild($div);
                     }
-                },
-                onEnd: function (evt) {
-                    var itemEl = evt.item;
-                    var listaOrigen = evt.from;
-                    console.log(itemEl);
-                    console.log('Viejo Index' + evt.oldIndex);
-                    console.log('Nuevo Index' + evt.newIndex);
-                    console.dir(listaOrigen);
-                    console.dir(evt.to);
-                    console.log(itemEl.parentNode.parentNode);
+                    //console.log(oldId);
+                    //TODO hay que pasarle el orden
+                    let body = { 'escritorio': escritorio, 'name': nombre, 'newId': newId, 'oldId': oldId, 'panel': panel }
+                    //console.log(body);
+                    body = JSON.stringify(body)
+                    let res = await fetch("http://localhost:3001/draglinks", {
+                        method: 'PUT',
+                        headers: {
+                            'content-type': 'application/json'
+                        },
+                        body: body
+                    })
+                    let json = await res.json();
+                    //console.log(json.length);
+                    //const objeto = JSON.parse(json);
+                    const claves = Object.keys(json);
+                    const primerValor = claves[0];
+                    //console.log(primerValor);
+                    if (primerValor !== "Respuesta") {
+
+                        const groupByPanel = json.reduce((acc, elem) => {
+                            if (acc[elem.panel]) {
+                                acc[elem.panel].push(elem);
+                            } else {
+                                acc[elem.panel] = [elem];
+                            }
+                            return acc;
+                        }, {});
+                        //console.log(groupByPanel);
+                        for (const panel in groupByPanel) {
+                            const items = groupByPanel[panel];
+                            const $raiz = document.querySelector(`[id="${escritorio}${panel}"]`)
+                            //console.log($raiz);
+                            if ($raiz.hasChildNodes()) {
+                                while ($raiz.childNodes.length >= 1) {
+                                    $raiz.removeChild($raiz.lastChild);
+                                }
+                                refreshLinks(items);
+                            }
+                            //console.log(items);
+                            //console.log(panel);
+                            //ordenaItems(panel);
+                        }
+                        //console.log(json);
+
+
+                    } else {
+                        //console.log(json);
+                        let elements = document.querySelectorAll(`[data-db="${newId}"]`)[0].childNodes;
+                        console.log(elements);
+                        let id = elements[0].parentNode.getAttribute('data-db');
+                        console.log(id);
+                        const sortedElements = Array.from(elements).sort((a, b) => {
+                            return a.dataset.orden - b.dataset.orden;
+                        });
+                        console.log(sortedElements);
+                        let names = [];
+                        sortedElements.forEach(element => {
+                            names.push(element.innerText)
+                        })
+                        console.log(names);
+                        let body = names;
+                        body = JSON.stringify({ body })
+                        let res = await fetch(`http://localhost:3001/draglink?idColumna=${id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'content-type': 'application/json'
+                            },
+                            body: body
+                        })
+                        let json = await res.json();
+                        console.log(json);
+                    }
+
                 }
             })
-            //console.log(sortableList);
+            //order.push(sortableList.toArray());
+            // var order = sortableList.toArray();
+            // localStorage.setItem(sortableList.options.group.name, order.join('|'));
+            // console.log(sortableList.toArray());
+            //console.log(order);
         })
     } else {
         console.log('Panel Null');

@@ -55,4 +55,16 @@ head
     p URL
     input#editlinkURL(type='text' name='editlinkURL')
     button#editlinkSubmit(type='submit') Modificar
+  #deleteLinkForm.deskForm
+    h2 Seguro que quieres borrar este Link?
+    button#confDeletelinkSubmit(onclick='deleteLink()' type='submit') Si
+    button#noDeletelinkSubmit(onclick='escondeDeleteDialog()' type='submit') No
+  #deleteColForm.deskForm
+    h2 Seguro que quieres borrar esta columna?
+    button#confDeletecolSubmit(onclick='deleteColumn()' type='submit') Si
+    button#noDeletecolSubmit(onclick='escondeDeleteColDialog()' type='submit') No
+  #deleteDeskForm.deskForm
+    h2 Seguro que quieres borrar este escritorio?
+    button#confDeletedeskSubmit(onclick='deleteDesktop()' type='submit') Si
+    button#noDeletedeskSubmit(onclick='escondeDeleteDeskDialog()' type='submit') No
     script(src='/js/Sortable-master/Sortable.min.js')

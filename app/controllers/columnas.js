@@ -18,6 +18,7 @@ const createColItem = async (req, res) => {
     const objeto = new Object();
     objeto.name = body.nombre;
     objeto.escritorio = body.escritorio;
+    objeto.vacio = true;
     console.log(objeto);
     const data = await columnasModel.create(objeto)
     const lista = await columnasModel.find({ escritorio: `${body.escritorio}` });

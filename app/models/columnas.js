@@ -6,6 +6,9 @@ const ColumnSchema = new mongoose.Schema({
     },
     escritorio: {
         type: String
+    },
+    vacio: {
+        type: Boolean
     }
 }, {
     timestamps: true,
