@@ -2,109 +2,24 @@ document.addEventListener('DOMContentLoaded', cargaWeb);
 document.addEventListener('click', escondeDialogos);
 
 /**
- * Función que rellena la Web según el escritorio elegido. 
- * Si se le pasa parámetro, carga el escritorio segun el nombre pasado como param. 
- * Si no carga el primero de la lista
- * @param {object|String} deskName 
+ * Función que carga los eventos en la web 
  */
-async function cargaWeb(deskName) {
-
-    //Cargamos la lista de escritorios
-    //TODO Control de errores si falla el fetch
-    let res = await fetch("http://localhost:3001/escritorios", {
-        method: 'GET',
-        headers: {
-            'content-type': 'application/json'
-        }
-    })
-
-    let json = await res.json();
-
-    let escritorioActual = "";
-
-    //Si viene de recargar la página (DOMContentLoaded) usamos el primero
-    if (typeof (deskName) === "object") {
-
-        escritorioActual = json[0].name;
-
-        //Si no el pasado como parametro
-    } else {
-
-        escritorioActual = deskName;
-    }
-
-    //Establecemos el valor de data-desk del body para identificarlo luego
-    document.body.setAttribute('data-desk', `${escritorioActual}`);
-
-    //Cambiamos el título según el escritorio que sea
-    document.getElementById('deskTitle').innerText = `${escritorioActual}`;
-
-    //Recargamos la lista y construimos escritorios disponibles
-    refreshDesktops(json);
-    constructDesktops(json, escritorioActual);
-
-    //Cargamos las columnas del escritorio elegido
-    //TODO Control de errores si falla el fetch
-    res = await fetch(`http://localhost:3001/columnas?escritorio=${escritorioActual}`, {
-        method: 'GET',
-        headers: {
-            'content-type': 'application/json'
-        }
-    })
-
-    json = await res.json();
+async function cargaWeb() {
 
     //Añadimos los eventos de escritorio
     addDesktopEvents();
 
     //Declaramos la variable para pasar a ordenaCols
-    let el = document.getElementById(`${escritorioActual}Cols`);
-
-    //Refrescamos las columnas
-    // //Pasamos el orden actual de localstorage - DELETE
-    // let ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
-    // //No es creado viene de actualizar
-    // let creado = false;
-    refreshColumns(json);
+    let desk = document.getElementById('deskTitle').innerText;
+    document.body.setAttribute('data-desk', `${desk}`);
+    let el = document.getElementById(`${desk}Cols`);
 
     //Añadimos los eventos de columnas
     addColumnEvents();
 
-    //Cargamos cada Link en su columna correspondiente
-    //TODO Control de errores si falla el fetch
-    res = await fetch(`http://localhost:3001/links?escritorio=${escritorioActual}`, {
-        method: 'GET',
-        headers: {
-            'content-type': 'application/json'
-        }
-    })
-
-    json = await res.json();
-
-    const groupByPanel = json.reduce((acc, elem) => {
-        if (acc[elem.panel]) {
-            acc[elem.panel].push(elem);
-        } else {
-            acc[elem.panel] = [elem];
-        }
-        return acc;
-    }, {});
-
-    for (const panel in groupByPanel) {
-        const items = groupByPanel[panel];
-        const $raiz = document.querySelector(`[id="${escritorioActual}${panel}"]`)
-        // console.log($raiz);
-        if ($raiz.hasChildNodes()) {
-            while ($raiz.childNodes.length >= 1) {
-                $raiz.removeChild($raiz.lastChild);
-            }
-        }
-        refreshLinks(items);
-    }
-
     //Añadimos los eventos de los links
     addLinkEvents();
-    ordenaCols(el)
+    ordenaCols(el);
 }
 
 //Manejo de Eventos
@@ -150,6 +65,25 @@ function addDesktopEvents() {
  * Carga los manejadores de eventos para la manipulación de columnas
  */
 function addColumnEvents() {
+    document.querySelectorAll('.borracol').forEach(item => {
+        item.removeEventListener('click', toggleDeleteDialogCol);
+        item.addEventListener('click', toggleDeleteDialogCol);
+    })
+    //Agregar evento de clic al botón de añadir links
+    document.querySelectorAll('.addlink').forEach(item => {
+        item.removeEventListener('click', toggleDialogLink);
+        item.addEventListener('click', toggleDialogLink);
+    })
+    //Agregar evento de clic al botón de editar columnas
+    document.querySelectorAll('.editcol').forEach(item => {
+        item.removeEventListener('click', toggleDialogEditColumn);
+        item.addEventListener('click', toggleDialogEditColumn);
+    })
+    //Agregar evento de clic al botón principal de control
+    document.querySelectorAll('.icofont-gear').forEach(item => {
+        item.removeEventListener('click', muestraCcontrols);
+        item.addEventListener('click', muestraCcontrols);
+    })
     document.querySelector('#colSubmit').removeEventListener('click', createColumn);
     document.querySelector('#colSubmit').addEventListener('click', createColumn);
 
@@ -161,6 +95,14 @@ function addColumnEvents() {
  * Carga los manejadores de eventos para la manipulación de links
  */
 function addLinkEvents() {
+    document.querySelectorAll('.borralink').forEach(item => {
+        item.removeEventListener('click', toggleDeleteDialogLink);
+        item.addEventListener('click', toggleDeleteDialogLink);
+    })
+    document.querySelectorAll('.editalink').forEach(item => {
+        item.removeEventListener('click', toggleDialogEditLink);
+        item.addEventListener('click', toggleDialogEditLink);
+    })
     // Agregar evento de clic al botón de envío dentro del cuadro de diálogo
     document.querySelector('#linkSubmit').removeEventListener('click', createLink);
     document.querySelector('#linkSubmit').addEventListener('click', createLink);
@@ -173,55 +115,15 @@ function addLinkEvents() {
 //Manejo de escritorios
 
 /**
- * Inserta un nodo en el DOM según la cantidad de escritorios
- * Oculta los inactivos y muestra el activo
- * @param {Object} json 
- * @param {String} escritorioActual 
- */
-function constructDesktops(json, escritorioActual) {
-
-    const groupByPanel = json.reduce((acc, elem) => {
-        if (acc[elem.panel]) {
-            acc[elem.panel].push(elem.name);
-        } else {
-            acc[elem.panel] = [elem.name];
-        }
-        return acc;
-    }, {});
-
-    for (const panel in groupByPanel) {
-        const items = groupByPanel[panel];
-        const $raiz = document.getElementById('cols');
-        if ($raiz.hasChildNodes()) {
-            while ($raiz.childNodes.length >= 1) {
-                $raiz.removeChild($raiz.firstChild);
-            }
-        }
-        items.forEach(element => {
-
-            const $div = document.createElement('div');
-            $div.setAttribute('class', 'cuerpo');
-            $div.setAttribute('id', `${element}Cols`);
-            $div.setAttribute('data-id', 'columns');
-            $raiz.appendChild($div);
-            $div.style.display = "none";
-            if (`${element}Cols` === `${escritorioActual}Cols`) {
-                $div.style.display = "flex";
-            }
-        })
-    }
-
-}
-/**
  * 
  * @param {Object} event 
  */
-function selectDesktop(event) {
+async function selectDesktop(event) {
     event.stopPropagation();
     let deskName = event.target.innerText;
-    document.body.setAttribute('data-desk', deskName);
-    cargaWeb(deskName);
+    window.location = `http://localhost:3001/templates?escritorio=${deskName}`
 }
+
 async function editDesktop(params) {
     let nombreOld = document.body.getAttribute('data-desk');
     let nombre = document.getElementById('editdeskName').value;
@@ -313,33 +215,6 @@ async function deleteDesktop() {
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
 
-}
-/**
- * FUnción que recarga la lista de escritorios disponibles
- * cuando carga la Web
- * @param {*} lista 
- */
-function refreshDesktops(lista) {
-
-    //Declaramos la raiz donde va la lista de escritorios
-    const $raiz = document.getElementById('drpEscritorios');
-    //Convertimos el Json en Array
-    const arr = Array.from(lista);
-    //Si la raiz tiene hijos los vaciamos todos
-    if ($raiz.hasChildNodes()) {
-        while ($raiz.childNodes.length >= 1) {
-            $raiz.removeChild($raiz.firstChild);
-        }
-    }
-
-    arr.forEach(element => {
-        const $nodos = document.createElement("a");
-        $nodos.setAttribute('class', 'deskList')
-        const $textos = document.createTextNode(`${element.name}`)
-
-        $nodos.appendChild($textos)
-        $raiz.appendChild($nodos)
-    })
 }
 
 //Manejo de columnas
@@ -521,120 +396,6 @@ async function deleteColumn(event) {
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
 }
-/**
- * Función que reconstruye las columnas de cada escritorio
- * Cuando carga la página, cuando se crea una columna ...
- * Recibe lista con columnas del escritorio
- * @param {json} lista
- */
-function refreshColumns(lista) {
-
-    const escritorioActual = document.body.getAttribute('data-desk');
-    const $raiz = document.getElementById(`${escritorioActual}Cols`);
-    const arr = Array.from(lista);
-    // console.log(arr);
-
-    if ($raiz.hasChildNodes()) {
-        while ($raiz.childNodes.length >= 1) {
-            $raiz.removeChild($raiz.firstChild);
-        }
-    }
-    //Contador para incrementar nombres de columna duplicados
-    let counter = 0;
-    //Array donde metemos los elementos duplicados
-    let arr2 = [];
-
-    arr.forEach((element, index, arr) => {
-
-        const $columna = document.createElement("div");
-        $columna.setAttribute("class", "columna");
-
-        //Permite detectar duplicados y darles un id distinto incremental
-        if (arr.map(e => e.name).indexOf(element.name) !== index) {
-
-            arr2.push(`${element.name}${counter}`);
-            $columna.setAttribute("id", `${escritorioActual}${arr2[counter]}`);
-            counter++;
-
-        } else {
-
-            $columna.setAttribute("id", `${escritorioActual}${element.name}`);
-        }
-
-        $columna.setAttribute("data-db", `${element._id}`);
-
-        //Si trae el flag vacio a true creamos el elemento dummy
-        //para poder arrastrar elementos aunque esté vacia la columna
-        if (element.vacio == true) {
-            const $div = document.createElement("div");
-            $div.setAttribute("class", "link");
-            $columna.appendChild($div)
-        }
-        const $envolt = document.createElement("div");
-        $envolt.setAttribute("class", "envolt");
-        $envolt.setAttribute("orden", `${element.order}`);
-        const $headerColumn = document.createElement("div");
-        $headerColumn.setAttribute("class", "headercolumn");
-        const $header = document.createElement("h2");
-        $header.setAttribute("class", "ctitle");
-        const $textos = document.createTextNode(`${element.name}`)
-        const $ccontrols = document.createElement("div");
-        $ccontrols.setAttribute("class", "ccontrols");
-        const $editControl = document.createElement("span");
-        $editControl.setAttribute("class", "icofont-ui-edit editcol");
-        const $deleteControl = document.createElement("span");
-        $deleteControl.setAttribute("class", "icofont-recycle borracol");
-        const $addLinkControl = document.createElement("span");
-        $addLinkControl.setAttribute("class", "icofont-plus addlink");
-
-        const $mainbutton = document.createElement("i");
-        $mainbutton.setAttribute("class", "icofont-gear");
-
-        $ccontrols.appendChild($editControl)
-        $ccontrols.appendChild($deleteControl)
-        $ccontrols.appendChild($addLinkControl)
-
-        $header.appendChild($textos)
-        $headerColumn.appendChild($header)
-        $headerColumn.appendChild($mainbutton)
-        $headerColumn.appendChild($ccontrols)
-
-        $envolt.appendChild($headerColumn)
-        $envolt.appendChild($columna)
-
-        $raiz.appendChild($envolt)
-
-        //Agregar evento de clic al botón de borrar columnas
-        document.querySelectorAll('.borracol').forEach(item => {
-            item.removeEventListener('click', toggleDeleteDialogCol);
-            item.addEventListener('click', toggleDeleteDialogCol);
-        })
-        //Agregar evento de clic al botón de añadir links
-        document.querySelectorAll('.addlink').forEach(item => {
-            item.removeEventListener('click', toggleDialogLink);
-            item.addEventListener('click', toggleDialogLink);
-        })
-        //Agregar evento de clic al botón de editar columnas
-        document.querySelectorAll('.editcol').forEach(item => {
-            item.removeEventListener('click', toggleDialogEditColumn);
-            item.addEventListener('click', toggleDialogEditColumn);
-        })
-        //Agregar evento de clic al botón principal de control
-        document.querySelectorAll('.icofont-gear').forEach(item => {
-            item.removeEventListener('click', muestraCcontrols);
-            item.addEventListener('click', muestraCcontrols);
-        })
-
-        ordenaItems(element.name);
-    })
-
-    if (arr2.length > 0) {
-        arr2.forEach(element => {
-            ordenaItems(element);
-        })
-    }
-    ordenaCols($raiz);
-}
 
 //Manejo de links
 
@@ -779,57 +540,6 @@ async function deleteLink(event) {
 
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
 
-}
-function refreshLinks(lista) {
-
-    //Pasamos de objeto json a array
-    const arr = Array.from(lista);
-    //console.log(arr);
-    // if(lista.length === 0) {
-
-    // }
-    arr.forEach(element => {
-        //Por cada elemento construimos un link y lo insertamos en su raiz
-        const $raiz = document.querySelector(`[data-db="${element.idpanel}"]`);
-
-        const $div = document.createElement("div");
-        $div.setAttribute("class", "link");
-        $div.setAttribute("orden", `${element.orden}`);
-        const $img = document.createElement("img");
-        $img.setAttribute("src", `${element.imgURL}`);
-        const $link = document.createElement("a");
-        $link.setAttribute("href", `${element.URL}`);
-        $link.setAttribute("target", "_blank");
-        const $textos = document.createTextNode(`${element.name}`);
-        const $lcontrols = document.createElement("div");
-        $lcontrols.setAttribute("class", "lcontrols");
-        const $editControl = document.createElement("span");
-        $editControl.setAttribute("class", "icofont-ui-edit editalink");
-        const $deleteControl = document.createElement("span");
-        $deleteControl.setAttribute("class", "icofont-recycle borralink");
-
-        $lcontrols.appendChild($editControl)
-        $lcontrols.appendChild($deleteControl)
-        $link.appendChild($img)
-        $link.appendChild($textos)
-
-        $div.appendChild($link)
-        $div.appendChild($lcontrols)
-
-        $raiz.appendChild($div)
-
-        document.querySelectorAll('.borralink').forEach(item => {
-            item.removeEventListener('click', toggleDeleteDialogLink);
-            item.addEventListener('click', toggleDeleteDialogLink);
-        })
-        document.querySelectorAll('.editalink').forEach(item => {
-            item.removeEventListener('click', toggleDialogEditLink);
-            item.addEventListener('click', toggleDialogEditLink);
-        })
-
-    })
-    // let columna = document.body.getAttribute('data-panel');
-    // ordenaItems(columna)
 }
 
 //funciones auxiliares para mostrar/ocultar cuadros de diálogo
@@ -1171,7 +881,7 @@ function ordenaCols(element) {
     // console.log("Se ejecuta ordenacols");
     let arr = [];
     arr.push(element);
-    // console.log(arr);
+    console.log(arr);
 
     arr.forEach(element => {
         const sortablelist2 = Sortable.create(element, {

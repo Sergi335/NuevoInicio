@@ -86,9 +86,23 @@ const deleteDeskItem = async (req, res) => {
     res.send(lista);
 }
 const testTemplates = async (req, res) => {
+    const params = req.query.escritorio;
+    const escritorios = await escritoriosModel.find();
+    
+    let escritorio;
+    if(params) {
+        escritorio = params;
+    } else {
+        escritorio = escritorios[0].name;
+    }
+    console.log(escritorio);
+    const columnas = await columnasModel.find({ escritorio: escritorio }).sort({ order: 1 });
+    const links = await linksModel.find({ escritorio: escritorio }).sort({ orden: 1 });
     let locals = {
-        user : "Sergio",
-        desktop : "Inicio"
+        escritorio : escritorio,
+        escritorios : escritorios,
+        columnas : columnas,
+        links : links
     }
     res.render("indexTemplates.pug", locals);
 }

@@ -6,22 +6,44 @@ head
   title Document
   link(rel='stylesheet' href='/css/style2.css')
   link(rel='stylesheet' href='/css/icofont/icofont/icofont.min.css')
-  //- script(src='https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js')
-  //- script(src='/js/scripts3.js')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js')
+  script(src='/js/scripts3.js')
 .container
   h1 Buenos días #{user}
   .dropdown
     button.dropbtn Escritorios
     #drpEscritorios.dropdown-content
+      each val in escritorios
+        a.deskList= val.name
 .container
   #main.cuerpo
-    h1#deskTitle.deskTitle #{desktop}
+    h1#deskTitle.deskTitle= escritorio
     .bodcontrols
       span#editDesk.icofont-ui-edit
       span#removeDesk.icofont-recycle
       span#addCol.icofont-ghost
       span#addDesk.icofont-plus
     #cols.cuerpo(data-id='columns')
+      div(id= escritorio + 'Cols').cuerpo(data-id='columns')
+        each val in columnas
+          .envolt(orden= `${val.order}`)
+            .headercolumn
+              h2.ctitle= val.name
+              i.icofont-gear
+              .ccontrols
+                span.icofont-ui-edit.editcol
+                span.icofont-recycle.borracol
+                span.icofont-plus.addlink
+            div(id= escritorio + val.name).columna(data-db= `${val._id}`)
+              each link in links
+                if link.idpanel == val._id
+                  .link(orden= `${link.orden}`)
+                    a(href= `${link.URL}` target='_blank')
+                      img(src='https://www.google.com/s2/favicons?domain=' + `${link.URL}`)
+                      | #{link.name}
+                    .lcontrols
+                      span.icofont-ui-edit.editalink
+                      span.icofont-recycle.borralink 
 .container
   #addDeskForm.deskForm
     h2 A&ntilde;ade Escritorio
