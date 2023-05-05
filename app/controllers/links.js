@@ -270,6 +270,7 @@ const editItem = async (req, res) => {
 const actualizarOrdenElementos = async (req, res) => {
     try {
         const elementos = req.body.body;
+        console.log(elementos);
         const idColumna = req.query.idColumna;
 
         //Creamos un mapa para almacenar el orden actual de los elementos
@@ -291,8 +292,10 @@ const actualizarOrdenElementos = async (req, res) => {
         });
         await Promise.all(updates);
 
+        const data = await linksModel.find({ idpanel: `${idColumna}` }).sort({ orden: 1 });
         // Enviamos la respuesta
-        res.status(200).json({ message: 'Elementos actualizados correctamente' });
+        //res.status(200).json({ message: 'Elementos actualizados correctamente' });
+        res.send(data);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error al actualizar los elementos' });

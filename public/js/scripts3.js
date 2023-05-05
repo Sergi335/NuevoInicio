@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', cargaWeb);
 document.addEventListener('click', escondeDialogos);
+
 /**
  * Función que rellena la Web según el escritorio elegido. 
  * Si se le pasa parámetro, carga el escritorio segun el nombre pasado como param. 
@@ -524,9 +525,7 @@ async function deleteColumn(event) {
  * Función que reconstruye las columnas de cada escritorio
  * Cuando carga la página, cuando se crea una columna ...
  * Recibe lista con columnas del escritorio
- * @param {json} lista  
- * @param {*} ordenCols 
- * @param {*} creado 
+ * @param {json} lista
  */
 function refreshColumns(lista) {
 
@@ -588,12 +587,16 @@ function refreshColumns(lista) {
         const $addLinkControl = document.createElement("span");
         $addLinkControl.setAttribute("class", "icofont-plus addlink");
 
+        const $mainbutton = document.createElement("i");
+        $mainbutton.setAttribute("class", "icofont-gear");
+
         $ccontrols.appendChild($editControl)
         $ccontrols.appendChild($deleteControl)
         $ccontrols.appendChild($addLinkControl)
 
         $header.appendChild($textos)
         $headerColumn.appendChild($header)
+        $headerColumn.appendChild($mainbutton)
         $headerColumn.appendChild($ccontrols)
 
         $envolt.appendChild($headerColumn)
@@ -616,40 +619,15 @@ function refreshColumns(lista) {
             item.removeEventListener('click', toggleDialogEditColumn);
             item.addEventListener('click', toggleDialogEditColumn);
         })
+        //Agregar evento de clic al botón principal de control
+        document.querySelectorAll('.icofont-gear').forEach(item => {
+            item.removeEventListener('click', muestraCcontrols);
+            item.addEventListener('click', muestraCcontrols);
+        })
 
         ordenaItems(element.name);
     })
-    //console.log(`Último id creado: ${counter2 - 1}`);
 
-
-
-    // if (ordenCols === undefined || ordenCols === null) {
-
-    //     ordenaCols($raiz);
-    //     ordenCols = localStorage.getItem(`Grupo${escritorioActual}Cols`);
-    //     //console.log(`Es undefined o null: ${ordenCols}`);
-
-    // } else {
-
-    //     //console.log(ordenCols);
-
-    // }
-
-    // if (ordenCols != null && creado === true) {
-
-    //     //console.log("Viene de crear o editar");
-    //     arrOrden = ordenCols.split('|');
-    //     const primerElemento = arrOrden.shift();
-    //     arrOrden.push(primerElemento);
-    //     //console.log(arrOrden);
-    //     localStorage.setItem(`Grupo${escritorioActual}Cols`, `${arrOrden.join('|')}`);
-    //     ordenaCols($raiz);
-
-    // } else {
-
-    //     //console.log("Es una actualización");
-    //     ordenaCols($raiz);
-    // }
     if (arr2.length > 0) {
         arr2.forEach(element => {
             ordenaItems(element);
@@ -1075,7 +1053,7 @@ function ordenaItems(panel) {
                         $raizOld.appendChild($div);
                     }
                     //console.log(oldId);
-                    //TODO hay que pasarle el orden
+                    
                     let body = { 'escritorio': escritorio, 'name': nombre, 'newId': newId, 'oldId': oldId, 'panel': panel }
                     //console.log(body);
                     body = JSON.stringify(body)
@@ -1087,6 +1065,33 @@ function ordenaItems(panel) {
                         body: body
                     })
                     let json = await res.json();
+                    //TODO hay que pasarle el orden
+
+                    let elements = document.querySelectorAll(`[data-db="${newId}"]`)[0].childNodes;
+                    console.log(elements);
+                    let id = elements[0].parentNode.getAttribute('data-db');
+                    console.log(id);
+                    const sortedElements = Array.from(elements).sort((a, b) => {
+                        return a.dataset.orden - b.dataset.orden;
+                    });
+                    console.log(sortedElements);
+                    let names = [];
+                    sortedElements.forEach(element => {
+                        names.push(element.innerText)
+                    })
+                    console.log(names);
+                    body = names;
+                    body = JSON.stringify({ body })
+                    let res2 = await fetch(`http://localhost:3001/draglink?idColumna=${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'content-type': 'application/json'
+                        },
+                        body: body
+                    })
+                    let json2 = await res2.json();
+                    console.log(json2);
+                    //--------------------------------------------------------
                     //console.log(json.length);
                     //const objeto = JSON.parse(json);
                     const claves = Object.keys(json);
@@ -1094,7 +1099,7 @@ function ordenaItems(panel) {
                     //console.log(primerValor);
                     if (primerValor !== "Respuesta") {
 
-                        const groupByPanel = json.reduce((acc, elem) => {
+                        const groupByPanel = json2.reduce((acc, elem) => {
                             if (acc[elem.panel]) {
                                 acc[elem.panel].push(elem);
                             } else {
@@ -1117,7 +1122,7 @@ function ordenaItems(panel) {
                             //console.log(panel);
                             //ordenaItems(panel);
                         }
-                        //console.log(json);
+                        console.log(json);
 
 
                     } else {
@@ -1161,8 +1166,6 @@ function ordenaItems(panel) {
     }
 
 }
-
-
 
 function ordenaCols(element) {
     // console.log("Se ejecuta ordenacols");
@@ -1213,4 +1216,22 @@ function ordenaCols(element) {
         //Habrá que hacer un getItems y que lo añada al final o cualquier ostia
     })
 
+}
+
+//Funciones Animacion
+
+function muestraCcontrols(event) {
+    console.log("Has hecho click");
+    console.log(event.target.nextSibling);
+    
+    const controls = event.target.nextSibling;
+
+    controls.classList.toggle('visible');
+    anime({
+        targets: controls,
+        translateY: controls.classList.contains('visible') ? '0%' : '200%',
+        zIndex: controls.classList.contains('visible') ? 1 : -1,
+        easing: 'easeInOutQuad',
+        duration: 300
+    });
 }

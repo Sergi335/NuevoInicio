@@ -13,7 +13,7 @@ h1 {
     font-size: 2.1em;
 }
 h1.deskTitle {
-    width: 60%;
+    width: 88%;
     text-align: left;
     font-weight: 100;
     letter-spacing: 2px;
@@ -38,7 +38,7 @@ h1.deskTitle {
 .columna {
     width: 240px;
     margin-right: 45px;
-    margin-bottom: 45px;
+    margin-bottom: 15px;
 }
 .envolt {
     width: 240px;
@@ -46,6 +46,7 @@ h1.deskTitle {
     margin-bottom: 45px;
     box-shadow: 2px 3px 19px #00000073;
     border-radius: 15px;
+    background-color: cornflowerblue;
     height: fit-content;
 }
 .link:hover {
@@ -93,20 +94,45 @@ h1.deskTitle {
 .headercolumn {
     height: 50px;
 }
+i.icofont-gear {
+    position: relative;
+    left: 208px;
+    top: -44px;
+    color: #ededed;
+}
 .ccontrols {
     position: relative;
-    left: 78%;
-    top: -42px;
-    width: fit-content;
-    display: none;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    left: 53%;
+    top: -125px;
+    width: 35%;
+    background-color: goldenrod;
+    padding: 14px;
+    border-radius: 8px;
+    /* transform: translateY(45px); */
+    transform: translateY(200%);
+    transition: transform 0.3s ease-in-out;
+    z-index: -1;
+    /* display: none; */
 
 }
+.ccontrols.visible {
+    transform: translateY(0%);
+  }
+/* .ccontrols span {
+    margin-right: 8px;
+} */
+/* i.icofont-gear:hover + .ccontrols {
+    display: flex;
+} */
 .headercolumn:hover {
     cursor: pointer;
 }
-.headercolumn:hover .ccontrols {
-    display: block;
-}
+/* .headercolumn:hover .ccontrols {
+    display: flex;
+} */
 .headercolumn h2 {
     padding-left: 18px;
     height: 50px;
@@ -120,9 +146,13 @@ h1.deskTitle {
 }
 .bodcontrols {
     display: flex;
-    width: 30%;
-    justify-content: end;
+    width: 10%;
+    justify-content: space-around;
     align-items: center;
+}
+.bodcontrols span {
+    
+    cursor: pointer;
 }
 .deskForm {
     width: 525px;
