@@ -2,7 +2,7 @@ const express = require("express"),
       router = express.Router();
       
 const {getItems, getItemsCount, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos} = require("../controllers/links")
-const {getDeskItems, deleteDeskItem, createDeskItem, editDeskItem} = require("../controllers/escritorios")
+const {getDeskItems, deleteDeskItem, createDeskItem, editDeskItem, testTemplates} = require("../controllers/escritorios")
 const {getColItems, createColItem, deleteColItem, editColItem, actualizarOrdenColumnas} = require("../controllers/columnas")
 const {registraUsuario} = require("../controllers/auth");
 
@@ -18,6 +18,7 @@ function pug(req, res, next) {
 router.get("/", (req, res) => {
         res.render("index.pug")
 })     //.get("/pug", pug)
+router.get("/templates", testTemplates);
 router.get("/columnas", getColItems);
 router.get("/escritorios", getDeskItems);
 router.get("/links", getItems); 

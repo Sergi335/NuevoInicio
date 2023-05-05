@@ -85,4 +85,11 @@ const deleteDeskItem = async (req, res) => {
     console.log(panelsinDesk);
     res.send(lista);
 }
-module.exports = { createDeskItem, getDeskItems, deleteDeskItem, editDeskItem };
+const testTemplates = async (req, res) => {
+    let locals = {
+        user : "Sergio",
+        desktop : "Inicio"
+    }
+    res.render("indexTemplates.pug", locals);
+}
+module.exports = { createDeskItem, getDeskItems, deleteDeskItem, editDeskItem, testTemplates };
