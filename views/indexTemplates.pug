@@ -43,7 +43,9 @@ head
                       | #{link.name}
                     .lcontrols
                       span.icofont-ui-edit.editalink
-                      span.icofont-recycle.borralink 
+                      span.icofont-recycle.borralink
+              if val.vacio == true
+                .link(orden='0')
 .container
   #addDeskForm.deskForm
     h2 A&ntilde;ade Escritorio

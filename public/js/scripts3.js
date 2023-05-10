@@ -123,8 +123,7 @@ async function selectDesktop(event) {
     let deskName = event.target.innerText;
     window.location = `http://localhost:3001/templates?escritorio=${deskName}`
 }
-
-async function editDesktop(params) {
+async function editDesktop() {
     let nombreOld = document.body.getAttribute('data-desk');
     let nombre = document.getElementById('editdeskName').value;
     let body = { 'nombre': nombre, 'nombreOld': nombreOld }
@@ -139,6 +138,7 @@ async function editDesktop(params) {
     })
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
     let json = await res.json();
+
     const firstKey = Object.keys(json)[0];
     const firstValue = json[firstKey];
 
@@ -155,18 +155,13 @@ async function editDesktop(params) {
     }
     document.getElementById('deskTitle').innerText = `${nombre}`;
 
-    //TODO Local storage
-    let ordenCols = localStorage.getItem(`Grupo${nombreOld}Cols`);
-    localStorage.setItem(`Grupo${nombre}Cols`, ordenCols);
-    localStorage.removeItem(`Grupo${nombreOld}Cols`);
-    console.log(ordenCols);
-
 }
-async function createDesktop(params) {
+async function createDesktop() {
+
     let nombre = document.getElementById('deskName').value;
     let body = { 'nombre': nombre }
     body = JSON.stringify(body)
-    //console.log(JSON.stringify(body));
+
     let res = await fetch("http://localhost:3001/escritorios", {
         method: 'POST',
         headers: {
@@ -181,13 +176,12 @@ async function createDesktop(params) {
     if (firstKey === "error") {
         $error = document.getElementById('deskError');
         $error.innerText = `${firstKey}, ${firstValue}`;
-        //console.log(firstKey);
-        //console.log(firstValue);
+
     } else {
         let dialog = document.getElementById('addDeskForm');
         let visible = dialog.style.display === 'flex';
         dialog.style.display = visible ? 'none' : 'flex';
-        //console.log(json);
+
         refreshDesktops(json);
         addDesktopEvents();
     }
@@ -200,7 +194,7 @@ async function deleteDesktop() {
     let nombre = document.body.getAttribute('data-desk');
     let body = { 'name': nombre }
     body = JSON.stringify(body)
-    //console.log(JSON.stringify(body));
+
     let res = await fetch("http://localhost:3001/escritorios", {
         method: 'DELETE',
         headers: {
@@ -209,23 +203,51 @@ async function deleteDesktop() {
         body: body
     })
     let json = await res.json();
-    //console.log(json);
-    cargaWeb(json[0].name);
+
+    //cargaWeb(json[0].name);
+    window.location = `http://localhost:3001/templates?escritorio=${json[0].name}`
     let dialog = document.getElementById('deleteDeskForm');
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
 
 }
+/**
+ * FUnción que recarga la lista de escritorios disponibles
+ * @param {*} lista 
+ */
+function refreshDesktops(lista) {
+
+    //Declaramos la raiz donde va la lista de escritorios
+    const $raiz = document.getElementById('drpEscritorios');
+    //Convertimos el Json en Array
+    const arr = Array.from(lista);
+    //Si la raiz tiene hijos los vaciamos todos
+    if ($raiz.hasChildNodes()) {
+        while ($raiz.childNodes.length >= 1) {
+            $raiz.removeChild($raiz.firstChild);
+        }
+    }
+
+    arr.forEach(element => {
+        const $nodos = document.createElement("a");
+        $nodos.setAttribute('class', 'deskList')
+        const $textos = document.createTextNode(`${element.name}`)
+
+        $nodos.appendChild($textos)
+        $raiz.appendChild($nodos)
+    })
+}
 
 //Manejo de columnas
 
-async function editColumn(event) {
-    //console.log("Se ejecuta editColumn");
+async function editColumn() {
+    
     let nombre = document.getElementById('editcolName').value;
     let escritorio = document.body.getAttribute('data-desk');
     let nombreOld = document.body.getAttribute('data-panel');
     let dbID = document.getElementById('editcolSubmit').getAttribute('sender');
     console.log(dbID);
+    
     let body = { 'nombre': nombre, 'nombreOld': nombreOld, 'escritorio': escritorio }
     body = JSON.stringify(body)
 
@@ -243,47 +265,21 @@ async function editColumn(event) {
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
 
-    let creado = true;
-    refreshColumns(json);
+    let $Column = document.querySelector(`[data-db="${dbID}"]`);
+    console.log($Column.parentNode.childNodes[0].childNodes[0].innerText);
+    $Column.parentNode.childNodes[0].childNodes[0].innerText = nombre;
 
-    res = await fetch(`http://localhost:3001/links?escritorio=${escritorio}`, {
-        method: 'GET',
-        headers: {
-            'content-type': 'application/json'
-        }
-    })
-    json = await res.json();
-    if (!res.ok) throw { status: res.status, statusText: res.statusText }
-    const groupByPanel = json.reduce((acc, elem) => {
-        if (acc[elem.panel]) {
-            acc[elem.panel].push(elem);
-        } else {
-            acc[elem.panel] = [elem];
-        }
-        return acc;
-    }, {});
-
-    for (const panel in groupByPanel) {
-        //console.log(`Elementos en el panel ${panel}:`);
-        const items = groupByPanel[panel];
-        const id = document.getElementById(`${escritorio}${panel}`).getAttribute('data-db');
-        refreshLinks(items);
-        //insertaNodos(items, `${panel}`, "link");
-    }
-    //let el = document.getElementById(`${escritorio}Cols`);
-    // console.log(typeof(el))
-    //ordenaCols(el);
 }
 async function createColumn() {
 
-    //console.log("Se ejecuta createColumn");
     let nombre = document.getElementById('colName').value;
     let escritorio = document.body.getAttribute('data-desk');
     let $raiz0 = document.getElementById(`${escritorio}Cols`);
+    
     let orden = $raiz0.childNodes.length;
     orden = orden + 1;
     console.log(orden);
-    //Meterle el orden
+    
     let body = { 'nombre': nombre, 'escritorio': `${escritorio}`, 'order': orden }
     body = JSON.stringify(body)
 
@@ -295,58 +291,23 @@ async function createColumn() {
         body: body
     })
     let json = await res.json();
+    
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
+    
     let dialog = document.getElementById('addColForm');
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
-    //console.log(json);
-    //Hay que recargar solo la columna TODO
-    let creado = true;
+
     refreshColumns(json);
-    res = await fetch(`http://localhost:3001/links?escritorio=${escritorio}`, {
-        method: 'GET',
-        headers: {
-            'content-type': 'application/json'
-        }
-    })
-
-    json = await res.json();
-    if (!res.ok) throw { status: res.status, statusText: res.statusText }
-    const groupByPanel = json.reduce((acc, elem) => {
-        if (acc[elem.panel]) {
-            acc[elem.panel].push(elem);
-        } else {
-            acc[elem.panel] = [elem];
-        }
-        return acc;
-    }, {});
-
-    for (const panel in groupByPanel) {
-        //console.log(`Elementos en el panel ${panel}:`);
-        const items = groupByPanel[panel];
-        const id = document.getElementById(`${escritorio}${panel}`).getAttribute('data-db');
-        const $raiz = document.querySelector(`[data-db="${id}"]`);
-        if ($raiz.hasChildNodes()) {
-            while ($raiz.childNodes.length >= 1) {
-                $raiz.removeChild($raiz.lastChild);
-            }
-        }
-        refreshLinks(items, `${id}`);
-        //insertaNodos(items, `${panel}`, "link");
-    }
-
-
 }
-async function deleteColumn(event) {
+async function deleteColumn() {
 
-    //Pasarle el id del elemento a borrar ver como afecta en el servidor
     let escritorio = document.body.getAttribute('data-desk');
-    //let nombre = event.target.parentNode.parentNode.childNodes[0].innerText;
     let elementoId = document.getElementById('confDeletecolSubmit').getAttribute('sender');
-    console.log(elementoId);
+
     let body = { 'id': elementoId, 'escritorio': `${escritorio}` }
     body = JSON.stringify(body)
-    console.log(JSON.stringify(body));
+    
     let res = await fetch("http://localhost:3001/columnas", {
         method: 'DELETE',
         headers: {
@@ -355,48 +316,126 @@ async function deleteColumn(event) {
         body: body
     })
     let json = await res.json();
-    //console.log(json);
-    let creado = true;
-    refreshColumns(json);
-    if (!res.ok) throw { status: res.status, statusText: res.statusText }
-    res = await fetch(`http://localhost:3001/links?escritorio=${escritorio}`, {
-        method: 'GET',
-        headers: {
-            'content-type': 'application/json'
-        }
-    })
 
-    json = await res.json();
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
-    const groupByPanel = json.reduce((acc, elem) => {
-        if (acc[elem.panel]) {
-            acc[elem.panel].push(elem);
-        } else {
-            acc[elem.panel] = [elem];
-        }
-        return acc;
-    }, {});
+    
+    const $colBorrar = document.querySelector(`[data-db="${elementoId}"]`);
 
-    for (const panel in groupByPanel) {
-        //console.log(`Elementos en el panel ${panel}:`);
-        const items = groupByPanel[panel];
-        const id = document.getElementById(`${escritorio}${panel}`).getAttribute('data-db');
-        const $raiz = document.querySelector(`[id="${escritorio}${panel}"]`)
-        console.log($raiz);
-        if ($raiz.hasChildNodes()) {
-            while ($raiz.childNodes.length >= 1) {
-                $raiz.removeChild($raiz.lastChild);
-            }
-            // refreshLinks(items);
-        }
-        refreshLinks(items, `${id}`);
-        //insertaNodos(items, `${panel}`, "link");
-    }
+    $colBorrar.parentNode.remove();
+
     let dialog = document.getElementById('deleteColForm');
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
 }
+/**
+ * Función que crea la columna cuando se crea con createColumn
+ * Recibe la columna creada
+ * @param {json} json
+ */
+function refreshColumns(json) {
+    console.log(json[0]);
+    console.log(json[0].name);
+    console.log(json[0]._id);
+    
+    const nombre = json[0].name;
+    const id = json[0]._id;
 
+    const escritorioActual = document.body.getAttribute('data-desk');
+    const $raiz = document.getElementById(`${escritorioActual}Cols`);
+    const arr = []; 
+    
+    document.querySelectorAll('.headercolumn').forEach(element => {
+        console.log(element.childNodes[0].innerText)
+        arr.push(element.childNodes[0].innerText)
+    }) 
+    console.log(arr);
+
+    const $columna = document.createElement("div");
+    $columna.setAttribute("class", "columna");
+
+    //Permite detectar duplicados y darles un id distinto incremental, --> esta funcionalidad hay que implementarla a nvel de plantilla, no tiene sentido aqui
+    //Hay que contar el numero de repeticiones y asignarle un id temporal con el numero +1 luego cuando se refresque la pag lo implementará en plantilla
+    
+    const count = arr.reduce((acc, currentValue) => {
+        if (currentValue === nombre) {
+          return acc + 1;
+        } else {
+          return acc;
+        }
+    }, 0);
+    console.log(count);
+    if(count > 0) {
+        $columna.setAttribute("id", `${escritorioActual}${nombre}${count + 1}`);
+    } else {
+        $columna.setAttribute("id", `${escritorioActual}${nombre}`);
+    }
+    
+
+    $columna.setAttribute("data-db", `${id}`);
+    
+    const $div = document.createElement("div");
+    $div.setAttribute("class", "link");
+    $columna.appendChild($div)
+    
+    const $envolt = document.createElement("div");
+    $envolt.setAttribute("class", "envolt");
+    $envolt.setAttribute("orden", ""); //No es necesario siempre al final? ver de donde viene puede ser necesario para ordencols, etc
+    const $headerColumn = document.createElement("div");
+    $headerColumn.setAttribute("class", "headercolumn");
+    const $header = document.createElement("h2");
+    $header.setAttribute("class", "ctitle");
+    const $textos = document.createTextNode(`${nombre}`)
+    const $ccontrols = document.createElement("div");
+    $ccontrols.setAttribute("class", "ccontrols");
+    const $editControl = document.createElement("span");
+    $editControl.setAttribute("class", "icofont-ui-edit editcol");
+    const $deleteControl = document.createElement("span");
+    $deleteControl.setAttribute("class", "icofont-recycle borracol");
+    const $addLinkControl = document.createElement("span");
+    $addLinkControl.setAttribute("class", "icofont-plus addlink");
+
+    const $mainbutton = document.createElement("i");
+    $mainbutton.setAttribute("class", "icofont-gear");
+
+    $ccontrols.appendChild($editControl)
+    $ccontrols.appendChild($deleteControl)
+    $ccontrols.appendChild($addLinkControl)
+
+    $header.appendChild($textos)
+    $headerColumn.appendChild($header)
+    $headerColumn.appendChild($mainbutton)
+    $headerColumn.appendChild($ccontrols)
+
+    $envolt.appendChild($headerColumn)
+    $envolt.appendChild($columna)
+
+    $raiz.appendChild($envolt)
+
+    //No hay una función que lo hace?
+    //Agregar evento de clic al botón de borrar columnas
+    document.querySelectorAll('.borracol').forEach(item => {
+        item.removeEventListener('click', toggleDeleteDialogCol);
+        item.addEventListener('click', toggleDeleteDialogCol);
+    })
+    //Agregar evento de clic al botón de añadir links
+    document.querySelectorAll('.addlink').forEach(item => {
+        item.removeEventListener('click', toggleDialogLink);
+        item.addEventListener('click', toggleDialogLink);
+    })
+    //Agregar evento de clic al botón de editar columnas
+    document.querySelectorAll('.editcol').forEach(item => {
+        item.removeEventListener('click', toggleDialogEditColumn);
+        item.addEventListener('click', toggleDialogEditColumn);
+    })
+    //Agregar evento de clic al botón principal de control
+    document.querySelectorAll('.icofont-gear').forEach(item => {
+        item.removeEventListener('click', muestraCcontrols);
+        item.addEventListener('click', muestraCcontrols);
+    })
+
+    ordenaItems(nombre);
+    ordenaCols($raiz);
+}
 //Manejo de links
 
 async function editLink(params) {
@@ -763,7 +802,7 @@ function ordenaItems(panel) {
                         $raizOld.appendChild($div);
                     }
                     //console.log(oldId);
-                    
+
                     let body = { 'escritorio': escritorio, 'name': nombre, 'newId': newId, 'oldId': oldId, 'panel': panel }
                     //console.log(body);
                     body = JSON.stringify(body)
@@ -933,7 +972,7 @@ function ordenaCols(element) {
 function muestraCcontrols(event) {
     console.log("Has hecho click");
     console.log(event.target.nextSibling);
-    
+
     const controls = event.target.nextSibling;
 
     controls.classList.toggle('visible');

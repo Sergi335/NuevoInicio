@@ -63,7 +63,7 @@ const createColItem = async (req, res) => {
     objeto.order = body.order;
     console.log(objeto);
     const data = await columnasModel.create(objeto)
-    const lista = await columnasModel.find({ escritorio: `${body.escritorio}` }).sort({ order: 1 });
+    const lista = await columnasModel.find({ escritorio: `${body.escritorio}`, name: `${body.nombre}` });
     res.send(lista);
 }
 const deleteColItem = async (req, res) => {
