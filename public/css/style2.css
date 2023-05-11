@@ -70,6 +70,10 @@ h1.deskTitle {
     text-decoration: none;
     color: black;
     font-size: 13px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 75%;
+    overflow: hidden;
 }
 .link img {
     vertical-align: sub;

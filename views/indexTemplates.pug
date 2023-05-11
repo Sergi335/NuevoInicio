@@ -33,19 +33,27 @@ head
               .ccontrols
                 span.icofont-ui-edit.editcol
                 span.icofont-recycle.borracol
+                span.paste-btn.icofont-paperclip
                 span.icofont-plus.addlink
-            div(id= escritorio + val.name).columna(data-db= `${val._id}`)
-              each link in links
-                if link.idpanel == val._id
-                  .link(orden= `${link.orden}`)
-                    a(href= `${link.URL}` target='_blank')
-                      img(src='https://www.google.com/s2/favicons?domain=' + `${link.URL}`)
-                      | #{link.name}
-                    .lcontrols
-                      span.icofont-ui-edit.editalink
-                      span.icofont-recycle.borralink
-              if val.vacio == true
-                .link(orden='0')
+            - var contador = {}
+            if contador[item]
+              - var numero = contador[item] + 1
+              - contador[item] = numero
+              div(id= escritorio + val.name + numero).columna(data-db= `${val._id}`)
+            else
+              - contador[item] = 1
+              div(id= escritorio + val.name).columna(data-db= `${val._id}`)
+                each link in links
+                  if link.idpanel == val._id
+                    .link(orden= `${link.orden}`)
+                      a(href= `${link.URL}` target='_blank')
+                        img(src='https://www.google.com/s2/favicons?domain=' + `${link.URL}`)
+                        | #{link.name}
+                      .lcontrols
+                        span.icofont-ui-edit.editalink
+                        span.icofont-recycle.borralink
+                if val.vacio == true
+                  .link(orden='0')
 .container
   #addDeskForm.deskForm
     h2 A&ntilde;ade Escritorio
@@ -68,6 +76,7 @@ head
     p URL
     input#linkURL(type='text' name='linkURL')
     button#linkSubmit(type='submit') Enviar
+    p#linkError
   #editColForm.deskForm
     h2 Edita Columna
     input#editcolName(type='text' name='colName')
@@ -80,6 +89,7 @@ head
     p URL
     input#editlinkURL(type='text' name='editlinkURL')
     button#editlinkSubmit(type='submit') Modificar
+    p#editLinkError
   #deleteLinkForm.deskForm
     h2 Seguro que quieres borrar este Link?
     button#confDeletelinkSubmit(onclick='deleteLink()' type='submit') Si

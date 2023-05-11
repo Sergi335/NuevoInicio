@@ -126,7 +126,18 @@ const createItem = async (req, res) => {
     } else {
         console.log("No estaba vacia");
     }
-    const data = await linksModel.create(objeto);
+    const findDuplicate = await linksModel.find({name: body.nombre, idpanel: body.id});
+    console.log(findDuplicate);
+    console.log(findDuplicate.length);
+    if(findDuplicate == 0) {
+        const data = await linksModel.create(objeto);
+        res.send(data);
+    } else {
+        const err = { "error": "El link ya existe en esta columna" }
+        res.send(err);
+    }
+    
+    
     //const lista = await linksModel.find({panel: `${objeto.panel}`, escritorio: `${objeto.escritorio}`});
     // const lista = await linksModel.find({idpanel: `${objeto.idpanel}`, escritorio: `${objeto.escritorio}`});
     //console.log(lista);
@@ -154,7 +165,8 @@ const createItem = async (req, res) => {
         .find({ escritorio: body.escritorio, panel: body.columna })
         .sort({ orden: 1 });
 
-    res.send(lista);
+    //res.send(lista);
+    
 }
 /**
  * Actualizar enlace al arrastrar entre columnas
@@ -253,6 +265,7 @@ const editItem = async (req, res) => {
             { $set: { name: `${objeto.name}`, escritorio: `${objeto.escritorio}`, panel: `${objeto.panel}`, URL: `${objeto.URL}`, imgURL: `${objeto.imgURL}` } }, // La propiedad a actualizar
             { new: true } // Opciones adicionales (en este caso, devuelve el documento actualizado)   
         );
+        res.send(documentoActualizado)
         //console.log(documentoActualizado);
     } catch (error) {
         console.log(error); // Manejo de errores
@@ -260,7 +273,8 @@ const editItem = async (req, res) => {
     }
     const lista = await linksModel.find({ panel: `${objeto.panel}`, escritorio: `${objeto.escritorio}`, idpanel: `${objeto.id}` }); //Ordenar por orden?? .sort?
     //console.log(lista);
-    res.send(lista);
+    // res.send(lista);
+    
 }
 /**
  * Función para actualizar orden de links dentro del mismo panel
