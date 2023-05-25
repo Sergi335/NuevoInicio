@@ -9,6 +9,12 @@ head
   script(src='https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js')
   script(src='/js/scripts3.js')
 .container
+  #userControl
+    .avatar
+      img(src='img/avatar.svg' alt='')
+      .controls
+        button Perfil
+        button#logout Cerrar Sesi&oacute;n
   h1 Buenos días #{user}
   .dropdown
     button.dropbtn Escritorios
@@ -24,7 +30,7 @@ head
       span#addCol.icofont-ghost
       span#addDesk.icofont-plus
     #cols.cuerpo(data-id='columns')
-      div(id= escritorio + 'Cols').cuerpo(data-id='columns')
+      div(id=escritorio + 'Cols', class='cuerpo', data-id='columns')
         each val in columnas
           .envolt(orden= `${val.order}`)
             .headercolumn
@@ -39,10 +45,10 @@ head
             if contador[item]
               - var numero = contador[item] + 1
               - contador[item] = numero
-              div(id= escritorio + val.name + numero).columna(data-db= `${val._id}`)
+              div(id=escritorio + val.name + numero, class='columna', data-db=`${val._id}`)
             else
               - contador[item] = 1
-              div(id= escritorio + val.name).columna(data-db= `${val._id}`)
+              div(id=escritorio + val.name, class='columna', data-db=`${val._id}`)
                 each link in links
                   if link.idpanel == val._id
                     .link(orden= `${link.orden}`)
@@ -84,12 +90,26 @@ head
     p#editcolError
   #editLinkForm.deskForm
     h2 Edita Link
-    p Nombre
-    input#editlinkName(type='text' name='editlinkName')
-    p URL
-    input#editlinkURL(type='text' name='editlinkURL')
-    button#editlinkSubmit(type='submit') Modificar
-    p#editLinkError
+    fieldset
+      legend Nombre y URL
+      label(for='editLinkName') Nombre
+      input#editlinkName(type='text' name='editlinkName' placeholder='')
+      label(for='editLinkURL') URL
+      input#editlinkURL(type='text' name='editlinkURL' placeholder='')
+      button#editlinkSubmit(type='submit') Modificar
+      p#editLinkError Error de muestra
+    fieldset
+      legend Mover Link
+      label(for='moveLink') Selecciona columna:
+      select#moveLink(name='desktops')
+        each val in columnas
+          option(value=`${val.name}`) #{val.name}
+      p#moveLinkError Error de muestra
+    fieldset
+      legend Cambiar Imagen
+      label(for='linkImg') Selecciona una imagen:
+      input#linkImg(type='file' name='linkImg')
+      p#editLinkImageError Error de muestra
   #deleteLinkForm.deskForm
     h2 Seguro que quieres borrar este Link?
     button#confDeletelinkSubmit(onclick='deleteLink()' type='submit') Si

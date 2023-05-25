@@ -1,7 +1,18 @@
 const { escritoriosModel } = require("../models/index");
 const { linksModel } = require("../models/index");
 const { columnasModel } = require("../models/index")
+const cookieParser = require('cookie-parser') //necesario?
 
+const updateUser = async (req, res) => {
+    const data = linksModel.updateMany({}, { user: 'SergioSR' })
+        .then(result => {
+            console.log(`${result.nModified} registros de escritoriosModel actualizados correctamente`);
+        })
+        .catch(err => {
+            console.error('Error al actualizar registros de escritoriosModel:', err);
+        });
+    res.send({ data })
+}
 /**
  * Obtener lista de enlaces
  * @param {*} req 
@@ -31,7 +42,7 @@ const editDeskItem = async (req, res) => {
                 { new: true } // Opciones adicionales (en este caso, devuelve el documento actualizado)   
             );
             //Actualizamos las columnas
-            const filtro = { escritorio: `${objeto.nameOld}`}; // Filtrar documentos
+            const filtro = { escritorio: `${objeto.nameOld}` }; // Filtrar documentos
             console.log(filtro);
             const actualizacion = { $set: { escritorio: `${objeto.name}` } }; // Actualizar
             console.log(actualizacion);
@@ -39,12 +50,12 @@ const editDeskItem = async (req, res) => {
             const resultado = await columnasModel.updateMany(filtro, actualizacion);
 
             //Actualizamos los Links
-            const filtroL = { escritorio: `${objeto.nameOld}`}; // Filtrar documentos
+            const filtroL = { escritorio: `${objeto.nameOld}` }; // Filtrar documentos
             const actualizacionL = { $set: { escritorio: `${objeto.name}` } }; // Actualizar
 
             const resultadoL = await linksModel.updateMany(filtroL, actualizacionL);
 
-            res.send( await escritoriosModel.find());
+            res.send(await escritoriosModel.find());
 
         } catch (error) {
             console.log(error); // Manejo de errores
@@ -87,10 +98,12 @@ const deleteDeskItem = async (req, res) => {
 }
 const testTemplates = async (req, res) => {
     const params = req.query.escritorio;
+    const user = req.cookies.user
+    console.log(`Desde el controlador ${user}`);
     const escritorios = await escritoriosModel.find();
-    
+
     let escritorio;
-    if(params) {
+    if (params) {
         escritorio = params;
     } else {
         escritorio = escritorios[0].name;
@@ -99,11 +112,12 @@ const testTemplates = async (req, res) => {
     const columnas = await columnasModel.find({ escritorio: escritorio }).sort({ order: 1 });
     const links = await linksModel.find({ escritorio: escritorio }).sort({ orden: 1 });
     let locals = {
-        escritorio : escritorio,
-        escritorios : escritorios,
-        columnas : columnas,
-        links : links
+        escritorio: escritorio,
+        escritorios: escritorios,
+        columnas: columnas,
+        links: links,
+        user: user
     }
     res.render("indexTemplates.pug", locals);
 }
-module.exports = { createDeskItem, getDeskItems, deleteDeskItem, editDeskItem, testTemplates };
+module.exports = { createDeskItem, getDeskItems, deleteDeskItem, editDeskItem, testTemplates, updateUser };

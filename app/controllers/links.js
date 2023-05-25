@@ -1,5 +1,27 @@
 const { linksModel, columnasModel } = require("../models/index");
+const {handleHttpError} = require("../helpers/handleError");
+const axios = require('axios');
+const cheerio = require('cheerio');
+//const https = require('https')
 
+// const httpsAgent = new https.Agent({
+//     rejectUnauthorized: false,
+// });
+
+const getNameByUrl = async (req, res) => {
+    const url = req.query.url
+    axios.get(url)
+        .then(response => {
+            const html = response.data;
+            const $ = cheerio.load(html);
+            const title = $('title').text();
+            console.log('El título de la página es: ' + title);
+            res.send(title);
+        })
+        .catch(error => {
+            console.log('Hubo un error al obtener el título de la página:', error);
+        });
+}
 /**
  * Funcion emergencia creada para actualizar la db con el campo orden de cada
  * link en cada panel, no se usa.
@@ -81,10 +103,18 @@ const setOrder2 = async (desk, panel) => {
  * @param {*} res 
  */
 const getItems = async (req, res) => {
-    const params = req.query.escritorio;
-    const data = await linksModel.find({ escritorio: `${params}` }).sort({ orden: 1 });
+    try {
+        const user = req.user;
+        const params = req.query.escritorio;
+        const data = await linksModel.find({ escritorio: `${params}` }).sort({ orden: 1 });
+        console.log(user);
 
-    res.send(data);
+        res.send(data);
+    } catch (e) {
+        console.log(e);
+        handleHttpError(res, "ERROR_RECOGIENDO_ITEMS")
+    }
+
 }
 /**
  * Obtener enlace, no se usa pero está exportada
@@ -111,6 +141,9 @@ const createItem = async (req, res) => {
     //console.log(dbIDCol);
     const objeto = new Object();
     objeto.name = body.nombre;
+    if (body.nombre === undefined) {
+        console.log('Hay que consultar el nombre');
+    }
     objeto.URL = body.URL;
     objeto.imgURL = body.imgURL;
     objeto.escritorio = body.escritorio;
@@ -126,18 +159,18 @@ const createItem = async (req, res) => {
     } else {
         console.log("No estaba vacia");
     }
-    const findDuplicate = await linksModel.find({name: body.nombre, idpanel: body.id});
+    const findDuplicate = await linksModel.find({ name: body.nombre, idpanel: body.id });
     console.log(findDuplicate);
     console.log(findDuplicate.length);
-    if(findDuplicate == 0) {
+    if (findDuplicate == 0) {
         const data = await linksModel.create(objeto);
         res.send(data);
     } else {
         const err = { "error": "El link ya existe en esta columna" }
         res.send(err);
     }
-    
-    
+
+
     //const lista = await linksModel.find({panel: `${objeto.panel}`, escritorio: `${objeto.escritorio}`});
     // const lista = await linksModel.find({idpanel: `${objeto.idpanel}`, escritorio: `${objeto.escritorio}`});
     //console.log(lista);
@@ -166,7 +199,7 @@ const createItem = async (req, res) => {
         .sort({ orden: 1 });
 
     //res.send(lista);
-    
+
 }
 /**
  * Actualizar enlace al arrastrar entre columnas
@@ -200,7 +233,7 @@ const editdragItem = async (req, res) => {
                 const documentoActualizado2 = await columnasModel.findOneAndUpdate({ _id: objeto.oldId }, { $set: { vacio: false } })
             }
             const documentoActualizado3 = await columnasModel.findOneAndUpdate({ _id: objeto.newId }, { $set: { vacio: false } })
-    
+
         } catch (error) {
             console.log(error); // Manejo de errores
             res.send(error)
@@ -274,7 +307,7 @@ const editItem = async (req, res) => {
     const lista = await linksModel.find({ panel: `${objeto.panel}`, escritorio: `${objeto.escritorio}`, idpanel: `${objeto.id}` }); //Ordenar por orden?? .sort?
     //console.log(lista);
     // res.send(lista);
-    
+
 }
 /**
  * Función para actualizar orden de links dentro del mismo panel
@@ -316,4 +349,4 @@ const actualizarOrdenElementos = async (req, res) => {
     }
 };
 
-module.exports = { getItemsCount, getItems, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos };
+module.exports = { getItemsCount, getItems, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos, getNameByUrl };

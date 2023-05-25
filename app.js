@@ -13,6 +13,7 @@ const express = require("express"),
       viewDir = `${__dirname}/views`,
       port = (process.env.port || 3000),
       app = express(),
+      cookieParser = require('cookie-parser');
       //bodyParser = require('body-parser')
       //router = express.Router()
 
@@ -29,9 +30,11 @@ app
      .use(express.json())
      .use(morgan('dev'))
      .use(publicDir)
+     .use(cookieParser())
      //.use(bodyParser.urlencoded())
     //Ejecutando el middleware enrutador
      .use('/', routes)
+     
 
 app.listen(port, () => {
     console.log('Eyyy tu app corre por el puerto ' + port);

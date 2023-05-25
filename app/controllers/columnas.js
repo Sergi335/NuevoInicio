@@ -156,4 +156,8 @@ const actualizarOrdenColumnas = async (req, res) => {
         res.status(500).json({ message: 'Error al actualizar los elementos' });
       }
 }
+
+const moveColumn = async (req, res) => {
+  //id columna, escritorio destino, orden (poner al final)
+}
 module.exports = { createColItem, getColItems, deleteColItem, editColItem, actualizarOrdenColumnas};

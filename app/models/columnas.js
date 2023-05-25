@@ -12,6 +12,9 @@ const ColumnSchema = new mongoose.Schema({
     },
     order: {
         type: Number
+    },
+    user: {
+        type: String
     }
 }, {
     timestamps: true,

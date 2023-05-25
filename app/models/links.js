@@ -21,6 +21,9 @@ const LinkSchema = new mongoose.Schema({
     },
     orden: {
         type: Number
+    },
+    user: {
+        type: String
     }
 }, {
     timestamps: true,

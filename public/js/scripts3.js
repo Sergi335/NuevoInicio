@@ -65,6 +65,10 @@ function addDesktopEvents() {
     document.querySelector('#deskSubmit').removeEventListener('click', createDesktop);
     document.querySelector('#deskSubmit').addEventListener('click', createDesktop);
 
+    // Agregar evento de clic al botón de cerrar sesión
+    document.querySelector('#logout').removeEventListener('click', logOut);
+    document.querySelector('#logout').addEventListener('click', logOut);
+
 
 }
 /**
@@ -90,6 +94,10 @@ function addColumnEvents() {
         item.removeEventListener('click', muestraCcontrols);
         item.addEventListener('click', muestraCcontrols);
     })
+    document.querySelectorAll('.paste-btn').forEach(item => {
+        item.removeEventListener('click', pasteLink);
+        item.addEventListener('click', pasteLink);
+    })
     document.querySelector('#colSubmit').removeEventListener('click', createColumn);
     document.querySelector('#colSubmit').addEventListener('click', createColumn);
 
@@ -108,10 +116,6 @@ function addLinkEvents($raiz) {
     document.querySelectorAll('.editalink').forEach(item => {
         item.removeEventListener('click', toggleDialogEditLink);
         item.addEventListener('click', toggleDialogEditLink);
-    })
-    document.querySelectorAll('.paste-btn').forEach(item => {
-        item.removeEventListener('click', pasteLink);
-        item.addEventListener('click', pasteLink);
     })
     // Agregar evento de clic al botón de envío dentro del cuadro de diálogo
     document.querySelector('#linkSubmit').removeEventListener('click', createLink);
@@ -402,14 +406,18 @@ function refreshColumns(json) {
     $editControl.setAttribute("class", "icofont-ui-edit editcol");
     const $deleteControl = document.createElement("span");
     $deleteControl.setAttribute("class", "icofont-recycle borracol");
+    const $pasteControl = document.createElement("span");
+    $pasteControl.setAttribute("class", "paste-btn icofont-paperclip");
     const $addLinkControl = document.createElement("span");
     $addLinkControl.setAttribute("class", "icofont-plus addlink");
+    
 
     const $mainbutton = document.createElement("i");
     $mainbutton.setAttribute("class", "icofont-gear");
 
     $ccontrols.appendChild($editControl)
     $ccontrols.appendChild($deleteControl)
+    $ccontrols.appendChild($pasteControl)
     $ccontrols.appendChild($addLinkControl)
 
     $header.appendChild($textos)
@@ -611,48 +619,114 @@ async function deleteLink() {
 
 }
 async function pasteLink(event) {
-    console.log("Pega Link");
-    console.log(event.target.parentNode.parentNode.parentNode.childNodes[0].childNodes[0].innerText);
-    navigator.clipboard.read().then(function (clipboardItems) {
-        clipboardItems.forEach(function (clipboardItem) {
-            clipboardItem.getType('text/html').then(function (blob) {
-                blob.text().then(function (text) {
-                    const raiz = event.target.parentNode.parentNode.parentNode.childNodes[1];
-                    console.log(typeof (text));
-                    console.log(text);
-                    //raiz.innerHTML += text;
-                    const range = document.createRange();
-                    range.selectNode(document.body);
-
-                    const fragment = range.createContextualFragment(text);
-
-                    const a = fragment.querySelector('a');
-                    const url = a.href;
-                    const nombre = a.innerText;
-                    const escritorio = document.body.getAttribute('data-desk');
-                    const columna = event.target.parentNode.parentNode.parentNode.childNodes[0].childNodes[0].innerText;
-                    const $raiz = document.querySelector(`[data-db="${raiz.dataset.db}"]`);
-
-                    let orden = $raiz.childNodes.length;
-                    orden = orden + 1;
-                    console.log(orden);
-                    const json = {
-                        idpanel: raiz.dataset.db,
-                        name: nombre,
-                        URL: url,
-                        imgURL: `https://www.google.com/s2/favicons?domain=${url}`,
-                        orden: orden,
-                        escritorio: escritorio,
-                        columna: columna
+    //lee el contenido del portapapeles entonces ...
+    navigator.clipboard.read().then((clipboardItems) => {
+        //por cada clipboardItem ...
+        for (const clipboardItem of clipboardItems) {
+            //Si el length de la propiedad types es 1, es texto plano
+            if (clipboardItem.types.length == 1) {
+                //lo confirmamos
+                for (const type of clipboardItem.types) {
+                    if (type === 'text/plain') {
+                        //Pasamos el blob a texto
+                        clipboardItem.getType(type).then((blob) => {
+                            blob.text().then(function (text) {
+                                console.log(text);
+                                //Si tiene un enlace
+                                if (text.indexOf('http') == 0) {
+                                    console.log('Tiene un enlace');
+                                    const raiz = event.target.parentNode.parentNode.parentNode.childNodes[1];
+                                    const $raiz = document.querySelector(`[data-db="${raiz.dataset.db}"]`);
+                                    const url = text;
+                                    async function procesarEnlace() {
+                                        const nombre = await getNameByUrl(text);
+                                        const escritorio = document.body.getAttribute('data-desk');
+                                        const columna = event.target.parentNode.parentNode.parentNode.childNodes[0].childNodes[0].innerText;
+                                        let orden = $raiz.childNodes.length;
+                                        orden = orden + 1;
+                                        console.log(orden);
+                                        const json = {
+                                            idpanel: raiz.dataset.db,
+                                            name: nombre,
+                                            URL: url,
+                                            imgURL: `https://www.google.com/s2/favicons?domain=${url}`,
+                                            orden: orden,
+                                            escritorio: escritorio,
+                                            columna: columna
+                                        }
+                                        createLinkApi(json)
+                                        console.log(json);
+                                        console.log(raiz.lastChild.innerText);
+                                        refreshLinks(json)
+                                    }
+                                    procesarEnlace();
+                                } else {
+                                    console.log('Es texto plano');
+                                    console.log(text);
+                                }
+                            })
+                        })
                     }
-                    createLinkApi(json)
-                    console.log(json);
-                    console.log(raiz.lastChild.innerText);
-                    refreshLinks(json)
-                });
-            });
-        });
-    });
+                }
+
+            } else {
+                for (const type of clipboardItem.types) {
+                    if (type === 'text/html') {
+                        clipboardItem.getType(type).then((blob) => {
+                            blob.text().then(function (text) {
+                                console.log(text);
+                                if (text.indexOf('<a href') == 0) {
+                                    console.log('Es un enlace html');
+                                    console.log(text);
+                                    const raiz = event.target.parentNode.parentNode.parentNode.childNodes[1];
+                                    console.log(typeof (text));
+                                    console.log(text);
+                                    //raiz.innerHTML += text;
+                                    const range = document.createRange();
+                                    range.selectNode(document.body);
+
+                                    const fragment = range.createContextualFragment(text);
+
+                                    const a = fragment.querySelector('a');
+                                    const url = a.href;
+                                    const nombre = a.innerText;
+                                    const escritorio = document.body.getAttribute('data-desk');
+                                    const columna = event.target.parentNode.parentNode.parentNode.childNodes[0].childNodes[0].innerText;
+                                    const $raiz = document.querySelector(`[data-db="${raiz.dataset.db}"]`);
+
+                                    let orden = $raiz.childNodes.length;
+                                    orden = orden + 1;
+                                    console.log(orden);
+                                    const json = {
+                                        idpanel: raiz.dataset.db,
+                                        name: nombre,
+                                        URL: url,
+                                        imgURL: `https://www.google.com/s2/favicons?domain=${url}`,
+                                        orden: orden,
+                                        escritorio: escritorio,
+                                        columna: columna
+                                    }
+                                    createLinkApi(json)
+                                    console.log(json);
+                                    console.log(raiz.lastChild.innerText);
+                                    refreshLinks(json)
+                                }
+                            })
+                        })
+                    }
+                    if (type.startsWith('image/')) {
+                        clipboardItem.getType(type).then((blob) => {
+                            console.log('Imagen:', blob);
+                            //var imageUrl = URL.createObjectURL(blob);
+                            //Establecer la URL de datos como el src de la imagen
+                            //document.getElementById('imagen').src = imageUrl;
+                        });
+                    }
+
+                }
+            }
+        }
+    })
 }
 async function createLinkApi(json) {
     console.log(json);
@@ -669,6 +743,18 @@ async function createLinkApi(json) {
         body: body
     })
     if (!res.ok) throw { status: res.status, statusText: res.statusText }
+}
+async function getNameByUrl(url) {
+    let res = await fetch(`http://localhost:3001/linkName?url=${url}`, {
+        method: 'GET',
+        headers: {
+            'content-type': 'application/json'
+        }
+    })
+    if (!res.ok) throw { status: res.status, statusText: res.statusText }
+    let title = await res.text();
+    console.log(title);
+    return title;
 }
 function refreshLinks(json) {
 
@@ -761,17 +847,24 @@ function toggleDialogLink(event) {
     dialog.style.display = visible ? 'none' : 'flex';
 }
 function toggleDialogEditLink(event) {
-
+    
+    let url = event.target.parentNode.parentNode.childNodes[0].href;
     let linkName = event.target.parentNode.parentNode.childNodes[0].innerText;
     let panelID = event.target.parentNode.parentNode.parentNode.getAttribute('data-db');
-    console.log(event.target.parentNode.parentNode.parentNode.parentNode.childNodes[0].childNodes[0].innerText);
-    //console.log(linkName);
+    const selectElement = document.getElementById('moveLink');
+    let inputName = document.getElementById('editlinkName');
+    let inputUrl = document.getElementById('editlinkURL');
     let panel = event.target.parentNode.parentNode.parentNode.parentNode.childNodes[0].childNodes[0].innerText;
-    //console.log(panel);
     let boton = document.getElementById('editlinkSubmit');
+   
+    inputName.value = linkName;
+    inputUrl.value = url;
+    selectElement.value = panel;
+    
     boton.setAttribute('sender', `${panelID}`);
     document.body.setAttribute('data-panel', `${panel}`);
     document.body.setAttribute('data-link', `${linkName}`);
+    
     let dialog = document.getElementById('editLinkForm');
     let visible = dialog.style.display === 'flex';
     dialog.style.display = visible ? 'none' : 'flex';
@@ -1121,4 +1214,12 @@ function muestraCcontrols(event) {
         easing: 'easeInOutQuad',
         duration: 300
     });
+}
+
+//Funcion logout 
+
+function logOut () {
+    console.log("Cierra sesión");
+    document.cookie = `token=`
+    window.location = "http://localhost:3001"
 }
