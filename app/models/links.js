@@ -30,4 +30,6 @@ const LinkSchema = new mongoose.Schema({
   versionKey: false
 })
 
+LinkSchema.index({ name: 'text' })
+
 module.exports = mongoose.model('links', LinkSchema)

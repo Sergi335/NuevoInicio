@@ -8,6 +8,7 @@ head
   link(rel='stylesheet' href='/css/icofont/icofont/icofont.min.css')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js')
   script(src='/js/scripts3.js')
+  script(src='/js/search.js')
 .container
   #userControl
     .avatar
@@ -15,6 +16,8 @@ head
       .controls
         button#profile Perfil
         button#logout Cerrar Sesi&oacute;n
+  input#searchInput(type='text' placeholder='Buscar...')
+  #resultsContainer
   h1 Buenos días #{user}
   .dropdown
     button.dropbtn Escritorios
@@ -143,3 +146,4 @@ head
         each val in columnas
           li(id=`${val.name}`)= val.name
     span.menuItem.borralink Borrar 
+include includes/sidepanel.pug

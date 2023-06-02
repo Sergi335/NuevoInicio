@@ -7,8 +7,9 @@ const { getColItems, createColItem, deleteColItem, editColItem, actualizarOrdenC
 const { registraUsuario, compruebaUsuario, eliminaUsuario } = require('../controllers/auth')
 const { authMiddleware } = require('../middleware/session')
 const { displayUserProfile } = require('../controllers/users')
+const { searchLinks } = require('../controllers/searchController')
 
-const { createDummyContent, insertLinks } = require('../helpers/createDummyContent')
+const { insertLinks } = require('../helpers/createDummyContent')
 
 router.get('/', (req, res) => {
   res.render('landing.pug')
@@ -36,6 +37,7 @@ router.put('/draglink', actualizarOrdenElementos)
 router.put('/dragcol', actualizarOrdenColumnas)
 router.post('/register', registraUsuario)
 router.post('/login', compruebaUsuario)
+router.get('/search', authMiddleware, searchLinks)
 router.get('/deleteUser', authMiddleware, eliminaUsuario)
 router.get('/profile', authMiddleware, displayUserProfile)
 
