@@ -1,0 +1,28 @@
+doctype html
+head
+  meta(charset='UTF-8')
+  meta(http-equiv='X-UA-Compatible' content='IE=edge')
+  meta(name='viewport' content='width=device-width, initial-scale=1.0')
+  title Document
+  link(rel='stylesheet' href='/css/style2.css')
+  link(rel='stylesheet' href='/css/icofont/icofont/icofont.min.css')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js')
+  script(src='/js/profile.js')
+.container
+  #userControl
+    .avatar
+      img(src='img/avatar.svg' alt='')
+      .controls
+        button#profile Perfil
+        button#logout Cerrar Sesi&oacute;n
+  h1 Buenos días #{user}
+  .dropdown
+    button.dropbtn Escritorios
+    #drpEscritorios.dropdown-content
+      if escritorios !== undefined
+        each val in escritorios
+          a.deskList= val.name
+.container
+  #main.cuerpo
+    h1#deskTitle.deskTitle= escritorio
+    button#closeAccount Cerrar Cuenta

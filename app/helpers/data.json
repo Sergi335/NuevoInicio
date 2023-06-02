@@ -1,0 +1,66 @@
+{
+    "escritorios": [
+        {
+            "name": "Start",
+            "orden": 0
+        },
+        {
+            "name": "Dev",
+            "orden": 1
+        },
+        {
+            "name": "Fun",
+            "orden": 2
+        }
+    ],
+    "columnas": [
+        {
+            "name": "First Column",
+            "order": 0,
+            "escritorio": "Start",
+            "vacio": false
+        },
+        {
+            "name": "News",
+            "order": 1,
+            "escritorio": "Start",
+            "vacio": false
+        },
+        {
+            "name": "Shopping",
+            "order": 2,
+            "escritorio": "Start",
+            "vacio": false
+        },
+        {
+            "name": "Reference",
+            "order": 0,
+            "escritorio": "Dev",
+            "vacio": false
+        },
+        {
+            "name": "JS Libraries",
+            "order": 1,
+            "escritorio": "Dev",
+            "vacio": false
+        },
+        {
+            "name": "CSS",
+            "order": 2,
+            "escritorio": "Dev",
+            "vacio": false
+        },
+        {
+            "name": "Video",
+            "order": 0,
+            "escritorio": "Fun",
+            "vacio": false
+        },
+        {
+            "name": "Music",
+            "order": 1,
+            "escritorio": "Fun",
+            "vacio": false
+        }
+    ]
+}

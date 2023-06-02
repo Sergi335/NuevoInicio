@@ -1,0 +1,307 @@
+{
+    "FirstColumn": [
+        {
+            "name": "Google",
+            "URL": "https://google.es",
+            "orden": 0,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "First Column"
+        },
+        {
+            "name": "GMail",
+            "URL": "https://mail.google.com/mail/u/0/#inbox",
+            "orden": 1,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "First Column"
+        },
+        {
+            "name": "Outlook",
+            "URL": "https://www.outlook.com/",
+            "orden": 2,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "First Column"
+        },
+        {
+            "name": "Trello",
+            "URL": "https://trello.com/",
+            "orden": 3,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "First Column"
+        }
+
+    ],
+    "News": [
+        {
+            "name": "Medium",
+            "URL": "https://medium.com/",
+            "orden": 0,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "News"
+        },
+        {
+            "name": "Daily.dev",
+            "URL": "https://app.daily.dev/?ref=earlyaccess",
+            "orden": 1,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "News"
+        },
+        {
+            "name": "The Times",
+            "URL": "https://www.thetimes.co.uk/",
+            "orden": 2,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "News"
+        },
+        {
+            "name": "Washington Post",
+            "URL": "https://www.washingtonpost.com/",
+            "orden": 3,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "News"
+        }
+    ],
+    "Shopping": [
+        {
+            "name": "Amazon",
+            "URL": "https://www.amazon.es/",
+            "orden": 0,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Shopping"
+        },
+        {
+            "name": "Prozis",
+            "URL": "https://www.prozis.com/es/es",
+            "orden": 1,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Shopping"
+        },
+        {
+            "name": "Walmart",
+            "URL": "https://www.walmart.com/",
+            "orden": 2,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Shopping"
+        },
+        {
+            "name": "eBay",
+            "URL": "https://www.ebay.es/",
+            "orden": 3,
+            "escritorio": "Start",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Shopping"
+        }
+    ],
+    "Reference": [
+        {
+            "name": "W3Schools",
+            "URL": "https://www.w3schools.com/",
+            "orden": 0,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Reference"
+        },
+        {
+            "name": "MDN",
+            "URL": "https://developer.mozilla.org/",
+            "orden": 1,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Reference"
+        },
+        {
+            "name": "Github",
+            "URL": "https://github.com/",
+            "orden": 2,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Reference"
+        },
+        {
+            "name": "Web.dev Learn",
+            "URL": "https://web.dev/learn/",
+            "orden": 3,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Reference"
+        }
+    ],
+    "JSLibraries": [
+        {
+            "name": "Anime.js",
+            "URL": "https://animejs.com/documentation/",
+            "orden": 0,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "JS Libraries"
+        },
+        {
+            "name": "Vite",
+            "URL": "https://vitejs.dev/guide/",
+            "orden": 1,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "JS Libraries"
+        },
+        {
+            "name": "React",
+            "URL": "https://es.react.dev/",
+            "orden": 2,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "JS Libraries"
+        },
+        {
+            "name": "Vue.js",
+            "URL": "https://vuejs.org/",
+            "orden": 3,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "JS Libraries"
+        }
+    ],
+    "CSS": [
+        {
+            "name": "CSS Gradient",
+            "URL": "https://cssgradient.io/",
+            "orden": 0,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "CSS"
+        },
+        {
+            "name": "CSS Tricks",
+            "URL": "https://css-tricks.com/",
+            "orden": 1,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "CSS"
+        },
+        {
+            "name": "Tailwind",
+            "URL": "https://tailwindcss.com/docs/installation",
+            "orden": 2,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "CSS"
+        },
+        {
+            "name": "Catto CSS",
+            "URL": "https://www.cattocss.com/",
+            "orden": 3,
+            "escritorio": "Dev",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "CSS"
+        }
+    ],
+    "Video": [
+        {
+            "name": "Youtube",
+            "URL": "https://www.youtube.com/",
+            "orden": 0,
+            "escritorio": "Fun",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Video"
+        },
+        {
+            "name": "Twitch",
+            "URL": "https://www.twitch.tv/",
+            "orden": 1,
+            "escritorio": "Fun",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Video"
+        },
+        {
+            "name": "Netflix",
+            "URL": "https://www.netflix.com/es/",
+            "orden": 2,
+            "escritorio": "Fun",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Video"
+        },
+        {
+            "name": "Apple TV+",
+            "URL": "https://www.apple.com/es/apple-tv-plus/",
+            "orden": 3,
+            "escritorio": "Fun",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Video"
+        }
+    ],
+    "Music": [
+        {
+            "name": "Spotify",
+            "URL": "https://open.spotify.com/",
+            "orden": 0,
+            "escritorio": "Fun",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Music"
+        },
+        {
+            "name": "Amazon Music",
+            "URL": "https://music.amazon.es/",
+            "orden": 1,
+            "escritorio": "Fun",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Music"
+        },
+        {
+            "name": "Youtube Music",
+            "URL": "https://music.youtube.com/",
+            "orden": 2,
+            "escritorio": "Fun",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Music"
+        },
+        {
+            "name": "Tidal",
+            "URL": "https://tidal.com/",
+            "orden": 3,
+            "escritorio": "Fun",
+            "user": "`${user}`",
+            "idpanel": "`${createdColumn._id}`",
+            "columna": "Music"
+        }
+    ]
+}

@@ -7,6 +7,64 @@ body {
     margin: 0;
 }
 
+.menuColumn,
+.menuLink {
+    position: absolute;
+    background: white;
+    border: 1px solid gray;
+    display: none;
+    font-size: .8rem;
+    max-width: 165px;
+    white-space: nowrap;
+}
+.menuColumn p,
+.menuLink p {
+    padding: 8px;
+    margin: 0;
+    overflow: hidden;
+    width: 86%;
+    text-overflow: ellipsis;
+}
+.menuColumn strong,
+.menuLink strong {
+    padding: 8px;
+    display: block;
+}
+.menuItem {
+    display: block;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.menuItem:hover, .menuItem ul li:hover {
+    background-color: #c7c7c7;
+}
+.moveCol:hover #destDesk {
+    display: block;
+}
+.moveLink:hover #destCol {
+    display: block;
+}
+.menuItem ul#destDesk {
+    position: absolute;
+    left: 182px;
+    top: 185px;
+    background-color: white;
+    padding: 0 16px;
+    display: none;
+}
+.menuItem ul#destCol {
+    position: absolute;
+    left: 165px;
+    top: 119px;
+    background-color: white;
+    padding: 0 16px;
+    display: none;
+}
+.menuItem ul li {
+    list-style: none;
+    padding: 8px;
+}
 h1 {
     color: #4e4e4e;
     text-align: center;
