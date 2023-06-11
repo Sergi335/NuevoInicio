@@ -1,3 +1,6 @@
+import { darHora, fetchS } from './functions.mjs'
+import { togglePanel } from './sidepanel.js'
+
 document.addEventListener('DOMContentLoaded', cargaWeb)
 document.addEventListener('click', escondeDialogos)
 
@@ -7,15 +10,24 @@ document.addEventListener('click', escondeDialogos)
 function cargaWeb () {
   // Añadimos los eventos de escritorio
   addDesktopEvents()
-  // Cerrar el menú emergente cuando se hace clic en cualquier parte de la página
-  document.addEventListener('click', function () {
-    const menuC = document.getElementById('menuColumn')
-    menuC.style.display = 'none'
-    const menuL = document.getElementById('menuLink')
-    menuL.style.display = 'none'
+  darHora()
+  const menuItems = document.querySelectorAll('.deskList')
+  const desktop = window.location.href
+  const partes = desktop.split('=')
+  const valor = partes.pop()
+  const valorDecodificado = decodeURIComponent(valor)
+  menuItems.forEach(item => {
+    if (item.innerText === valorDecodificado) {
+      item.classList.add('active')
+    } else {
+      item.classList.remove('active')
+    }
   })
-  // Obtén todos los elementos de la página en los que quieres habilitar el menú emergente
-  const elementos = document.querySelectorAll('#cols')
+  if (window.location.href === 'http://localhost:3001/templates') {
+    menuItems[0].classList.add('active')
+  }
+  // Obtener todos los elementos de la página en los que quieres habilitar el menú emergente
+  const elementos = document.querySelectorAll('.cuerpoInt')
 
   // Agrega un event listener a cada elemento
   elementos.forEach(function (elemento) {
@@ -24,32 +36,40 @@ function cargaWeb () {
 
   // Obtener los elementos del submenu mover columna
   const menuMoveColItems = document.querySelectorAll('#destDesk li')
+
   // Añadir un event listener a cada uno
   menuMoveColItems.forEach(function (item) {
     item.addEventListener('click', moveColumns)
   })
+
   // Obtener los elementos del submenu mover link
   const menuMoveLinkItems = document.querySelectorAll('#destCol li')
+
   // Añadir un event listener a cada uno
   menuMoveLinkItems.forEach(function (item) {
     item.addEventListener('click', moveLinks)
   })
+
   // obtener el menu de columna para pasarle el evento mouseleave
   const menuC = document.getElementById('menuColumn')
+
   // agregamos evento
   menuC.addEventListener('mouseleave', function () {
     setTimeout(() => {
       menuC.style.display = 'none'
     }, 500)
   })
+
   // obtener el menu de link para pasarle el evento mouseleave
   const menuL = document.getElementById('menuLink')
+
   // agregamos evento
   menuL.addEventListener('mouseleave', function () {
     setTimeout(() => {
       menuL.style.display = 'none'
     }, 500)
   })
+
   // Declaramos la variable para pasar a ordenaCols
   const desk = document.getElementById('deskTitle').innerText
   document.body.setAttribute('data-desk', `${desk}`)
@@ -66,6 +86,9 @@ function cargaWeb () {
     ordenaItems(element.childNodes[0].innerText)
   })
   ordenaCols($raiz)
+  ordenaDesks()
+  // eslint-disable-next-line no-undef
+  // GridStack.init()
 }
 
 // Manejo de Eventos
@@ -99,7 +122,12 @@ function addDesktopEvents () {
   // Agregar evento de clic al botón para eliminar un escritorio
   document.querySelector('#removeDesk').removeEventListener('click', toggleDeleteDialogDesk)
   document.querySelector('#removeDesk').addEventListener('click', toggleDeleteDialogDesk)
-
+  // Agregar evento de clic al botón para confirmar eliminacion de un escritorio
+  document.querySelector('#confDeletedeskSubmit').removeEventListener('click', deleteDesktop)
+  document.querySelector('#confDeletedeskSubmit').addEventListener('click', deleteDesktop)
+  // Agregar evento de clic al botón para confirmar eliminacion de un escritorio
+  document.querySelector('#noDeletedeskSubmit').removeEventListener('click', escondeDeleteDeskDialog)
+  document.querySelector('#noDeletedeskSubmit').addEventListener('click', escondeDeleteDeskDialog)
   // Añadir eventos en botones submit de crear escritorio
   document.querySelector('#deskSubmit').removeEventListener('click', createDesktop)
   document.querySelector('#deskSubmit').addEventListener('click', createDesktop)
@@ -130,11 +158,7 @@ function addColumnEvents () {
     item.removeEventListener('click', toggleDialogEditColumn)
     item.addEventListener('click', toggleDialogEditColumn)
   })
-  // Agregar evento de clic al botón principal de control
-  document.querySelectorAll('.icofont-gear').forEach(item => {
-    item.removeEventListener('click', muestraCcontrols)
-    item.addEventListener('click', muestraCcontrols)
-  })
+
   document.querySelectorAll('.paste-btn').forEach(item => {
     item.removeEventListener('click', pasteLink)
     item.addEventListener('click', pasteLink)
@@ -144,6 +168,12 @@ function addColumnEvents () {
 
   document.querySelector('#editcolSubmit').removeEventListener('click', editColumn)
   document.querySelector('#editcolSubmit').addEventListener('click', editColumn)
+
+  document.querySelector('#confDeletecolSubmit').removeEventListener('click', deleteColumn)
+  document.querySelector('#confDeletecolSubmit').addEventListener('click', deleteColumn)
+
+  document.querySelector('#noDeletecolSubmit').removeEventListener('click', escondeDeleteColDialog)
+  document.querySelector('#noDeletecolSubmit').addEventListener('click', escondeDeleteColDialog)
 }
 /**
  * Carga los manejadores de eventos para la manipulación de links
@@ -165,13 +195,21 @@ function addLinkEvents ($raiz) {
   document.querySelector('#editlinkSubmit').removeEventListener('click', editLink)
   document.querySelector('#editlinkSubmit').addEventListener('click', editLink)
 
+  // Agregar evento de clic al botón de envío dentro del cuadro de diálogo
+  document.querySelector('#confDeletelinkSubmit').removeEventListener('click', deleteLink)
+  document.querySelector('#confDeletelinkSubmit').addEventListener('click', deleteLink)
+
+  // Agregar evento de clic al botón de envío dentro del cuadro de diálogo
+  document.querySelector('#noDeletelinkSubmit').removeEventListener('click', escondeDeleteDialog)
+  document.querySelector('#noDeletelinkSubmit').addEventListener('click', escondeDeleteDialog)
+
   ordenaCols($raiz)
 }
 
 // Manejo de escritorios
 
 /**
- *
+ * Función para navegar entre escritorios
  * @param {Object} event
  */
 async function selectDesktop (event) {
@@ -179,32 +217,25 @@ async function selectDesktop (event) {
   const deskName = event.target.innerText
   window.location = `http://localhost:3001/templates?escritorio=${deskName}`
 }
+/**
+ * Función para editar el nombre de un escritorio, refact x
+ */
 async function editDesktop () {
   const nombreOld = document.body.getAttribute('data-desk')
   const nombre = document.getElementById('editdeskName').value
-  const cookieName = 'user'
-  const cookieValue = getCookie(cookieName)
-  if (cookieValue) {
-    // La cookie existe y se leyó correctamente
-    console.log(cookieValue)
-    // Puedes trabajar con el valor de la cookie aquí
-  }
-  let body = { nombre, nombreOld, user: cookieValue }
-  body = JSON.stringify(body)
-
-  const res = await fetch('http://localhost:3001/escritorios', {
+  const body = { nombre, nombreOld }
+  const params = {
+    url: 'http://localhost:3001/escritorios',
+    body,
     method: 'PUT',
-    headers: {
-      'content-type': 'application/json'
-    },
-    body
-  })
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
-  const json = await res.json()
-
-  const firstKey = Object.keys(json)[0]
-  const firstValue = json[firstKey]
+    options: {
+      contentType: 'application/json'
+    }
+  }
+  const res = await fetchS(params)
+  console.log(res)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
 
   if (firstKey === 'error') {
     const $error = document.getElementById('editdeskError')
@@ -213,70 +244,68 @@ async function editDesktop () {
     const dialog = document.getElementById('editDeskForm')
     const visible = dialog.style.display === 'flex'
     dialog.style.display = visible ? 'none' : 'flex'
-    refreshDesktops(json)
+    refreshDesktops(res)
     addDesktopEvents()
   }
   document.getElementById('deskTitle').innerText = `${nombre}`
+  // TODO mensaje de exito o animar el cambio de nombre
 }
+/**
+ * Función para crear un escritorio, refact x
+ */
 async function createDesktop () {
   const nombre = document.getElementById('deskName').value
-  const cookieName = 'user'
-  const cookieValue = getCookie(cookieName)
-  if (cookieValue) {
-    // La cookie existe y se leyó correctamente
-    console.log(cookieValue)
-    // Puedes trabajar con el valor de la cookie aquí
-  }
-  let body = { nombre, user: cookieValue }
-  body = JSON.stringify(body)
-
-  const res = await fetch('http://localhost:3001/escritorios', {
+  let orden = document.querySelectorAll('a.deskList')
+  orden = orden.length
+  orden = orden + 1
+  const body = { nombre, orden }
+  const params = {
+    url: 'http://localhost:3001/escritorios',
     method: 'POST',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  const json = await res.json()
-  const firstKey = Object.keys(json)[0]
-  const firstValue = json[firstKey]
+  }
+  const res = await fetchS(params)
+
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
 
   if (firstKey === 'error') {
     const $error = document.getElementById('deskError')
     $error.innerText = `${firstKey}, ${firstValue}`
   } else {
-    const dialog = document.getElementById('addDeskForm')
-    const visible = dialog.style.display === 'flex'
-    dialog.style.display = visible ? 'none' : 'flex'
-
-    refreshDesktops(json)
-    addDesktopEvents()
+    window.location = `http://localhost:3001/templates?escritorio=${nombre}`
   }
-
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
-// Es llamada desde el HTML de ahi el error
-// eslint-disable-next-line no-unused-vars
+/**
+ * Función para borrar un escritorio, refact x falta probar borrar con links y cols
+ */
 async function deleteDesktop () {
   const nombre = document.body.getAttribute('data-desk')
-  let body = { name: nombre }
-  body = JSON.stringify(body)
-
-  const res = await fetch('http://localhost:3001/escritorios', {
+  const body = { name: nombre }
+  const params = {
+    url: 'http://localhost:3001/escritorios',
     method: 'DELETE',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  const json = await res.json()
-
-  // cargaWeb(json[0].name);
-  window.location = `http://localhost:3001/templates?escritorio=${json[0].name}`
-  const dialog = document.getElementById('deleteDeskForm')
-  const visible = dialog.style.display === 'flex'
-  dialog.style.display = visible ? 'none' : 'flex'
+  }
+  const res = await fetchS(params)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+  console.log(res)
+  if (firstKey === 'error') {
+    const $error = document.getElementById('deleteDeskError')
+    $error.innerText = `${firstKey}, ${firstValue}`
+  } else {
+    window.location = `http://localhost:3001/templates?escritorio=${res[0].name}`
+    const dialog = document.getElementById('deleteDeskForm')
+    const visible = dialog.style.display === 'flex'
+    dialog.style.display = visible ? 'none' : 'flex'
+  }
 }
 /**
  * FUnción que recarga la lista de escritorios disponibles
@@ -306,35 +335,42 @@ function refreshDesktops (lista) {
 
 // Manejo de columnas
 
+/**
+ * Función para editar una columna refact x
+ */
 async function editColumn () {
   const nombre = document.getElementById('editcolName').value
-  // const escritorio = document.body.getAttribute('data-desk')
-  // const nombreOld = document.body.getAttribute('data-panel')
+  const escritorio = document.body.getAttribute('data-desk')
   const id = document.getElementById('editcolSubmit').getAttribute('sender')
-  console.log(id)
-
-  let body = { nombre, id }
-  body = JSON.stringify(body)
-
-  const res = await fetch('http://localhost:3001/columnas', {
+  const body = { nombre, escritorio, id }
+  const params = {
+    url: 'http://localhost:3001/columnas',
     method: 'PUT',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  // const json = await res.json()
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
+  }
+  const res = await fetchS(params)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+  console.log(res)
+  if (firstKey === 'error') {
+    const $error = document.getElementById('editColError')
+    $error.innerText = `${firstKey}, ${firstValue}`
+  } else {
+    const dialog = document.getElementById('editColForm')
+    const visible = dialog.style.display === 'flex'
+    dialog.style.display = visible ? 'none' : 'flex'
 
-  const dialog = document.getElementById('editColForm')
-  const visible = dialog.style.display === 'flex'
-  dialog.style.display = visible ? 'none' : 'flex'
-
-  const $Column = document.querySelector(`[data-db="${id}"]`)
-  console.log($Column.parentNode.childNodes[0].childNodes[0].innerText)
-  $Column.parentNode.childNodes[0].childNodes[0].innerText = nombre
+    const $Column = document.querySelector(`[data-db="${id}"]`)
+    console.log($Column.parentNode.childNodes[0].childNodes[0].innerText)
+    $Column.parentNode.childNodes[0].childNodes[0].innerText = nombre
+  }
 }
+/**
+ * Función para crear columna refact x
+ */
 async function createColumn () {
   const nombre = document.getElementById('colName').value
   const escritorio = document.body.getAttribute('data-desk')
@@ -343,100 +379,117 @@ async function createColumn () {
   let orden = $raiz0.childNodes.length
   orden = orden + 1
   console.log(orden)
-  const cookieName = 'user'
-  const cookieValue = getCookie(cookieName)
-  if (cookieValue) {
-    // La cookie existe y se leyó correctamente
-    console.log(cookieValue)
-    // Puedes trabajar con el valor de la cookie aquí
-  }
-  let body = { nombre, escritorio: `${escritorio}`, order: orden, user: cookieValue }
-  body = JSON.stringify(body)
 
-  const res = await fetch('http://localhost:3001/columnas', {
+  const body = { nombre, escritorio, orden }
+  const params = {
+    url: 'http://localhost:3001/columnas',
     method: 'POST',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  const json = await res.json()
+  }
 
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
+  const res = await fetchS(params)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+  console.log(res)
+  if (firstKey === 'error') {
+    const $error = document.getElementById('addColError')
+    $error.innerText = `${firstKey}, ${firstValue}`
+  } else {
+    const menuMoverLink = document.getElementById('destCol')
+    const itemLista = document.createElement('li')
+    itemLista.setAttribute('id', `${nombre}`)
+    const text = document.createTextNode(`${nombre}`)
+    itemLista.appendChild(text)
+    menuMoverLink.appendChild(itemLista)
+    // Obtener los elementos del submenu mover link
+    const menuMoveLinkItems = document.querySelectorAll('#destCol li')
 
-  const dialog = document.getElementById('addColForm')
-  const visible = dialog.style.display === 'flex'
-  dialog.style.display = visible ? 'none' : 'flex'
-
-  refreshColumns(json)
+    // Añadir un event listener a cada uno
+    menuMoveLinkItems.forEach(function (item) {
+      item.removeEventListener('click', moveLinks)
+      item.addEventListener('click', moveLinks)
+    })
+    refreshColumns(res)
+    const dialog = document.getElementById('addColForm')
+    const visible = dialog.style.display === 'flex'
+    dialog.style.display = visible ? 'none' : 'flex'
+  }
 }
-// eslint-disable-next-line no-unused-vars
+/**
+ * Función para borrar una columna refact x
+ */
 async function deleteColumn () {
   const escritorio = document.body.getAttribute('data-desk')
   const elementoId = document.getElementById('confDeletecolSubmit').getAttribute('sender')
 
-  let body = { id: elementoId, escritorio: `${escritorio}` }
-  body = JSON.stringify(body)
-
-  const res = await fetch('http://localhost:3001/columnas', {
+  const body = { id: elementoId, escritorio: `${escritorio}` }
+  const params = {
+    url: 'http://localhost:3001/columnas',
     method: 'DELETE',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  // const json = await res.json()
+  }
 
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
+  const res = await fetchS(params)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+  console.log(res)
+  if (firstKey === 'error') {
+    const $error = document.getElementById('deleteColError')
+    $error.innerText = `${firstKey}, ${firstValue}`
+  } else {
+    const $colBorrar = document.querySelector(`[data-db="${elementoId}"]`)
 
-  const $colBorrar = document.querySelector(`[data-db="${elementoId}"]`)
+    $colBorrar.parentNode.remove()
 
-  $colBorrar.parentNode.remove()
-
-  const dialog = document.getElementById('deleteColForm')
-  const visible = dialog.style.display === 'flex'
-  dialog.style.display = visible ? 'none' : 'flex'
+    const dialog = document.getElementById('deleteColForm')
+    const visible = dialog.style.display === 'flex'
+    dialog.style.display = visible ? 'none' : 'flex'
+  }
 }
+/**
+ * Función para mover una columna entre escritorios refact x
+ * @param {} event
+ */
 async function moveColumns (event) {
   console.log(event.target.id)
   const deskOrigen = document.body.getAttribute('data-desk')
   const deskDestino = event.target.id
   const colId = event.target.parentNode.parentNode.parentNode.childNodes[1].innerText
-  const cookieName = 'user'
-  const cookieValue = getCookie(cookieName)
-  if (cookieValue) {
-    // La cookie existe y se leyó correctamente
-    console.log(cookieValue)
-    // Puedes trabajar con el valor de la cookie aquí
-  }
+
   console.log(deskOrigen)
   console.log(deskDestino)
   console.log(colId)
-  console.log(cookieValue)
-  let body = { deskOrigen, deskDestino, colId, user: cookieValue }
-  body = JSON.stringify(body)
-
-  // TODO Control de errores del fetch
-  const res = await fetch('http://localhost:3001/moveCols', {
+  const body = { deskOrigen, deskDestino, colId }
+  const params = {
+    url: 'http://localhost:3001/moveCols',
     method: 'PUT',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
-  // La respuesta son los datos del link recien creado
-  const json = await res.json()
-  console.log(json)
-  const $raiz = document.querySelector(`[data-db="${colId}"]`)
-  $raiz.parentNode.remove()
-  console.log($raiz.parentNode)
+  }
+  const res = await fetchS(params)
+  console.log(res)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+  console.log(res)
+  if (firstKey === 'error') {
+    const $error = document.getElementById('deleteColError')
+    $error.innerText = `${firstKey}, ${firstValue}`
+  } else {
+    const $raiz = document.querySelector(`[data-db="${colId}"]`)
+    $raiz.parentNode.remove()
+    console.log($raiz.parentNode)
+  }
 }
 /**
- * Función que crea la columna cuando se crea con createColumn
+ * Función que crea la columna cuando se crea con createColumn refact x
  * Recibe la columna creada
  * @param {json} json
  */
@@ -447,7 +500,8 @@ function refreshColumns (json) {
 
   const nombre = json[0].name
   const id = json[0]._id
-
+  const orden = json[0].order
+  console.log(orden)
   const escritorioActual = document.body.getAttribute('data-desk')
   const $raiz = document.getElementById(`${escritorioActual}Cols`)
   const arr = []
@@ -461,7 +515,7 @@ function refreshColumns (json) {
   const $columna = document.createElement('div')
   $columna.setAttribute('class', 'columna')
 
-  // Permite detectar duplicados y darles un id distinto incremental, luego cuando se refresque la pag lo implementará en plantilla
+  // Permite detectar duplicados y darles un id distinto incremental, luego cuando se refresque la pag lo implementa en plantilla
 
   const count = arr.reduce((acc, currentValue) => {
     if (currentValue === nombre) {
@@ -485,7 +539,7 @@ function refreshColumns (json) {
 
   const $envolt = document.createElement('div')
   $envolt.setAttribute('class', 'envolt')
-  $envolt.setAttribute('orden', '') // No es necesario siempre al final? ver de donde viene puede ser necesario para ordencols, etc
+  $envolt.setAttribute('orden', `${orden}`)
   const $headerColumn = document.createElement('div')
   $headerColumn.setAttribute('class', 'headercolumn')
   const $header = document.createElement('h2')
@@ -504,10 +558,13 @@ function refreshColumns (json) {
   ordenaItems(nombre)
   ordenaCols($raiz)
 }
+
 // Manejo de links
 
+/**
+ * Función para editar un link refact x
+ */
 async function editLink () {
-  // console.log("Edita el link");
   const nombreOld = document.body.getAttribute('data-link')
   const escritorio = document.body.getAttribute('data-desk')
   const columna = document.body.getAttribute('data-panel')
@@ -515,51 +572,42 @@ async function editLink () {
   const linkURL = document.querySelector('#editlinkURL').value
   const imgURL = `https://www.google.com/s2/favicons?domain=${linkURL}`
   const dbID = document.getElementById('editlinkSubmit').getAttribute('sender')
-  const cookieName = 'user'
-  const cookieValue = getCookie(cookieName)
-  if (cookieValue) {
-    // La cookie existe y se leyó correctamente
-    console.log(cookieValue)
-    // Puedes trabajar con el valor de la cookie aquí
-  }
 
-  const dialog = document.getElementById('editLinkForm')
-  const visible = dialog.style.display === 'flex'
-  dialog.style.display = visible ? 'none' : 'flex'
-  let body = { nombreOld, nombre, URL: linkURL, imgURL, escritorio, columna, id: dbID, user: cookieValue }
-  // console.log(body);
-  body = JSON.stringify(body)
-  // console.log(JSON.stringify(body));
-  const res = await fetch('http://localhost:3001/links', {
+  const body = { nombreOld, nombre, URL: linkURL, imgURL, escritorio, columna, id: dbID }
+  console.log(body)
+  const params = {
+    url: 'http://localhost:3001/links',
     method: 'PUT',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  const json = await res.json()
-  console.log(json)
-
-  const $raiz = document.querySelector(`[data-db="${dbID}"]`)
-  const arr = Array.from($raiz.childNodes)
-  console.log(arr)
-  const elementoAEditar = arr.find((elemento) => elemento.innerText === nombreOld)
-  if (elementoAEditar) {
-    elementoAEditar.querySelector('img').src = json.imgURL
-    elementoAEditar.querySelector('a').href = json.URL
-    elementoAEditar.querySelector('a').childNodes[1].nodeValue = nombre
   }
-  // console.log($raiz);
-  // if ($raiz.hasChildNodes()) {
-  //     while ($raiz.childNodes.length >= 1) {
-  //         $raiz.removeChild($raiz.lastChild);
-  //     }
-  // }
-  // refreshLinks(json)
-  // ordenaItems(columna)
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
+  const res = await fetchS(params)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+  console.log(res)
+  if (firstKey === 'error') {
+    const $error = document.getElementById('editLinkError')
+    $error.innerText = `${firstKey}, ${firstValue}`
+  } else {
+    const dialog = document.getElementById('editLinkForm')
+    const visible = dialog.style.display === 'flex'
+    dialog.style.display = visible ? 'none' : 'flex'
+    const $raiz = document.querySelector(`[data-db="${dbID}"]`)
+    const arr = Array.from($raiz.childNodes)
+    console.log(arr)
+    const elementoAEditar = arr.find((elemento) => elemento.innerText === nombreOld)
+    if (elementoAEditar) {
+      elementoAEditar.querySelector('img').src = res.imgURL
+      elementoAEditar.querySelector('a').href = res.URL
+      elementoAEditar.querySelector('a').childNodes[1].nodeValue = nombre
+    }
+  }
 }
+/**
+ * Función para crear un link refact x
+ */
 async function createLink () {
   // Recogemos los datos para enviarlos a la db
   const escritorio = document.body.getAttribute('data-desk')
@@ -575,36 +623,23 @@ async function createLink () {
   orden = orden + 1
   console.log(orden)
 
-  const elements = $raiz.childNodes
-  const sortedElements = Array.from(elements).sort((a, b) => {
-    return a.dataset.orden - b.dataset.orden
-  })
-  console.log(sortedElements)
-  const cookieName = 'user'
-  const cookieValue = getCookie(cookieName)
-  if (cookieValue) {
-    // La cookie existe y se leyó correctamente
-    console.log(cookieValue)
-    // Puedes trabajar con el valor de la cookie aquí
-  }
   // Declaramos el body para enviar y lo pasamos a cadena de texto
-  let body = { nombre, URL: linkURL, imgURL, escritorio, columna, id: dbID, orden, user: cookieValue }
-  body = JSON.stringify(body)
+  const body = { nombre, URL: linkURL, imgURL, escritorio, columna, id: dbID, orden }
+  // body = JSON.stringify(body)
   // Enviamos el post con el link
   // TODO Control de errores del fetch
-  const res = await fetch('http://localhost:3001/links', {
+  const params = {
+    url: 'http://localhost:3001/links',
     method: 'POST',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
-  // La respuesta son los datos del link recien creado
-  const json = await res.json()
-  const firstKey = Object.keys(json)[0]
-  const firstValue = json[firstKey]
+  }
+  const res = await fetchS(params)
+
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
 
   if (firstKey === 'error') {
     const $error = document.getElementById('linkError')
@@ -615,10 +650,12 @@ async function createLink () {
     const visible = dialog.style.display === 'flex'
     dialog.style.display = visible ? 'none' : 'flex'
     // La rellenamos con los datos del json
-    refreshLinks(json)
+    refreshLinks(res)
   }
 }
-// eslint-disable-next-line no-unused-vars
+/**
+ * Función para borrar un link refact x
+ */
 async function deleteLink () {
   const nombre = document.body.getAttribute('data-link')
   const panel = document.body.getAttribute('data-panel')
@@ -626,76 +663,57 @@ async function deleteLink () {
   const id = document.getElementById('confDeletelinkSubmit').getAttribute('sender')
 
   const escritorio = document.body.getAttribute('data-desk')
-  const cookieName = 'user'
-  const cookieValue = getCookie(cookieName)
-  if (cookieValue) {
-    // La cookie existe y se leyó correctamente
-    console.log(cookieValue)
-    // Puedes trabajar con el valor de la cookie aquí
-  }
-  let body = { nombre, panel, escritorio, id, user: cookieValue }
-  body = JSON.stringify(body)
-
-  const res = await fetch('http://localhost:3001/links', {
+  const body = { nombre, panel, escritorio, id }
+  const params = {
+    url: 'http://localhost:3001/links',
     method: 'DELETE',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  const json = await res.json()
-  console.log(json)
-  console.log(json.length)
-  const $raiz = document.querySelector(`[data-db="${id}"]`)
-  console.log($raiz.childNodes)
-  const arr = Array.from($raiz.childNodes)
-  console.log(arr)
-  const elementoABorrar = arr.find((elemento) => elemento.innerText === nombre)
-  if (elementoABorrar) {
-    elementoABorrar.remove()
   }
-  // if (json.length === 1) {
-  //     if ($raiz.hasChildNodes()) {
-  //         while ($raiz.childNodes.length >= 1) {
-  //             $raiz.removeChild($raiz.lastChild);
-  //         }
-  //     }
-  // }
 
-  if (json.length === 0) {
-    console.log('Era el último')
-    const $div = document.createElement('div')
-    $div.setAttribute('class', 'link')
-    $raiz.appendChild($div)
+  const res = await fetchS(params)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+
+  if (firstKey === 'error') {
+    const $error = document.getElementById('deleteLinkError')
+    $error.innerText = `${firstKey}, ${firstValue}`
+  } else {
+    const $raiz = document.querySelector(`[data-db="${id}"]`)
+    console.log($raiz.childNodes)
+    const arr = Array.from($raiz.childNodes)
+    console.log(arr)
+    const elementoABorrar = arr.find((elemento) => elemento.innerText === nombre)
+    if (elementoABorrar) {
+      elementoABorrar.remove()
+    }
+
+    if (res.length === 0) {
+      console.log('Era el último')
+      const $div = document.createElement('div')
+      $div.setAttribute('class', 'link')
+      $raiz.appendChild($div)
+    }
+    const dialog = document.getElementById('deleteLinkForm')
+    const visible = dialog.style.display === 'flex'
+    console.log(visible)
+    dialog.style.display = visible ? 'none' : 'flex'
   }
-  // refreshLinks(json)
-  // panel = panel.replace(escritorio, "");
-  // console.log(panel);
-  // ordenaItems(panel)
-  const dialog = document.getElementById('deleteLinkForm')
-  const visible = dialog.style.display === 'flex'
-  console.log(visible)
-  dialog.style.display = visible ? 'none' : 'flex'
-
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
 }
+/**
+ * Función para mover un link de una columna a otra en el mismo desktop refact x
+ * @param {} event
+ */
 async function moveLinks (event) {
-  // Recogemos el usuario
-  const cookieName = 'user'
-  const cookieValue = getCookie(cookieName)
-  if (cookieValue) {
-    // La cookie existe y se leyó correctamente
-    console.log(cookieValue)
-    // Puedes trabajar con el valor de la cookie aquí
-  }
-  // Recogemos el id del panel de origen
+  // Recogemos el id del panel de origen -> Correcto
   const panelOrigenId = document.body.getAttribute('idpanel')
-  // Recogemos el nombre del panel de destino
+  // Recogemos el nombre del panel de destino -> Es el de origen, ver si afecta en server
   const panelDestinoNombre = event.target.innerText
-  // Declaramos la variable para recoger el id del panel destino
+  // Declaramos la variable para recoger el id del panel destino -> Correcto
   let panelDestinoId
-  // Declaramos la variable para recoger la cantidad de hijos que quedan
+  // Declaramos la variable para recoger la cantidad de hijos que quedan -> Dice la cantidad que hay en el de destino sin contar el nuevo
   let panelOldChildCount
   // Recogemos la variable para detectar el panel de destino que coincida con panelDestinoNombre
   const paneles = document.querySelectorAll('h2.ctitle')
@@ -708,73 +726,102 @@ async function moveLinks (event) {
       }
     })
   }
+  console.log('Elementos en el panel Viejo')
   console.log(panelOldChildCount)
   // Recogemos el nombre del link movido
   const linkName = event.target.parentNode.parentNode.parentNode.childNodes[2].innerText
   // Declaramos el body
-  let body = { panelOrigenId, panelDestinoId, panelDestinoNombre, user: cookieValue, name: linkName, orden: panelOldChildCount + 1 }
-  body = JSON.stringify(body)
-  const res = await fetch('http://localhost:3001/moveLinks', {
+  let body = { panelOrigenId, panelDestinoId, panelDestinoNombre, name: linkName, orden: panelOldChildCount + 1 }
+  console.log('Body')
+  console.log(body)
+  const params = {
+    url: 'http://localhost:3001/moveLinks',
     method: 'PUT',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json'
     },
     body
-  })
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
-  // La respuesta son los datos del link recien movido
-  const json = await res.json()
-  console.log(json)
-  // Recogemos los links para detectar el movido y eliminarlo
-  const links = document.querySelectorAll('div.link')
-  if (links) {
-    links.forEach(element => {
-      // problema con duplicados, meter id de base de datos como id de elemento
-      if (element.id === json._id) {
-        console.log(element.id)
-        console.log(json._id)
-        // Hacer algo con el elemento encontrado
-        element.remove()
-      }
-    })
   }
+  const res = await fetchS(params)
+  console.log('Resultado del servidor')
+  console.log(res)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+
+  if (firstKey === 'error') {
+    const $error = document.getElementById('moveError') // Crear
+    $error.innerText = `${firstKey}, ${firstValue}`
+  } else {
+    // Recogemos los links para detectar el movido y eliminarlo
+    const links = document.querySelectorAll('div.link')
+    if (links) {
+      links.forEach(element => {
+      // problema con duplicados, meter id de base de datos como id de elemento
+        if (element.id === res._id) {
+          console.log('Hay coincidencia con el enviado del servidor')
+          console.log(element.id)
+          console.log(res._id)
+          // Hacer algo con el elemento encontrado
+          element.remove()
+        }
+      })
+    }
+  }
+
   /* --- */
   const elements = document.querySelectorAll(`[data-db="${panelDestinoId}"]`)[0].childNodes
+  console.log('Elementos en panel de destino')
   console.log(elements)
   const id = elements[0].parentNode.getAttribute('data-db')
-  console.log(id)
+  // console.log(id)
   const sortedElements = Array.from(elements).sort((a, b) => {
     return a.dataset.orden - b.dataset.orden
   })
+  console.log('Sorted elements')
   console.log(sortedElements)
   const names = []
   sortedElements.forEach(element => {
     names.push(element.innerText)
   })
+  console.log('nombres')
   console.log(names)
   body = names
-  body = JSON.stringify({ body })
-  // La url /draglink ejecuta una función que actualiza el orden del link en la columna
-  const res2 = await fetch(`http://localhost:3001/draglink?idColumna=${id}`, {
+  const params2 = {
+    url: 'http://localhost:3001/draglink?idColumna=',
     method: 'PUT',
-    headers: {
-      'content-type': 'application/json'
+    options: {
+      contentType: 'application/json',
+      query: id
     },
     body
-  })
-  const json2 = await res2.json()
-  console.log(json2)
-  const testDummy = document.querySelectorAll(`[data-db="${panelOrigenId}"]`)[0].childNodes.length
-  if (testDummy === 0) {
-    const dummy = document.createElement('div')
-    dummy.setAttribute('class', 'link')
-    document.querySelectorAll(`[data-db="${panelOrigenId}"]`)[0].appendChild(dummy)
   }
-  console.log(testDummy)
-  // Meter el dummy
-  refreshLinks(json)
+  // La url /draglink ejecuta una función que actualiza el orden del link en la columna
+  const res2 = await fetchS(params2)
+  console.log('Segundo res del servidor')
+  console.log(res2)
+  const firstKey2 = Object.keys(res2)[0]
+  const firstValue2 = res2[firstKey2]
+
+  if (firstKey2 === 'error') {
+    const $error = document.getElementById('linkError') // Crear
+    $error.innerText = `${firstKey2}, ${firstValue2}`
+  } else {
+    const testDummy = document.querySelectorAll(`[data-db="${panelOrigenId}"]`)[0].childNodes.length
+    if (testDummy === 0) {
+      // Meter el dummy
+      const dummy = document.createElement('div')
+      dummy.setAttribute('class', 'link')
+      document.querySelectorAll(`[data-db="${panelOrigenId}"]`)[0].appendChild(dummy)
+    }
+    console.log('test dummy')
+    console.log(testDummy)
+    refreshLinks(res)
+  }
 }
+/**
+ * Función para pegar links en columna (Pegado múltiple?) refact x
+ * @param {*} event
+ */
 async function pasteLink (event) {
   // lee el contenido del portapapeles entonces ...
   navigator.clipboard.read().then((clipboardItems) => {
@@ -795,13 +842,6 @@ async function pasteLink (event) {
                   const raiz = event.target.parentNode.childNodes[1].innerText
                   const $raiz = document.querySelector(`[data-db="${raiz}"]`)
                   const url = text
-                  const cookieName = 'user'
-                  const cookieValue = getCookie(cookieName)
-                  if (cookieValue) {
-                    // La cookie existe y se leyó correctamente
-                    console.log(cookieValue)
-                    // Puedes trabajar con el valor de la cookie aquí
-                  }
                   async function procesarEnlace () {
                     const nombre = await getNameByUrl(text)
                     const escritorio = document.body.getAttribute('data-desk')
@@ -810,19 +850,26 @@ async function pasteLink (event) {
                     orden = orden + 1
                     console.log(orden)
                     const json = {
-                      idpanel: raiz,
-                      name: nombre,
+                      id: raiz,
+                      nombre,
                       URL: url,
                       imgURL: `https://www.google.com/s2/favicons?domain=${url}`,
                       orden,
                       escritorio,
-                      columna,
-                      user: cookieValue
+                      columna
                     }
-                    createLinkApi(json)
-                    console.log(json)
-                    // console.log(raiz.lastChild.innerText)
-                    refreshLinks(json)
+                    const params = {
+                      url: 'http://localhost:3001/links',
+                      method: 'POST',
+                      options: {
+                        contentType: 'application/json'
+                      },
+                      body: json
+                    }
+                    // TODO Gestion errores
+                    const res = await fetchS(params)
+                    console.log(res)
+                    refreshLinks(res)
                   }
                   procesarEnlace()
                 } else {
@@ -846,42 +893,46 @@ async function pasteLink (event) {
                   console.log(typeof (text))
                   console.log(text)
                   // raiz.innerHTML += text;
-                  const range = document.createRange()
-                  range.selectNode(document.body)
+                  async function procesarEnlace () {
+                    const range = document.createRange()
+                    range.selectNode(document.body)
 
-                  const fragment = range.createContextualFragment(text)
+                    const fragment = range.createContextualFragment(text)
 
-                  const a = fragment.querySelector('a')
-                  const url = a.href
-                  const nombre = a.innerText
-                  const escritorio = document.body.getAttribute('data-desk')
-                  const columna = document.body.getAttribute('data-panel')
-                  const $raiz = document.querySelector(`[data-db="${raiz}"]`)
+                    const a = fragment.querySelector('a')
+                    const url = a.href
+                    const nombre = a.innerText
+                    const escritorio = document.body.getAttribute('data-desk')
+                    const columna = document.body.getAttribute('data-panel')
+                    const $raiz = document.querySelector(`[data-db="${raiz}"]`)
 
-                  let orden = $raiz.childNodes.length
-                  orden = orden + 1
-                  console.log(orden)
-                  const cookieName = 'user'
-                  const cookieValue = getCookie(cookieName)
-                  if (cookieValue) {
-                    // La cookie existe y se leyó correctamente
-                    console.log(cookieValue)
-                    // Puedes trabajar con el valor de la cookie aquí
+                    let orden = $raiz.childNodes.length
+                    orden = orden + 1
+                    console.log(orden)
+                    const json = {
+                      id: raiz,
+                      nombre,
+                      URL: url,
+                      imgURL: `https://www.google.com/s2/favicons?domain=${url}`,
+                      orden,
+                      escritorio,
+                      columna
+                    }
+                    const params = {
+                      url: 'http://localhost:3001/links',
+                      method: 'POST',
+                      options: {
+                        contentType: 'application/json'
+                      },
+                      body: json
+                    }
+                    // createLinkApi(json)
+                    const res = await fetchS(params)
+                    console.log(res)
+                    // console.log(raiz.lastChild.innerText)
+                    refreshLinks(res)
                   }
-                  const json = {
-                    idpanel: raiz,
-                    name: nombre,
-                    URL: url,
-                    imgURL: `https://www.google.com/s2/favicons?domain=${url}`,
-                    orden,
-                    escritorio,
-                    columna,
-                    user: cookieValue
-                  }
-                  createLinkApi(json)
-                  console.log(json)
-                  // console.log(raiz.lastChild.innerText)
-                  refreshLinks(json)
+                  procesarEnlace()
                 }
               })
             })
@@ -899,23 +950,11 @@ async function pasteLink (event) {
     }
   })
 }
-async function createLinkApi (json) {
-  console.log(json)
-  // Declaramos el body para enviar y lo pasamos a cadena de texto
-  let body = { nombre: json.name, URL: json.URL, imgURL: json.imgURL, escritorio: json.escritorio, columna: json.columna, id: json.idpanel, orden: json.orden, user: json.user }
-  body = JSON.stringify(body)
-  // Enviamos el post con el link
-  // TODO Control de errores del fetch
-  const res = await fetch('http://localhost:3001/links', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json'
-    },
-    body
-  })
-  // eslint-disable-next-line no-throw-literal
-  if (!res.ok) throw { status: res.status, statusText: res.statusText }
-}
+/**
+ * Función para scrapear el titulo de una pag desde el server
+ * @param {*} url
+ * @returns
+ */
 async function getNameByUrl (url) {
   const res = await fetch(`http://localhost:3001/linkName?url=${url}`, {
     method: 'GET',
@@ -929,6 +968,10 @@ async function getNameByUrl (url) {
   console.log(title)
   return title
 }
+/**
+ * Función para crear un link y pintarlo de inmediato
+ * @param {*} json
+ */
 function refreshLinks (json) {
   console.log(json.name)
 
@@ -938,6 +981,7 @@ function refreshLinks (json) {
   const $div = document.createElement('div')
   $div.setAttribute('class', 'link')
   $div.setAttribute('orden', `${json.orden}`)
+  $div.setAttribute('id', `${json._id}`)
   const $img = document.createElement('img')
   $img.setAttribute('src', `${json.imgURL}`)
   const $link = document.createElement('a')
@@ -947,12 +991,9 @@ function refreshLinks (json) {
   const $lcontrols = document.createElement('div')
   $lcontrols.setAttribute('class', 'lcontrols')
   const $editControl = document.createElement('span')
-  $editControl.setAttribute('class', 'icofont-ui-edit editalink')
-  const $deleteControl = document.createElement('span')
-  $deleteControl.setAttribute('class', 'icofont-recycle borralink')
+  $editControl.setAttribute('class', 'icofont-ui-edit showPanel')
 
   $lcontrols.appendChild($editControl)
-  $lcontrols.appendChild($deleteControl)
   $link.appendChild($img)
   $link.appendChild($textos)
 
@@ -972,7 +1013,12 @@ function refreshLinks (json) {
     item.removeEventListener('click', toggleDialogEditLink)
     item.addEventListener('click', toggleDialogEditLink)
   })
+  document.querySelectorAll('.showPanel').forEach(item => {
+    item.removeEventListener('click', togglePanel)
+    item.addEventListener('click', togglePanel)
+  })
 }
+
 // funciones auxiliares para mostrar/ocultar cuadros de diálogo
 
 function toggleDialogColumn () {
@@ -981,14 +1027,10 @@ function toggleDialogColumn () {
   dialog.style.display = visible ? 'none' : 'flex'
 }
 function toggleDialogEditColumn (event) {
-  // console.log("entra");
-  const panel = event.target.parentNode.parentNode.childNodes[0].innerText
-  // const panelID = event.target.parentNode.parentNode.parentNode.childNodes[1].getAttribute('data-db')
   const panelID = event.target.parentNode.childNodes[1].innerText
   console.log(panelID)
   const boton = document.getElementById('editcolSubmit')
   boton.setAttribute('sender', `${panelID}`)
-  document.body.setAttribute('data-panel', `${panel}`)
   const dialog = document.getElementById('editColForm')
   const visible = dialog.style.display === 'flex'
   dialog.style.display = visible ? 'none' : 'flex'
@@ -1068,14 +1110,12 @@ function toggleDeleteDialogDesk (event) {
   const visible = dialog.style.display === 'flex'
   dialog.style.display = visible ? 'none' : 'flex'
 }
-// eslint-disable-next-line no-unused-vars
 function escondeDeleteDialog () {
   const dialog = document.getElementById('deleteLinkForm')
   const visible = dialog.style.display === 'flex'
   console.log(visible)
   dialog.style.display = visible ? 'none' : 'flex'
 }
-// eslint-disable-next-line no-unused-vars
 function escondeDeleteColDialog () {
   const dialog = document.getElementById('deleteColForm')
   const visible = dialog.style.display === 'flex'
@@ -1381,26 +1421,33 @@ function ordenaCols (element) {
     // Habrá que hacer un getItems y que lo añada al final o cualquier ostia
   })
 }
-
-// Funciones Animacion
-
-function muestraCcontrols (event) {
-  // console.log("Has hecho click");
-  // console.log(event.target.nextSibling);
-
-  const controls = event.target.nextSibling
-
-  controls.classList.toggle('visible')
+function ordenaDesks () {
   // eslint-disable-next-line no-undef
-  anime({
-    targets: controls,
-    translateY: controls.classList.contains('visible') ? '0%' : '200%',
-    zIndex: controls.classList.contains('visible') ? 1 : -1,
-    easing: 'easeInOutQuad',
-    duration: 300
+  Sortable.create(drpEscritorios, {
+    onEnd: async function (evt) {
+      console.log('Lo has movido')
+      // Simplemente enviar el orden actual y hacer una función que ordene en el back, pasar los nombres en el orden actual
+      const elements = Array.from(document.querySelectorAll('a.deskList'))
+      console.log(elements)
+      const names = []
+      elements.forEach(element => {
+        names.push(element.innerText)
+      })
+      console.log(names)
+      let body = names
+      body = JSON.stringify({ body })
+      const res = await fetch('http://localhost:3001/ordenaDesks', {
+        method: 'PUT',
+        headers: {
+          'content-type': 'application/json'
+        },
+        body
+      })
+      const json = await res.json()
+      console.log(json)
+    }
   })
 }
-
 // Funcion logout
 
 function logOut () {
@@ -1412,16 +1459,6 @@ function logOut () {
 function profile () {
   console.log('Has hecho click')
   window.location = 'http://localhost:3001/profile'
-}
-const getCookie = (name) => {
-  const cookies = document.cookie.split(';')
-  for (let i = 0; i < cookies.length; i++) {
-    const cookie = cookies[i].trim()
-    if (cookie.startsWith(name + '=')) {
-      return cookie.substring(name.length + 1)
-    }
-  }
-  return null
 }
 function mostrarMenu (event) {
   event.preventDefault() // Evitar el menú contextual predeterminado del navegador
@@ -1487,7 +1524,7 @@ function mostrarMenu (event) {
       } else {
         // Obtener la información del elemento en el que se hizo clic
         const elemento = event.target
-        console.log(elemento.parentNode.parentNode.dataset.db)
+        // console.log(elemento.parentNode.parentNode.dataset.db)
         document.body.setAttribute('idPanel', elemento.parentNode.parentNode.dataset.db)
         document.body.setAttribute('data-panel', elemento.parentNode.parentNode.previousSibling.childNodes[0].innerText)
         const informacion = elemento.textContent // Otra propiedad del elemento que desees mostrar

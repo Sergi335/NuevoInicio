@@ -1,0 +1,27 @@
+header
+  .headLeft
+    span#reloj
+    p#saludo Buenos días #{user}
+  .headCenter
+    input#searchInput(type='text' placeholder='Buscar...')
+    #resultsContainer
+  .headRight
+    h1#deskTitle.deskTitle= escritorio
+    .bodcontrols
+      span#editDesk.icofont-ui-edit
+      span#removeDesk.icofont-recycle
+      span#addCol.icofont-ghost
+      span#addDesk.icofont-plus
+    #userControl
+      .avatar
+        - if (userImg)
+          img(src=userImg alt='Profile Image')
+        - else
+          img(src='img/avatar.svg' alt='Default Image')
+    .controls
+      button#profile Perfil
+      button#logout Cerrar Sesi&oacute;n
+#drpEscritorios.dropdown-content
+  if escritorios !== undefined
+    each val in escritorios
+      a.deskList= val.name

@@ -1,2 +1,38 @@
-#sidepanel 
-  h2 Link Info
+#sidepanel
+  #sideHeader
+    h2 Link Info
+    i.icofont-close
+    p#linkId
+  .sidePanelA2
+    #linkInfoContainer
+      p Nombre:&nbsp;
+        span#lname 
+      p Panel:&nbsp;
+        span#lpanel 
+      p Url:&nbsp;
+        span#lurl 
+      p Activo:&nbsp;
+        span#lactive 
+      p Fecha Creación:&nbsp;
+        span#ladded
+      p Icono:&nbsp; 
+        img#limage(title='Cambiar icono')
+    #imgOptions 
+      img#option1(src='img/opcion1.svg')
+      img#option2(src='img/opcion2.png')
+      img#option3(src='img/opcion3.png')
+      input#upLinkImg(type='file' accept='image/*')
+      i.icofont-cloud-upload
+      button#saveLinkImage Guardar
+  #notesContainer
+    p Descripción:&nbsp;
+    #linkNotes(contenteditable='true') Escribe aqu&iacute;
+    #textControls
+      i.icofont-code-alt
+      i.icofont-font
+      i.icofont-delete-alt
+      button#sendNotes Guardar
+  #imgContainer
+    p Imágenes:&nbsp;
+    #linkImages(contenteditable='true')
+    button#pasteImg Pegar Imágen

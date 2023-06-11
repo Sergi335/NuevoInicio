@@ -1,5 +1,5 @@
-const { columnasModel, escritoriosModel } = require('../models/index')
-const { linksModel } = require('../models/index')
+const { columnasModel, linksModel } = require('../models/index')
+
 /**
  * Funcion emergencia creada para actualizar la db con el campo orden de cada
  * columna en cada escritorio, no se usa.
@@ -55,14 +55,15 @@ const getColItems = async (req, res) => {
 }
 const createColItem = async (req, res) => {
   const { body } = req
+  const user = req.user.name
   console.log(body)
   // eslint-disable-next-line no-new-object
-  const objeto = new Object()
+  const objeto = {}
   objeto.name = body.nombre
   objeto.escritorio = body.escritorio
   objeto.vacio = true
-  objeto.order = body.order
-  objeto.user = body.user
+  objeto.order = body.orden
+  objeto.user = user
   console.log(objeto)
   const data = await columnasModel.create(objeto)
   const lista = await columnasModel.find({ escritorio: `${body.escritorio}`, _id: data._id })
@@ -71,41 +72,31 @@ const createColItem = async (req, res) => {
 const deleteColItem = async (req, res) => {
   const { body } = req
   console.log(body)
-  // eslint-disable-next-line no-new-object
-  const objeto = new Object()
-  objeto._id = body.id
-  objeto.escritorio = body.escritorio
-  console.log(objeto)
-  const linksinCol = await linksModel.deleteMany({ idpanel: `${objeto._id}` })
-  const data = await columnasModel.deleteOne({ _id: `${objeto._id}` })
-  const lista = await columnasModel.find({ escritorio: `${objeto.escritorio}` }).sort({ order: 1 })
+  const user = req.user.name
+  console.log(user)
+  const linksinCol = await linksModel.deleteMany({ idpanel: `${body.id}`, user })
+  const data = await columnasModel.deleteOne({ _id: `${body.id}`, user })
+  const lista = await columnasModel.find({ escritorio: `${body.escritorio}`, user }).sort({ order: 1 })
   console.log(data)
   console.log(linksinCol)
   res.send(lista)
-  // res.send("Borrado")
 }
 const editColItem = async (req, res) => {
   const { body } = req
+  const user = req.user.name
   console.log(body)
-
-  const objeto = {}
-  // objeto.escritorio = body.escritorio
-  // objeto.nameOld = body.nombreOld
-  objeto.id = body.id
-  objeto.name = body.nombre
-  console.log(objeto)
   try {
     await columnasModel.findOneAndUpdate(
-      { _id: `${objeto.id}` }, // El filtro para buscar el documento
-      { $set: { name: `${objeto.name}` } }, // La propiedad a actualizar
+      { _id: `${body.id}`, user }, // El filtro para buscar el documento
+      { $set: { name: `${body.nombre}` } }, // La propiedad a actualizar
       { new: true } // Opciones adicionales (en este caso, devuelve el documento actualizado)
     )
     // Actualizamos los Links
-    const filtroL = { panel: `${objeto.nameOld}`, escritorio: `${objeto.escritorio}` } // Filtrar documentos
-    const actualizacionL = { $set: { panel: `${objeto.name}` } } // Actualizar
+    const filtroL = { idpanel: `${body.id}`, user } // Filtrar documentos
+    const actualizacionL = { $set: { panel: `${body.nombre}` } } // Actualizar
 
     await linksModel.updateMany(filtroL, actualizacionL)
-    const lista = await columnasModel.find({ escritorio: `${body.escritorio}` })
+    const lista = await columnasModel.find({ escritorio: `${body.escritorio}`, user })
     res.send(lista)
   } catch (error) {
     console.log(error) // Manejo de errores
@@ -115,8 +106,8 @@ const editColItem = async (req, res) => {
 const moveColumns = async (req, res) => {
   const { body } = req
   console.log(body)
-
-  const data = await columnasModel.find({ escritorio: body.deskDestino, user: body.user })
+  const user = req.user.name
+  const data = await columnasModel.find({ escritorio: body.deskDestino, user })
 
   await columnasModel.findOneAndUpdate(
     { _id: `${body.colId}` }, // El filtro para buscar el documento
@@ -124,7 +115,7 @@ const moveColumns = async (req, res) => {
     { new: true } // Opciones adicionales (en este caso, devuelve el documento actualizado)
   )
   // Actualizamos los Links
-  const filtroL = { user: `${body.user}`, idpanel: `${body.colId}` } // Filtrar documentos
+  const filtroL = { user, idpanel: `${body.colId}` } // Filtrar documentos
   const actualizacionL = { $set: { escritorio: `${body.deskDestino}` } } // Actualizar
 
   await linksModel.updateMany(filtroL, actualizacionL)

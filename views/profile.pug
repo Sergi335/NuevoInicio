@@ -7,32 +7,49 @@ head
   link(rel='stylesheet' href='/css/style2.css')
   link(rel='stylesheet' href='/css/icofont/icofont/icofont.min.css')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js')
-  script(src='/js/profile.js')
+  script(type='module' src='/js/profile.js')
   script(src='/js/search.js')
-.container
-  #userControl
-    .avatar
-      img(src='img/avatar.svg' alt='')
-      .controls
-        button#profile Inicio
-        button#logout Cerrar Sesi&oacute;n
-  input#searchInput(type='text' placeholder='Buscar...')
-  #resultsContainer
-  h1 Buenos días #{user}
-  .dropdown
-    button.dropbtn Escritorios
-    #drpEscritorios.dropdown-content
-      if escritorios !== undefined
-        each val in escritorios
-          a.deskList= val.name
-.container
-  #main.cuerpo
-    h1#deskTitle.deskTitle= escritorio
+include includes/header.pug
 .container#profileContent
   #profileResume
-    button#closeAccount Cerrar Cuenta
-    #profileDeleteConfirm 
-      p Seguro que quieres eliminar tu perfil? Esto borrará todos tus datos
-      p Esta operación no se puede deshacer
-      button#confirm Confirmar 
-      button#cancel Cancelar
+    #profileWrapper
+      #profile.tab
+        button#defaultOpen.tablinks Informaci&oacute;n
+        button#profileSeg.tablinks Seguridad
+        button#profilePreferences.tablinks Preferencias
+      #info.tabcontent
+        h2 Información básica
+        .profile-image
+          - if (userImg)
+            img#preview-image(src=userImg alt='Profile Image')
+          - else
+            img#preview-image(src='img/avatar.svg' alt='Default Image')
+          input#image-input(type='file' accept='image/*')
+        .userInfo 
+          p #{user}
+          p #{userData[0].email}
+          p 
+            span Miembro desde: 
+            | #{formatoFinal}
+      #security.tabcontent
+        h2 Seguridad 
+        p Copia de seguridad de tus datos
+        p Crear copia
+        #backupControls
+          button#backup Crear Copia 
+          button#download Descargar
+        p#errorMessage 
+        p#successMessage
+        hr
+        p Restaurar Copia
+        label(for='upFile') Subir Archivo:
+        input#upFile(type='file' name='upFile')
+        p#errorUpMessage 
+        p#successUpMessage
+      #preferences.tabcontent
+        button#closeAccount Cerrar Cuenta
+        #profileDeleteConfirm 
+          p Seguro que quieres eliminar tu perfil? Esto borrará todos tus datos
+          p Esta operación no se puede deshacer
+          button#confirm Confirmar 
+          button#cancel Cancelar

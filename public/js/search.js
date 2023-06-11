@@ -1,5 +1,5 @@
 window.onload = function () {
-  console.log('Hay búsqueda')
+  // console.log('Hay búsqueda')
   const searchInput = document.getElementById('searchInput')
   const resultsContainer = document.getElementById('resultsContainer')
 

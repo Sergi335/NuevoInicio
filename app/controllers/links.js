@@ -7,7 +7,41 @@ const cheerio = require('cheerio')
 // const httpsAgent = new https.Agent({
 //     rejectUnauthorized: false,
 // });
-
+const getItem = async (req, res) => {
+  const user = req.user.name
+  const idLink = req.query.id
+  const data = await linksModel.find({ _id: idLink, user })
+  console.log(data)
+  res.send({ data })
+}
+const setNotes = async (req, res) => {
+  const { body } = req
+  const user = req.user.name
+  const idLink = body.id
+  const data = await linksModel.findOneAndUpdate({ _id: idLink, user }, { $set: { notes: body.notes } })
+  console.log(data)
+  res.send({ data })
+}
+const setLinkImg = async (req, res) => {
+  const user = req.user.name
+  console.log(req.body.linkId)
+  // Obtén la ruta del archivo subido desde multer
+  if (req.file) {
+    const imagePath = req.file.path
+    const newPath = imagePath.replace(/^public\\/, '')
+    console.log(user)
+    console.log(imagePath)
+    const data = await linksModel.findOneAndUpdate({ _id: req.body.linkId, user }, { $set: { imgURL: newPath } })
+    console.log(data)
+    res.send({ ok: 'Imagen subida y actualizada' })
+  } else {
+    console.log('No hay imagePath')
+    console.log(req.body.filePath)
+    const data = await linksModel.findOneAndUpdate({ _id: req.body.linkId, user }, { $set: { imgURL: req.body.filePath } })
+    console.log(data)
+    res.send({ ok: 'Imagen de muestra añadida' })
+  }
+}
 const getNameByUrl = async (req, res) => {
   const url = req.query.url
   axios.get(url)
@@ -136,10 +170,8 @@ const getItemsCount = async (req, res) => {
 const createItem = async (req, res) => {
   const { body } = req
   // console.log(body);
-  // const dbIDCol = body.id;
-  // console.log(dbIDCol);
-  // eslint-disable-next-line no-new-object
-  const objeto = new Object()
+  const user = req.user.name
+  const objeto = {}
   objeto.name = body.nombre
   if (body.nombre === undefined) {
     console.log('Hay que consultar el nombre')
@@ -150,17 +182,16 @@ const createItem = async (req, res) => {
   objeto.panel = body.columna
   objeto.idpanel = body.id
   objeto.orden = body.orden
-  objeto.user = body.user
-  // console.log(objeto);
+  objeto.user = user
   // Find idpanel si estaba vacio cambiar flag a false
-  const count = await linksModel.find({ idpanel: objeto.idpanel })
+  const count = await linksModel.find({ idpanel: objeto.idpanel, user })
   if (count.length === 0) {
     console.log('Estaba vacia')
-    await columnasModel.findOneAndUpdate({ _id: objeto.idpanel }, { $set: { vacio: false } })
+    await columnasModel.findOneAndUpdate({ _id: objeto.idpanel, user }, { $set: { vacio: false } })
   } else {
     console.log('No estaba vacia')
   }
-  const findDuplicate = await linksModel.find({ name: body.nombre, idpanel: body.id })
+  const findDuplicate = await linksModel.find({ name: body.nombre, idpanel: body.id, user })
   console.log(findDuplicate)
   console.log(findDuplicate.length)
   if (findDuplicate.length === 0) {
@@ -171,10 +202,6 @@ const createItem = async (req, res) => {
     res.send(err)
   }
 
-  // const lista = await linksModel.find({panel: `${objeto.panel}`, escritorio: `${objeto.escritorio}`});
-  // const lista = await linksModel.find({idpanel: `${objeto.idpanel}`, escritorio: `${objeto.escritorio}`});
-  // console.log(lista);
-
   // Obtener los paneles del escritorio
   const data2 = await linksModel.find({ escritorio: body.escritorio, panel: body.columna })
   const paneles = [...new Set(data2.map((element) => element.panel))]
@@ -182,7 +209,7 @@ const createItem = async (req, res) => {
   // Actualizar el campo "orden" para cada elemento del panel, se podría llamar a setOrder2?
   for (const panel of paneles) {
     const elementosPanel = await linksModel
-      .find({ escritorio: body.escritorio, panel })
+      .find({ escritorio: body.escritorio, panel, user })
       .sort({ orden: 1 })
 
     for (let i = 0; i < elementosPanel.length; i++) {
@@ -192,14 +219,6 @@ const createItem = async (req, res) => {
       )
     }
   }
-
-  // Obtener la lista ordenada por el campo "orden"
-  // eslint-disable-next-line no-unused-vars
-  const lista = await linksModel
-    .find({ escritorio: body.escritorio, panel: body.columna })
-    .sort({ orden: 1 })
-
-  // res.send(lista);
 }
 /**
  * Actualizar enlace al arrastrar entre columnas
@@ -253,26 +272,18 @@ const editdragItem = async (req, res) => {
  */
 const deleteItem = async (req, res) => {
   const { body } = req
+  const user = req.user.name
   console.log(body)
-  // eslint-disable-next-line no-new-object
-  const objeto = new Object()
-  objeto.name = body.nombre
-  objeto.panel = body.panel
-  objeto.escritorio = body.escritorio
-  objeto.id = body.id
-  objeto.user = body.user
-  console.log(objeto)
-  await linksModel.deleteOne({ name: `${objeto.name}`, escritorio: `${objeto.escritorio}`, idpanel: `${objeto.id}`, user: `${objeto.user}` })
+  await linksModel.deleteOne({ name: `${body.nombre}`, escritorio: `${body.escritorio}`, idpanel: `${body.id}`, user })
   // Find y contar si 0 cambiar vacio true
-  const count = await linksModel.find({ idpanel: objeto.id, user: `${objeto.user}` })
+  const count = await linksModel.find({ idpanel: body.id, user })
   if (count.length === 0) {
     console.log('Esta vacia')
-    await columnasModel.findOneAndUpdate({ _id: objeto.id, user: `${objeto.user}` }, { $set: { vacio: true } })
+    await columnasModel.findOneAndUpdate({ _id: body.id, user }, { $set: { vacio: true } })
   } else {
     console.log('No esta vacia')
   }
-  const lista = await setOrder2(objeto.escritorio, objeto.id)
-  // console.log(lista);
+  const lista = await setOrder2(body.escritorio, body.id)
   res.send(lista)
 }
 /**
@@ -282,40 +293,34 @@ const deleteItem = async (req, res) => {
  */
 const editItem = async (req, res) => {
   const { body } = req
-  // console.log(body);
-  // eslint-disable-next-line no-new-object
-  const objeto = new Object()
-  objeto.nameOld = body.nombreOld
-  objeto.name = body.nombre
-  objeto.URL = body.URL
-  objeto.imgURL = body.imgURL
-  objeto.escritorio = body.escritorio
-  objeto.panel = body.columna
-  objeto.id = body.id
-  objeto.user = body.user
-  // console.log(objeto);
+  const user = req.user.name
+  console.log(user)
+  console.log(body)
+
   try {
     const documentoActualizado = await linksModel.findOneAndUpdate(
-      { name: `${objeto.nameOld}`, escritorio: `${objeto.escritorio}`, panel: `${objeto.panel}`, idpanel: `${objeto.id}`, user: `${objeto.user}` }, // El filtro para buscar el documento
-      { $set: { name: `${objeto.name}`, escritorio: `${objeto.escritorio}`, panel: `${objeto.panel}`, URL: `${objeto.URL}`, imgURL: `${objeto.imgURL}` } }, // La propiedad a actualizar
+      { name: `${body.nombreOld}`, escritorio: `${body.escritorio}`, panel: `${body.columna}`, idpanel: `${body.id}`, user }, // El filtro para buscar el documento
+      { $set: { name: `${body.nombre}`, escritorio: `${body.escritorio}`, panel: `${body.columna}`, URL: `${body.URL}`, imgURL: `${body.imgURL}` } }, // La propiedad a actualizar
       { new: true } // Opciones adicionales (en este caso, devuelve el documento actualizado)
     )
-    res.send(documentoActualizado)
-    // console.log(documentoActualizado);
+    if (documentoActualizado !== null) {
+      res.send(documentoActualizado)
+      console.log(documentoActualizado)
+    } else {
+      res.send({ error: 'documento no encontrado' })
+    }
   } catch (error) {
     console.log(error) // Manejo de errores
     res.send(error)
   }
-  await linksModel.find({ panel: `${objeto.panel}`, escritorio: `${objeto.escritorio}`, idpanel: `${objeto.id}`, user: `${objeto.user}` }) // Ordenar por orden?? .sort?
-  // console.log(lista);
-  // res.send(lista);
 }
 const moveItem = async (req, res) => {
   const { body } = req
+  const user = req.user.name
   console.log(body)
-  await linksModel.findOneAndUpdate({ name: body.name, idpanel: body.panelOrigenId, user: body.user }, { $set: { idpanel: body.panelDestinoId, panel: body.panelDestinoNombre, orden: body.orden } })
-  const link = await linksModel.find({ name: body.name, idpanel: body.panelDestinoId, user: body.user })
-  const count = await linksModel.find({ idpanel: body.panelOrigenId, user: body.user })
+  await linksModel.findOneAndUpdate({ name: body.name, idpanel: body.panelOrigenId, user }, { $set: { idpanel: body.panelDestinoId, panel: body.panelDestinoNombre, orden: body.orden } })
+  const link = await linksModel.find({ name: body.name, idpanel: body.panelDestinoId, user })
+  const count = await linksModel.find({ idpanel: body.panelOrigenId, user })
   if (count.length === 0) {
     console.log('Estaba vacia')
     await columnasModel.findOneAndUpdate({ _id: body.panelOrigenId }, { $set: { vacio: true } })
@@ -364,4 +369,4 @@ const actualizarOrdenElementos = async (req, res) => {
   }
 }
 
-module.exports = { getItemsCount, getItems, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos, getNameByUrl, moveItem }
+module.exports = { getItemsCount, getItems, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos, getNameByUrl, moveItem, getItem, setNotes, setLinkImg }

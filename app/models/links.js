@@ -24,6 +24,9 @@ const LinkSchema = new mongoose.Schema({
   },
   user: {
     type: String
+  },
+  notes: {
+    type: String
   }
 }, {
   timestamps: true,

@@ -12,6 +12,9 @@ const UsersSchema = new mongoose.Schema({
   },
   newUser: {
     type: Boolean
+  },
+  profileImage: {
+    type: String
   }
 }, {
   timestamps: true,
