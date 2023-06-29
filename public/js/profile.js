@@ -36,6 +36,13 @@ function cargaProfile () {
 
   // Get the element with id="defaultOpen" and click on it
   document.getElementById('defaultOpen').click()
+
+  document.querySelector('#changePassword').removeEventListener('click', handleChangePassword)
+  document.querySelector('#changePassword').addEventListener('click', handleChangePassword)
+  document.querySelector('#changePasswordCancel').removeEventListener('click', handleChangePassword)
+  document.querySelector('#changePasswordCancel').addEventListener('click', handleChangePassword)
+  document.querySelector('#changePasswordSubmit').removeEventListener('click', changePassword)
+  document.querySelector('#changePasswordSubmit').addEventListener('click', changePassword)
 }
 function profile () {
   window.location = 'http://localhost:3001/templates'
@@ -206,4 +213,29 @@ function openSection (event) {
   }
   document.getElementById(section).style.display = 'flex'
   event.currentTarget.className += ' active'
+}
+function handleChangePassword () {
+  const dialog = document.getElementById('changePasswordDialog')
+  if (dialog.style.display === 'none' || dialog.style.display === '') {
+    dialog.style.display = 'flex'
+  } else {
+    dialog.style.display = 'none'
+  }
+}
+async function changePassword () {
+  const oldPassword = document.getElementById('oldPassword').value
+  const newPassword = document.getElementById('newPassword').value
+  let body = { oldPassword, newPassword }
+  body = JSON.stringify(body)
+  console.log(body)
+  const res = await fetch('http://localhost:3001/changePassword', {
+    method: 'POST',
+    headers: {
+      'content-Type': 'Application/json'
+    },
+    body
+  })
+
+  const data = await res.json()
+  console.log(data)
 }

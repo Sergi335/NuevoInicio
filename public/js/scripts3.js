@@ -1,4 +1,4 @@
-import { darHora, fetchS } from './functions.mjs'
+import { darHora, fetchS, sendMessage, handleDbClick, preEditColumn, handleSimpleClick } from './functions.mjs'
 import { togglePanel } from './sidepanel.js'
 
 document.addEventListener('DOMContentLoaded', cargaWeb)
@@ -11,6 +11,9 @@ function cargaWeb () {
   // Añadimos los eventos de escritorio
   addDesktopEvents()
   darHora()
+  handleDbClick()
+  handleSimpleClick()
+  // Pasar a select desktop
   const menuItems = document.querySelectorAll('.deskList')
   const desktop = window.location.href
   const partes = desktop.split('=')
@@ -26,6 +29,7 @@ function cargaWeb () {
   if (window.location.href === 'http://localhost:3001/templates') {
     menuItems[0].classList.add('active')
   }
+
   // Obtener todos los elementos de la página en los que quieres habilitar el menú emergente
   const elementos = document.querySelectorAll('.cuerpoInt')
 
@@ -69,10 +73,42 @@ function cargaWeb () {
       menuL.style.display = 'none'
     }, 500)
   })
+  // Menu mover entre escritorios
+  const acc = document.getElementsByClassName('accordion')
+  let i
 
+  for (i = 0; i < acc.length; i++) {
+    acc[i].addEventListener('click', function (event) {
+      if (event.target !== this) {
+        event.stopPropagation()
+        return
+      }
+      console.log(event.target)
+      this.classList.toggle('ddactive')
+      const panel = this.childNodes[2]
+      console.log(panel)
+      if (panel.style.maxHeight) {
+        panel.style.maxHeight = null
+      } else {
+        panel.style.maxHeight = panel.scrollHeight + 'px'
+      }
+    })
+  }
+  const otherDesk = document.getElementById('otherDesk')
+  otherDesk.removeEventListener('click', handleOtherDeskMove)
+  otherDesk.addEventListener('click', handleOtherDeskMove)
+  const cancelMove = document.getElementById('cancelMove')
+  cancelMove.removeEventListener('click', handleOtherDeskMove)
+  cancelMove.addEventListener('click', handleOtherDeskMove)
+  const destinations = document.querySelectorAll('li.accordion ul li')
+  destinations.forEach(destination => {
+    destination.removeEventListener('click', selectDestination)
+    destination.addEventListener('click', selectDestination)
+  })
   // Declaramos la variable para pasar a ordenaCols
   const desk = document.getElementById('deskTitle').innerText
   document.body.setAttribute('data-desk', `${desk}`)
+  // Si el modo es normal (no edit)
   const $raiz = document.getElementById(`${desk}Cols`)
 
   // Añadimos los eventos de columnas
@@ -81,14 +117,16 @@ function cargaWeb () {
   // Añadimos los eventos de los links
   // Locura que si no llamas a ordenacols dos veces en dos funciones distintas(cierto?), no funciona, tocatelos
   addLinkEvents($raiz)
-  const hijos = $raiz.childNodes
-  hijos.forEach(element => {
-    ordenaItems(element.childNodes[0].innerText)
-  })
-  ordenaCols($raiz)
+
+  if (!document.body.classList.contains('edit')) {
+    const hijos = $raiz.childNodes
+    hijos.forEach(element => {
+      ordenaItems(element.childNodes[0].innerText)
+    })
+    ordenaCols($raiz)
+  }
+
   ordenaDesks()
-  // eslint-disable-next-line no-undef
-  // GridStack.init()
 }
 
 // Manejo de Eventos
@@ -106,6 +144,10 @@ function addDesktopEvents () {
   // Agregar evento de clic al botón para agregar una columna
   document.querySelector('#addCol').removeEventListener('click', toggleDialogColumn)
   document.querySelector('#addCol').addEventListener('click', toggleDialogColumn)
+
+  // Agregar evento de clic al botón para cambiar Layout
+  document.querySelector('#selectLayout').removeEventListener('click', changeLayout)
+  document.querySelector('#selectLayout').addEventListener('click', changeLayout)
 
   // Agregar evento de clic al botón para agregar un escritorio
   document.querySelector('#addDesk').removeEventListener('click', toggleDialogDesktop)
@@ -155,8 +197,8 @@ function addColumnEvents () {
   })
   // Agregar evento de clic al botón de editar columnas
   document.querySelectorAll('.editcol').forEach(item => {
-    item.removeEventListener('click', toggleDialogEditColumn)
-    item.addEventListener('click', toggleDialogEditColumn)
+    item.removeEventListener('click', preEditColumn)
+    item.addEventListener('click', preEditColumn)
   })
 
   document.querySelectorAll('.paste-btn').forEach(item => {
@@ -166,8 +208,8 @@ function addColumnEvents () {
   document.querySelector('#colSubmit').removeEventListener('click', createColumn)
   document.querySelector('#colSubmit').addEventListener('click', createColumn)
 
-  document.querySelector('#editcolSubmit').removeEventListener('click', editColumn)
-  document.querySelector('#editcolSubmit').addEventListener('click', editColumn)
+  // document.querySelector('#editcolSubmit').removeEventListener('click', editColumn)
+  // document.querySelector('#editcolSubmit').addEventListener('click', editColumn)
 
   document.querySelector('#confDeletecolSubmit').removeEventListener('click', deleteColumn)
   document.querySelector('#confDeletecolSubmit').addEventListener('click', deleteColumn)
@@ -203,7 +245,9 @@ function addLinkEvents ($raiz) {
   document.querySelector('#noDeletelinkSubmit').removeEventListener('click', escondeDeleteDialog)
   document.querySelector('#noDeletelinkSubmit').addEventListener('click', escondeDeleteDialog)
 
-  ordenaCols($raiz)
+  if (!document.body.classList.contains('edit')) {
+    ordenaCols($raiz)
+  }
 }
 
 // Manejo de escritorios
@@ -222,7 +266,7 @@ async function selectDesktop (event) {
  */
 async function editDesktop () {
   const nombreOld = document.body.getAttribute('data-desk')
-  const nombre = document.getElementById('editdeskName').value
+  const nombre = document.getElementById('editdeskName').value.trim()
   const body = { nombre, nombreOld }
   const params = {
     url: 'http://localhost:3001/escritorios',
@@ -238,23 +282,23 @@ async function editDesktop () {
   const firstValue = res[firstKey]
 
   if (firstKey === 'error') {
-    const $error = document.getElementById('editdeskError')
-    $error.innerText = `${firstKey}, ${firstValue}`
+    sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
     const dialog = document.getElementById('editDeskForm')
     const visible = dialog.style.display === 'flex'
     dialog.style.display = visible ? 'none' : 'flex'
     refreshDesktops(res)
     addDesktopEvents()
+    document.getElementById('deskTitle').innerText = `${nombre}`
+    sendMessage(true, 'Edición Correcta')
   }
-  document.getElementById('deskTitle').innerText = `${nombre}`
-  // TODO mensaje de exito o animar el cambio de nombre
+  // TODO animar el cambio de nombre - al actualizar la pag no funciona, cambiar url?
 }
 /**
  * Función para crear un escritorio, refact x
  */
 async function createDesktop () {
-  const nombre = document.getElementById('deskName').value
+  const nombre = document.getElementById('deskName').value.trim()
   let orden = document.querySelectorAll('a.deskList')
   orden = orden.length
   orden = orden + 1
@@ -273,10 +317,10 @@ async function createDesktop () {
   const firstValue = res[firstKey]
 
   if (firstKey === 'error') {
-    const $error = document.getElementById('deskError')
-    $error.innerText = `${firstKey}, ${firstValue}`
+    sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
     window.location = `http://localhost:3001/templates?escritorio=${nombre}`
+    // Mensaje exito despues
   }
 }
 /**
@@ -298,17 +342,17 @@ async function deleteDesktop () {
   const firstValue = res[firstKey]
   console.log(res)
   if (firstKey === 'error') {
-    const $error = document.getElementById('deleteDeskError')
-    $error.innerText = `${firstKey}, ${firstValue}`
+    sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
     window.location = `http://localhost:3001/templates?escritorio=${res[0].name}`
+    // Necesario??
     const dialog = document.getElementById('deleteDeskForm')
     const visible = dialog.style.display === 'flex'
     dialog.style.display = visible ? 'none' : 'flex'
   }
 }
 /**
- * FUnción que recarga la lista de escritorios disponibles
+ * Función que recarga la lista de escritorios disponibles
  * @param {*} lista
  */
 function refreshDesktops (lista) {
@@ -332,16 +376,26 @@ function refreshDesktops (lista) {
     $raiz.appendChild($nodos)
   })
 }
+/**
+ * Función para cambiar el layout de la pagina
+ */
+function changeLayout (event) {
+  console.log('Funciona')
+  event.stopPropagation()
+  const deskName = document.body.getAttribute('data-desk')
+  // Manejar el mode segun sea
+  window.location = `http://localhost:3001/templates?escritorio=${deskName}&mode=edit`
+}
 
 // Manejo de columnas
 
 /**
  * Función para editar una columna refact x
  */
-async function editColumn () {
-  const nombre = document.getElementById('editcolName').value
-  const escritorio = document.body.getAttribute('data-desk')
-  const id = document.getElementById('editcolSubmit').getAttribute('sender')
+export async function editColumn (name, desk, idPanel) {
+  const nombre = name
+  const escritorio = desk
+  const id = idPanel
   const body = { nombre, escritorio, id }
   const params = {
     url: 'http://localhost:3001/columnas',
@@ -354,25 +408,18 @@ async function editColumn () {
   const res = await fetchS(params)
   const firstKey = Object.keys(res)[0]
   const firstValue = res[firstKey]
-  console.log(res)
+  // console.log(res)
   if (firstKey === 'error') {
-    const $error = document.getElementById('editColError')
-    $error.innerText = `${firstKey}, ${firstValue}`
+    sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
-    const dialog = document.getElementById('editColForm')
-    const visible = dialog.style.display === 'flex'
-    dialog.style.display = visible ? 'none' : 'flex'
-
-    const $Column = document.querySelector(`[data-db="${id}"]`)
-    console.log($Column.parentNode.childNodes[0].childNodes[0].innerText)
-    $Column.parentNode.childNodes[0].childNodes[0].innerText = nombre
+    sendMessage(true, 'Nombre Cambiado!!')
   }
 }
 /**
  * Función para crear columna refact x
  */
 async function createColumn () {
-  const nombre = document.getElementById('colName').value
+  const nombre = document.getElementById('colName').value.trim()
   const escritorio = document.body.getAttribute('data-desk')
   const $raiz0 = document.getElementById(`${escritorio}Cols`)
 
@@ -568,8 +615,8 @@ async function editLink () {
   const nombreOld = document.body.getAttribute('data-link')
   const escritorio = document.body.getAttribute('data-desk')
   const columna = document.body.getAttribute('data-panel')
-  const nombre = document.querySelector('#editlinkName').value
-  const linkURL = document.querySelector('#editlinkURL').value
+  const nombre = document.querySelector('#editlinkName').value.trim()
+  const linkURL = document.querySelector('#editlinkURL').value.trim()
   const imgURL = `https://www.google.com/s2/favicons?domain=${linkURL}`
   const dbID = document.getElementById('editlinkSubmit').getAttribute('sender')
 
@@ -612,8 +659,8 @@ async function createLink () {
   // Recogemos los datos para enviarlos a la db
   const escritorio = document.body.getAttribute('data-desk')
   const columna = document.body.getAttribute('data-panel')
-  const nombre = document.querySelector('#linkName').value
-  const linkURL = document.querySelector('#linkURL').value
+  const nombre = document.querySelector('#linkName').value.trim()
+  const linkURL = document.querySelector('#linkURL').value.trim()
   const imgURL = `https://www.google.com/s2/favicons?domain=${linkURL}`
   const dbID = document.getElementById('linkSubmit').getAttribute('sender')
   // Seleccionamos columna por id, por si hay dos con el mismo nombre
@@ -1026,15 +1073,15 @@ function toggleDialogColumn () {
   const visible = dialog.style.display === 'flex'
   dialog.style.display = visible ? 'none' : 'flex'
 }
-function toggleDialogEditColumn (event) {
-  const panelID = event.target.parentNode.childNodes[1].innerText
-  console.log(panelID)
-  const boton = document.getElementById('editcolSubmit')
-  boton.setAttribute('sender', `${panelID}`)
-  const dialog = document.getElementById('editColForm')
-  const visible = dialog.style.display === 'flex'
-  dialog.style.display = visible ? 'none' : 'flex'
-}
+// function toggleDialogEditColumn (event) {
+//   const panelID = event.target.parentNode.childNodes[1].innerText
+//   console.log(panelID)
+//   const boton = document.getElementById('editcolSubmit')
+//   boton.setAttribute('sender', `${panelID}`)
+//   const dialog = document.getElementById('editColForm')
+//   const visible = dialog.style.display === 'flex'
+//   dialog.style.display = visible ? 'none' : 'flex'
+// }
 function toggleDialogDesktop () {
   const dialog = document.getElementById('addDeskForm')
   const visible = dialog.style.display === 'flex'
@@ -1137,7 +1184,8 @@ function escondeDialogos (event) {
   cuadros.push(document.getElementById('addCol'))
   cuadros.push(document.getElementById('editDesk'))
   cuadros.push(document.getElementById('removeDesk'))
-
+  cuadros.push(document.getElementById('menuMoveTo'))
+  cuadros.push(document.getElementById('otherDesk'))
   // Introducimos los botones de las columnas para añadir links
   cuadros.push(Array.from(document.querySelectorAll('.addlink')))
   cuadros = [].concat.apply([], cuadros)
@@ -1147,13 +1195,13 @@ function escondeDialogos (event) {
     })
   })
   // Introducimos los botones de las columnas para editar columnas
-  cuadros.push(Array.from(document.querySelectorAll('.editcol')))
-  cuadros = [].concat.apply([], cuadros)
-  cuadros.forEach(element => {
-    element.addEventListener('click', (event) => {
-      event.stopPropagation()
-    })
-  })
+  // cuadros.push(Array.from(document.querySelectorAll('.editcol')))
+  // cuadros = [].concat.apply([], cuadros)
+  // cuadros.forEach(element => {
+  //   element.addEventListener('click', (event) => {
+  //     event.stopPropagation()
+  //   })
+  // })
   // Introducimos los botones de los links para editar links
   cuadros.push(Array.from(document.querySelectorAll('.editalink')))
   cuadros = [].concat.apply([], cuadros)
@@ -1187,7 +1235,7 @@ function escondeDialogos (event) {
       element.addEventListener('click', (event) => {
         event.stopPropagation()
       })
-      const visible = element.style.display === 'flex'
+      const visible = element.style.display === 'flex' || element.style.display === 'block'
       if (visible) {
         element.style.display = 'none'
       }
@@ -1490,7 +1538,7 @@ function mostrarMenu (event) {
       // Actualizar el contenido del menú emergente con la información relevante
       const info = document.getElementById('infoC')
       info.textContent = informacion
-      document.body.setAttribute('data-panel', informacion)
+      document.body.setAttribute('data-panel', informacion.trim())
       // Actualizar el contenido del menú emergente con la información relevante
       const contenidoMenu = document.getElementById('elementoC')
       contenidoMenu.textContent = elemento.parentNode.parentNode.childNodes[1].dataset.db
@@ -1536,6 +1584,103 @@ function mostrarMenu (event) {
         const contenidoMenu = document.getElementById('elementoL')
         contenidoMenu.textContent = elemento
       }
+    }
+  }
+}
+function handleOtherDeskMove (event) {
+  console.log(event.target.parentNode.parentNode.parentNode.childNodes[2].innerText)
+  document.body.setAttribute('dataLink', event.target.parentNode.parentNode.parentNode.childNodes[2].innerText)
+  const menu = document.getElementById('menuMoveTo')
+  if (menu.style.display === 'none' || menu.style.display === '') {
+    menu.style.display = 'block'
+  } else {
+    menu.style.display = 'none'
+  }
+}
+function selectDestination (event) {
+  console.log(event.target.parentNode.parentNode.id)
+  document.body.setAttribute('destination-desk', event.target.parentNode.parentNode.id)
+  const destinations = document.querySelectorAll('li.accordion ul li')
+  destinations.forEach(destination => {
+    if (destination === event.target) {
+      destination.style.backgroundColor = '#ccc'
+      destination.classList.add('selected')
+    } else {
+      destination.style.backgroundColor = ''
+      destination.classList.remove('selected')
+    }
+  })
+  const acceptButton = document.getElementById('acceptMove')
+  acceptButton.removeEventListener('click', handleSubmitMove)
+  acceptButton.addEventListener('click', handleSubmitMove)
+}
+async function handleSubmitMove () {
+  const destination = document.querySelector('li.accordion ul li.selected')
+  console.log(`Movemos a ${destination.id}`)
+  const panelOrigenId = document.body.getAttribute('idpanel')
+  console.log(panelOrigenId)
+  const panelDestinoNombre = destination.id
+  console.log(panelDestinoNombre)
+  let panelOldChildCount = document.querySelector(`[data-db="${panelOrigenId}"]`)
+  panelOldChildCount = panelOldChildCount.childNodes.length
+  console.log(panelOldChildCount)
+  const escritorio = document.body.getAttribute('destination-desk')
+  const res = await fetch(`http://localhost:3001/columnas?escritorio=${escritorio}`, {
+    method: 'GET',
+    headers: {
+      contentType: 'application/json'
+    }
+  })
+  const data = await res.json()
+  console.log('Resultado del servidor')
+  console.log(data)
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+
+  if (firstKey === 'error') {
+    const $error = document.getElementById('moveError') // Crear
+    $error.innerText = `${firstKey}, ${firstValue}`
+  } else {
+    console.log('correcto')
+    let panelDestinoId
+    const linkName = document.body.getAttribute('dataLink')
+    data.forEach(col => {
+      if (col.name === panelDestinoNombre) {
+        panelDestinoId = col._id
+      }
+    })
+    const body = { panelOrigenId, panelDestinoId, panelDestinoNombre, name: linkName, orden: panelOldChildCount + 1, escritorio }
+    console.log(body)
+    const params = {
+      url: 'http://localhost:3001/moveLinks',
+      method: 'PUT',
+      options: {
+        contentType: 'application/json'
+      },
+      body
+    }
+    const res = await fetchS(params)
+    console.log('Resultado del servidor')
+    console.log(res)
+    // Recogemos los links para detectar el movido y eliminarlo
+    const links = document.querySelectorAll('div.link')
+    if (links) {
+      links.forEach(element => {
+      // problema con duplicados, meter id de base de datos como id de elemento
+        if (element.id === res._id) {
+          console.log('Hay coincidencia con el enviado del servidor')
+          console.log(element.id)
+          console.log(res._id)
+          // Hacer algo con el elemento encontrado
+          element.remove()
+        }
+      })
+    }
+    const menu = document.getElementById('menuMoveTo')
+    if (menu.style.display === 'none' || menu.style.display === '') {
+      menu.style.display = 'block'
+    } else {
+      menu.style.display = 'none'
     }
   }
 }

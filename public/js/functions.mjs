@@ -1,3 +1,5 @@
+import { editColumn } from './scripts3.js'
+
 function hora () {
   const fecha = new Date()
   const hora = fecha.getHours()
@@ -71,4 +73,146 @@ export function formatDate (date) {
   const resultado = fechaFormateada + ' ' + horaFormateada
   console.log(resultado)
   return resultado
+}
+
+export function sendMessage (success, message) {
+  const card = document.getElementById('alertCard')
+  if (!success) {
+    card.style.borderLeftColor = 'red'
+  } else {
+    card.style.borderLeftColor = 'mediumseagreen'
+  }
+  card.innerText = message
+  // Realizar la transformación inicial
+  card.style.transform = 'translateX(0px)'
+
+  // Después de 2 segundos, volver a la posición inicial
+  setTimeout(() => {
+    card.style.transform = 'translateX(335px)'
+  }, 4000)
+}
+
+export function handleDbClick () {
+  let tiempoUltimoClick = 0
+  let ultimoElementoDblClick = null
+  document.addEventListener('click', function (event) {
+    const tiempoActual = new Date().getTime()
+    if (tiempoActual - tiempoUltimoClick < 300) {
+      console.log('Doble Click')
+      // Si el elemento target es H2
+      // Poner editable a true
+      // llamar a subrayar con los args del target
+      // Poner en el body el nombre para comprobar si cambia
+      if (event.target.nodeName === 'H2') {
+        ultimoElementoDblClick = event.target
+        document.body.setAttribute('data-panel', `${event.target.innerText.trim()}`)
+        selectText(ultimoElementoDblClick)
+        ultimoElementoDblClick.setAttribute('contenteditable', 'true')
+        ultimoElementoDblClick.focus()
+      }
+    }
+    tiempoUltimoClick = tiempoActual
+  })
+}
+/**
+ * Función que cambia el nombre de una columna o no dependiendo de si ha cambiado y se ha hecho click fuera de ella o se ha presionado la tecla enter
+ */
+export function handleSimpleClick () {
+  document.addEventListener('click', function (event) {
+    console.log('Simple Click')
+    const element = document.querySelector('h2[contenteditable="true"]')
+    const buttonMenu = document.querySelector('.editcol')
+    console.log(element)
+    console.log(event.target)
+    // Si el elemento no es EL H2 que esta con editable a true o el menu contextual
+    // Poner editable a false y comprobar si ha cambiado -> Como? cons. el body
+    // llamar a envio o sea editColumn(name, desk, idpanel)
+    if (element && event.target !== element && event.target !== buttonMenu) {
+      element.setAttribute('contenteditable', 'false')
+      console.log(element.innerText)
+      console.log(element.parentNode.parentNode.childNodes[1].dataset.db)
+      if (element.innerText !== document.body.getAttribute('data-panel')) {
+        console.log('Ha cambiado')
+        const name = element.innerText.trim()
+        const desk = document.body.getAttribute('data-desk')
+        const idPanel = element.parentNode.parentNode.childNodes[1].dataset.db
+        editColumn(name, desk, idPanel)
+      }
+    }
+  })
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      event.preventDefault() // Evitar el comportamiento predeterminado de la tecla Enter (por ejemplo, agregar un salto de línea)
+      const element = document.querySelector('h2[contenteditable="true"]')
+      element.setAttribute('contenteditable', 'false')
+      console.log('Se ha presionado la tecla Enter')
+      if (element.innerText !== document.body.getAttribute('data-panel')) {
+        console.log('Ha cambiado')
+        const name = element.innerText.trim()
+        const desk = document.body.getAttribute('data-desk')
+        const idPanel = element.parentNode.parentNode.childNodes[1].dataset.db
+        editColumn(name, desk, idPanel)
+      }
+    }
+  })
+}
+export function preEditColumn (event) {
+  console.log('Click contextual')
+  // Poner editable a true
+  // llamar a subrayar con los args del target
+  // Poner en el body el nombre para comprobar si cambia
+  const idPanel = event.target.parentNode.childNodes[1].innerText
+  const son = document.querySelector(`[data-db="${idPanel}"]`)
+  const element = son.parentNode.childNodes[0].childNodes[0]
+  selectText(element)
+  element.setAttribute('contenteditable', 'true')
+  element.focus()
+}
+
+function selectText (element) {
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  const selection = window.getSelection()
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
+
+export const videoUrlsObj = {
+  Youtube: {
+    url: 'https://www.youtube.com/watch',
+    embedURL: 'https://www.youtube.com/embed/',
+    extractParam: function (url) {
+      return url.split('=')[1]
+    }
+  },
+  Pornhub: {
+    url: 'https://es.pornhub.com/view_video',
+    embedURL: 'https://www.pornhub.com/embed/',
+    extractParam: function (url) {
+      return url.split('=')[1]
+    }
+  },
+  Xvideos: {
+    url: 'https://www.xvideos.com/video',
+    embedURL: 'https://www.xvideos.com/embedframe/',
+    extractParam: function (url) {
+      const regex = /video(\d+)/i
+      const match = url.match(regex)
+      if (match && match[1]) {
+        return match[1]
+      }
+    }
+  }
+}
+export function checkUrlMatch (url) {
+  for (const key in videoUrlsObj) {
+    if (Object.prototype.hasOwnProperty.call(videoUrlsObj, key)) {
+      const videoUrl = videoUrlsObj[key]
+      if (url.includes(videoUrl.url)) {
+        const extractedParam = videoUrl.extractParam(url)
+        return videoUrl.embedURL + extractedParam
+      }
+    }
+  }
+  return null // Si no hay coincidencia
 }

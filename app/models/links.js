@@ -27,6 +27,9 @@ const LinkSchema = new mongoose.Schema({
   },
   notes: {
     type: String
+  },
+  images: {
+    type: Array
   }
 }, {
   timestamps: true,

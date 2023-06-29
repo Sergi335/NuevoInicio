@@ -2,6 +2,8 @@ const { linksModel, columnasModel } = require('../models/index')
 const { handleHttpError } = require('../helpers/handleError')
 const axios = require('axios')
 const cheerio = require('cheerio')
+const fs = require('fs')
+const path = require('path')
 // const https = require('https')
 
 // const httpsAgent = new https.Agent({
@@ -40,6 +42,65 @@ const setLinkImg = async (req, res) => {
     const data = await linksModel.findOneAndUpdate({ _id: req.body.linkId, user }, { $set: { imgURL: req.body.filePath } })
     console.log(data)
     res.send({ ok: 'Imagen de muestra añadida' })
+  }
+}
+const setImages = async (req, res) => {
+  const user = req.user.name
+  // console.log(req.file)
+  // Obtén la ruta del archivo subido desde multer
+  if (req.file.path) {
+    const imagePath = req.file.path
+    const newPath = imagePath.replace(/^public\\/, '')
+    console.log(user)
+    console.log(imagePath)
+    const data = await linksModel.findOneAndUpdate(
+      { _id: req.body.linkId, user },
+      { $push: { images: newPath } }
+    )
+    console.log(data)
+    res.send({ ok: 'Imagen subida y actualizada' })
+  } else {
+    console.log('No hay imagePath')
+    console.log(req.body.filePath)
+    res.send({ error: 'No hay filePath' })
+  }
+}
+const deleteImage = async (req, res) => {
+  const user = req.user.name
+  const { body } = req
+  console.log(body.image)
+  console.log(body.id)
+  const originalUrl = body.image
+  const modifiedUrl = originalUrl.replace('http://localhost:3001/', '').split('/').join('\\')
+
+  try {
+    const updatedArticle = await linksModel.findOneAndUpdate(
+      { _id: body.id, user },
+      { $pull: { images: { $in: [modifiedUrl] } } },
+      { new: true }
+    )
+
+    if (updatedArticle) {
+      console.log('Artículo actualizado:', updatedArticle)
+      const filePath = path.join(__dirname, '../..', 'public', modifiedUrl)
+      console.log(filePath)
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error('Error al eliminar el archivo:', err)
+          res.send({ message: 'Error al borrar' })
+        } else {
+          console.log('Archivo eliminado exitosamente.')
+          res.send({ message: 'Borrado' })
+        }
+      })
+      // res.send({ message: 'Borrado' })
+    } else {
+      console.log('No se encontró ningún artículo que cumpla los criterios de búsqueda.')
+      res.send({ message: 'No encontrado' })
+    }
+  } catch (error) {
+    console.error('Error al actualizar el artículo:', error)
+    res.send({ message: 'Error al borrar' })
   }
 }
 const getNameByUrl = async (req, res) => {
@@ -318,16 +379,30 @@ const moveItem = async (req, res) => {
   const { body } = req
   const user = req.user.name
   console.log(body)
-  await linksModel.findOneAndUpdate({ name: body.name, idpanel: body.panelOrigenId, user }, { $set: { idpanel: body.panelDestinoId, panel: body.panelDestinoNombre, orden: body.orden } })
-  const link = await linksModel.find({ name: body.name, idpanel: body.panelDestinoId, user })
-  const count = await linksModel.find({ idpanel: body.panelOrigenId, user })
-  if (count.length === 0) {
-    console.log('Estaba vacia')
-    await columnasModel.findOneAndUpdate({ _id: body.panelOrigenId }, { $set: { vacio: true } })
+  if (body.escritorio !== undefined) {
+    console.log('Se mueve a otro escritorio')
+    await linksModel.findOneAndUpdate({ name: body.name, idpanel: body.panelOrigenId, user }, { $set: { idpanel: body.panelDestinoId, panel: body.panelDestinoNombre, orden: body.orden, escritorio: body.escritorio } })
+    const link = await linksModel.find({ name: body.name, idpanel: body.panelDestinoId, user, escritorio: body.escritorio })
+    const count = await linksModel.find({ idpanel: body.panelOrigenId, user })
+    if (count.length === 0) {
+      console.log('Estaba vacia')
+      await columnasModel.findOneAndUpdate({ _id: body.panelOrigenId }, { $set: { vacio: true } })
+    } else {
+      console.log('No se queda vacia')
+    }
+    res.send(link[0])
   } else {
-    console.log('No se queda vacia')
+    await linksModel.findOneAndUpdate({ name: body.name, idpanel: body.panelOrigenId, user }, { $set: { idpanel: body.panelDestinoId, panel: body.panelDestinoNombre, orden: body.orden } })
+    const link = await linksModel.find({ name: body.name, idpanel: body.panelDestinoId, user })
+    const count = await linksModel.find({ idpanel: body.panelOrigenId, user })
+    if (count.length === 0) {
+      console.log('Estaba vacia')
+      await columnasModel.findOneAndUpdate({ _id: body.panelOrigenId }, { $set: { vacio: true } })
+    } else {
+      console.log('No se queda vacia')
+    }
+    res.send(link[0])
   }
-  res.send(link[0])
 }
 /**
  * Función para actualizar orden de links dentro del mismo panel
@@ -369,4 +444,4 @@ const actualizarOrdenElementos = async (req, res) => {
   }
 }
 
-module.exports = { getItemsCount, getItems, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos, getNameByUrl, moveItem, getItem, setNotes, setLinkImg }
+module.exports = { getItemsCount, getItems, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos, getNameByUrl, moveItem, getItem, setNotes, setLinkImg, setImages, deleteImage }

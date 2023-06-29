@@ -1,0 +1,1013 @@
+/* Style the tab */
+.tab {
+    float: left;
+    width: 14%;
+    height: 83vh;
+    overflow-y: scroll;
+  }
+  /* Barra de desplazamiento vertical */
+.tab::-webkit-scrollbar {
+    width: 8px; /* Ancho de la barra de desplazamiento */
+  }
+  
+  .tab::-webkit-scrollbar-thumb {
+    background-color: #dcdcdc; /* Color del "pulgar" de la barra de desplazamiento */
+    border-radius: 4px; /* Borde del "pulgar" */
+  }
+  
+  .tab::-webkit-scrollbar-track {
+    background-color: #f1f1f1; /* Color de fondo de la barra de desplazamiento */
+  }
+  /* Style the buttons inside the tab */
+  .tab button {
+    display: block;
+    background-color: inherit;
+    color: black;
+    padding: 22px 16px;
+    width: 100%;
+    border: none;
+    outline: none;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 17px;
+  }
+  
+  /* Change background color of buttons on hover */
+  .tab button:hover {
+    background-color: #ddd;
+  }
+  
+  /* Create an active/current "tab button" class */
+  .tab button.active {
+    background-color: #ccc;
+  }
+  
+  /* Style the tab content */
+  .tabcontent {
+    float: left;
+    padding: 0px 12px;
+    width: 81%;
+    border-left: none;
+    height: 83vh;
+    grid-template-columns: 50% 50%;
+    align-items: start;
+  }
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 0;
+  }
+  body {
+    /* background: url(/img/background3.jpg); */
+    background-size: cover;
+    background-repeat: no-repeat;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: whitesmoke;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+header {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: "headLeft headCenter headRight";
+    width: 85%;
+    margin: 0 auto;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    background-color: whitesmoke;
+    height: 83px;
+    /* border-bottom: 1px solid #ddddddb8; */
+    padding-bottom: 58px;
+}
+
+.headLeft {
+    grid-area: headLeft;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 25px;
+    padding-left: 21%;
+}
+
+p#saludo {
+    font-size: 16px;
+}
+
+.headRight {
+    grid-area: headRight;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 25px;
+    padding-right: 21%;
+}
+
+.headCenter {
+    grid-area: headCenter;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+#reloj {
+    font-size: 19px;
+}
+
+.menuColumn,
+.menuLink {
+    position: fixed;
+    background: white;
+    border: 1px solid #8080806e;
+    display: none;
+    font-size: .8rem;
+    min-width: 215px;
+    white-space: nowrap;
+    box-shadow: 0px 5px 21px #ccc;
+    border-radius: 5px;
+    padding: 15px 0;
+}
+
+.menuColumn p,
+.menuLink p {
+    padding: 8px;
+    margin: 0;
+    overflow: hidden;
+    /* width: 86%; */
+    text-overflow: ellipsis;
+}
+
+.menuColumn strong,
+.menuLink strong {
+    padding: 8px 20px;
+    display: block;
+}
+
+.menuItem {
+    display: block;
+    padding: 8px 20px;
+    cursor: pointer;
+}
+
+.menuItem:hover,
+.menuItem ul li:hover {
+    background-color: #ebe7e7;
+}
+
+.moveCol:hover #destDesk {
+    display: block;
+}
+
+.moveLink:hover #destCol {
+    display: block;
+}
+
+.menuItem ul#destDesk {
+    position: absolute;
+    left: 215px;
+    top: 163px;
+    background-color: white;
+    padding: 18px 0;
+    display: none;
+    box-shadow: 0px 5px 21px #ccc;
+    border-radius: 5px;
+    min-width: 165px;
+}
+
+.icofont-thin-right {
+    position: relative;
+    left: 125px;
+    font-size: 18px;
+    font-weight: 700 !important;
+    color: #8e8e8e;
+}
+
+.menuItem ul#destCol {
+    position: absolute;
+    left: 215px;
+    top: 100px;
+    background-color: white;
+    display: none;
+    box-shadow: 0px 5px 21px #ccc;
+    border-radius: 5px;
+    padding: 15px 0;
+    min-width: 190px;
+}
+
+.menuItem ul li {
+    list-style: none;
+    padding: 8px 20px;
+}
+
+h1.deskTitle {
+
+    text-align: center;
+    font-size: 16px;
+    /* padding-bottom: 6px; */
+    font-weight: 400;
+
+}
+
+
+div#userControl {
+
+    width: 120px;
+}
+
+div.avatar {
+    text-align: center;
+}
+
+div.avatar img {
+
+    width: 50px;
+    border-radius: 50%;
+    height: 50px;
+    object-fit: cover;
+    vertical-align: bottom;
+}
+
+#resultsContainer {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 129px;
+    left: 0;
+    background-color: white;
+    width: 83vw;
+    overflow: hidden;
+    overflow-y: scroll;
+    display: none;
+    padding: 0px 174px;
+    max-height: 100vh;
+}
+
+body.edit #sidepanel {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: 10% minmax(0, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    grid-template-areas:
+        "a1 a1"
+        "a3 a3"
+        "a2 a2";
+    top: 100px;
+    background: white;
+    width: auto;
+    position: initial;
+    max-height: 100%;
+    padding: 0;
+}
+iframe#videoFrame {
+    display: none;
+}
+.sidePanelA2 {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    grid-area: a2;
+    flex-direction: column;
+}
+
+#linkInfoContainer {
+    width: 50%;
+}
+
+#linkInfoContainer p {
+    font-weight: 600;
+    margin-left: 50px;
+}
+
+#sidepanel p span {
+    font-weight: 400;
+}
+
+#sideHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    grid-area: a1;
+}
+
+#sideHeadP {
+    width: 265px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    align-self: unset !important;
+    margin-left: -160px !important;
+}
+
+#sideHeadImg {
+    width: 16px;
+    padding-top: 3px;
+}
+
+#sidepanel h2 {
+    font-weight: 400;
+    padding-left: 50px;
+}
+
+#linkId {
+    display: none;
+}
+
+button#sendNotes,
+button#saveLinkImage {
+    padding: 4px;
+    font-family: system-ui;
+    cursor: pointer;
+    background-color: #a0e9ad;
+    border: 0;
+    border-radius: 50px;
+}
+
+button#pasteImg {
+    padding: 15px;
+    margin-top: 35px;
+    font-family: system-ui;
+    cursor: pointer;
+    background-color: transparent;
+    border: 1px solid #ddd;
+    margin-bottom: 35px;
+}
+
+button#sendNotes:hover,
+button#pasteImg:hover {
+    background-color: #f1f1f1;
+    /* border: 1px solid transparent; */
+}
+
+#linkNotes {
+    width: 90%;
+    min-height: 25vh;
+    background-color: #f8f8f8;
+    padding: 15px;
+    margin: 0 auto;
+
+}
+
+#linkImages {
+    min-height: 24vh;
+    background-color: #f8f8f8;
+}
+
+.icofont-close {
+    padding-right: 50px;
+    cursor: pointer;
+}
+
+body.edit #notesContainer {
+    grid-area: a2;
+    padding-left: 0;
+    margin: 0 auto;
+    width: 90%;
+}
+
+#imgContainer {
+    grid-area: a3;
+    padding-right: 50px;
+    padding-right: 0;
+}
+
+.textContActive {
+
+    box-shadow: 0px 0px 12px #ccc inset;
+
+}
+
+#imgOptions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 50%;
+    margin: 30px 0;
+    padding-left: 50px;
+    opacity: 0;
+}
+
+#imgOptions input {
+    position: relative;
+    top: 0;
+    left: 47px;
+    width: 37px;
+    height: 37px;
+    opacity: 0;
+    cursor: pointer;
+    /* transform: translateX(-176px);
+    opacity: 0; */
+}
+
+#imgOptions img,
+#imgOptions i,
+#limage {
+    font-size: 25px;
+    width: 20px;
+    cursor: pointer;
+    height: 20px;
+}
+
+#limage {
+    vertical-align: middle;
+}
+
+.slide-in-left {
+    -webkit-animation: slide-in-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation: slide-in-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+
+@-webkit-keyframes slide-in-left {
+    0% {
+        -webkit-transform: translateX(-122px);
+        transform: translateX(-122px);
+        opacity: 0;
+    }
+
+    100% {
+        -webkit-transform: translateX(0);
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-left {
+    0% {
+        -webkit-transform: translateX(-122px);
+        transform: translateX(-122px);
+        opacity: 0;
+    }
+
+    100% {
+        -webkit-transform: translateX(0);
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+#textControls {
+    padding: 20px 0;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 80%;
+}
+
+#textControls i {
+    padding: 5px 12px;
+    cursor: pointer;
+}
+
+#linkNotes:focus-visible,
+#linkImages:focus-visible {
+    outline: #ddd auto 1px;
+    outline-style: dashed;
+}
+
+#linkImages img {
+    max-width: 100%;
+}
+
+#resultsContainer .link {
+    height: auto;
+}
+
+#resultsContainer p {
+    display: inline-block;
+    margin: 8px;
+    font-size: 12px;
+    font-style: italic;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 27%;
+    overflow: hidden;
+}
+
+div.avatar:hover .controls {
+    display: flex;
+}
+
+div#profile {
+    background-color: #f9f9f9;
+    width: 100%;
+    display: flex;
+}
+
+.profile-image {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    overflow: hidden;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    transition: background .5s;
+}
+.profile-image .icofont-upload-alt {
+    position: absolute;
+    height: 110px;
+    width: 110px;
+    font-size: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+}
+.profile-image:hover {
+    background-color: black;
+}
+.profile-image:hover #preview-image {
+    opacity: .3;
+}
+.profile-image p {
+    font-size: 13px;
+    position: absolute;
+    height: 110px;
+    width: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 9px;
+    font-weight: 700;
+}
+#preview-image {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    position: relative;
+    transition: opacity .5s;
+}
+
+#image-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+#profileWrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 65%;
+    margin: 0 auto;
+}
+
+div#profile button {
+    display: block;
+    background-color: inherit;
+    color: black;
+    padding: 22px 16px;
+    width: 100%;
+    border: none;
+    outline: none;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 17px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+#changePasswordDialog {
+    position: absolute;
+    background-color: white;
+    min-width: 427px;
+    min-height: 263px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    left: 39%;
+    display: none;
+    border-radius: 15px;
+}
+.active {
+    /* border: 1px solid #ddd; */
+    border-bottom: 3px solid #78d9a5;
+}
+
+/* Change background color of buttons on hover */
+div#profile button:hover {
+    background-color: #f1f1f1;
+}
+
+div.userInfo {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.tabcontent h2 {
+    font-weight: 400;
+}
+
+/* Create an active/current "tab button" class */
+div#profile button.active {
+    background-color: #f1f1f1;
+    border-bottom: 3px solid #78d9a5;
+}
+
+#backupControls {
+    display: flex;
+    justify-content: space-between;
+    width: 70%;
+    margin-top: 15px;
+}
+
+#upFile {
+    margin-top: 25px;
+}
+
+#menuMoveTo {
+    position: fixed;
+    top: 22%;
+    left: 47%;
+    background-color: whitesmoke;
+    max-height: 250px;
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    box-shadow: 0px 0px 25px #ccc;
+    padding: 50px 0px 100px 35px;
+    display: none;
+    min-width: 275px;
+}
+
+#menuMoveTo ul {
+    list-style-type: none;
+    cursor: pointer;
+    max-height: 236px;
+    overflow-y: scroll;
+    padding: 0;
+}
+
+/* Barra de desplazamiento vertical */
+#menuMoveTo ul::-webkit-scrollbar {
+    width: 8px;
+    /* Ancho de la barra de desplazamiento */
+}
+
+#menuMoveTo ul::-webkit-scrollbar-thumb {
+    background-color: #d4d4d4;
+    /* Color del "pulgar" de la barra de desplazamiento */
+    /* border-radius: 4px; */
+    /* Borde del "pulgar" */
+}
+
+#menuMoveTo ul::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+    /* Color de fondo de la barra de desplazamiento */
+}
+
+#menuMoveTo ul li ul {
+    max-height: 0px;
+    overflow: hidden;
+    transition: max-height .2s ease-out;
+    background-color: whitesmoke;
+    padding: 0px 23px;
+}
+
+#moveToControls {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 45px;
+    margin-left: -35px;
+}
+
+.ddactive,
+.accordion:hover {
+    background-color: #f1f1f1;
+}
+
+li.accordion {
+    padding: 3px 0;
+}
+
+#alertCard {
+    position: fixed;
+    top: 64px;
+    background-color: #fafafa;
+    min-height: 90px;
+    min-width: 243px;
+    border-radius: 15px;
+    box-shadow: 0px 3px 19px #ccc;
+    right: 50px;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+#profileDeleteConfirm {
+    position: absolute;
+    background-color: white;
+    min-width: 320px;
+    min-height: 145px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    left: 25%;
+    display: none;
+}
+
+#profileDeleteConfirm p {
+    width: 100%;
+    text-align: center;
+}
+
+#profileDeleteConfirm button {
+    margin: 10px;
+    padding: 10px 28px;
+    border: 0;
+    background-color: cornflowerblue;
+}
+
+#profileDeleteConfirm button#confirm {
+    background-color: crimson;
+    color: white;
+}
+
+div.controls {
+
+    width: 232px;
+
+}
+
+div.controls button {
+
+    width: 100px;
+
+    border: 0;
+
+    padding: 5px;
+
+    cursor: pointer;
+}
+
+.cuerpo {
+    display: flex;
+    padding: 90px 0;
+    width: 80%;
+}
+
+body.edit .cuerpoInt {
+    max-width: 100%;
+    padding: 0;
+    border-top: 0;
+    margin-top: 0;
+    justify-content: center;
+    width: 100%;
+}
+
+.envolt {
+    color: #a6a6a6;
+    width: 230px;
+    margin-bottom: 65px;
+    flex-grow: 1;
+    padding-left: 62px;
+}
+
+#cols {
+    padding: 0;
+    width: 80%;
+    margin: 0 auto;
+    justify-content: flex-start;
+    display: flex;
+}
+
+.columna {
+    margin-right: 45px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    max-height: 83vh;
+    max-width: 33%;
+}
+
+
+.link:hover {
+    background-color: #ececec;
+    /* border-left: 4px solid #32bf6e; */
+    border-radius: 11px;
+    max-width: 225px;
+}
+
+.link {
+    height: 45px;
+    /* background-color: white; */
+    display: flex;
+    /* margin: 5px;
+    border: 1px solid #eee;
+    border-radius: 15px;
+    height: 50px;
+    display: flex;
+    align-items: center; */
+    /* border-left: 4px solid transparent; */
+    max-width: 225px;
+}
+
+.link a {
+    /* display: block; */
+    height: 45px;
+    line-height: 44px;
+    padding-left: 12px;
+    text-decoration: none;
+    color: black;
+    font-size: 13px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    /* max-width: 82%; */
+    overflow: hidden;
+    flex-grow: 1;
+}
+
+.link img {
+    vertical-align: sub;
+    margin-right: 12px;
+    width: 16px;
+}
+
+.lcontrols {
+    /* position: relative;
+    left: 79%;
+    width: fit-content;
+    top: -32px; */
+    display: none;
+}
+
+/* .lcontrols span {
+    margin-right: 8px;
+} */
+
+.link:hover {
+    cursor: pointer;
+}
+
+.link:hover .lcontrols {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-right: 23px;
+}
+
+.headercolumn {
+    height: 50px;
+}
+
+i.icofont-gear {
+    position: relative;
+    left: 208px;
+    top: -44px;
+    color: #ededed;
+}
+
+.ccontrols {
+    position: relative;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    left: 53%;
+    top: -125px;
+    width: 35%;
+    background-color: goldenrod;
+    padding: 14px;
+    border-radius: 8px;
+    /* transform: translateY(45px); */
+    transform: translateY(200%);
+    transition: transform 0.3s ease-in-out;
+    z-index: -1;
+    /* display: none; */
+
+}
+
+.ccontrols.visible {
+    transform: translateY(0%);
+}
+
+/* .ccontrols span {
+    margin-right: 8px;
+} */
+/* i.icofont-gear:hover + .ccontrols {
+    display: flex;
+} */
+.headercolumn:hover {
+    cursor: grab;
+}
+
+/* .headercolumn:hover .ccontrols {
+    display: flex;
+} */
+.headercolumn h2 {
+    padding-left: 12px;
+    height: 50px;
+    /* background-color: #9d9d9d; */
+    color: rgb(0, 0, 0);
+    margin: 0;
+    padding-top: 11px;
+    /* border-radius: 15px; */
+    font-size: 1.3em;
+    font-weight: 400;
+    /* max-width: 150px; */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.bodcontrols {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bodcontrols span {
+
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.deskForm {
+    width: 525px;
+    height: 525px;
+    top: 15%;
+    background-color: antiquewhite;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0);
+    display: none;
+}
+
+/* W3C SCHOOLS -----------------------------------*/
+.dropbtn {
+    background-color: #9d9d9d;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: flex;
+    background-color: #f9f9f9;
+    justify-content: center;
+    font-size: 14px;
+    position: fixed;
+    width: 100%;
+    top: 83px;
+    /* z-index: -1; */
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 31px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: #c7c7c7;
+}
+
+.sortable-ghost {
+    background-color: rgb(237, 237, 237);
+    border: 1px dotted darkkhaki;
+}
+
+div.headCenter input[type="text"] {
+    width: 70%;
+    height: 34px;
+    border: 0;
+    padding-left: 11px;
+}
+
+div.headCenter input[type="text"]:focus-visible {
+    outline: #cacaca 1px;
+    outline-style: dotted;
+}

@@ -20,6 +20,8 @@ include includes/header.pug
       #info.tabcontent
         h2 Información básica
         .profile-image
+          i.icofont-upload-alt
+          p cambiar imagen
           - if (userImg)
             img#preview-image(src=userImg alt='Profile Image')
           - else
@@ -31,8 +33,24 @@ include includes/header.pug
           p 
             span Miembro desde: 
             | #{formatoFinal}
+        .estatistics
+          h2 Estadísticas
+          p Número de escritorios: #{escritoriosCount}
+          p Número de paneles: #{panelesCount}
+          p Número de links: #{linksCount}
       #security.tabcontent
         h2 Seguridad 
+        p Contraseña
+        p Cambiar contraseña
+        input(type='password' disabled='true' value='password')
+        button#changePassword Cambiar
+        #changePasswordDialog
+          p Introduzca su antigua contraseña
+          input(type='password' id='oldPassword')
+          p Introduzca la nueva contraseña
+          input(type='password' id='newPassword')
+          button#changePasswordSubmit Enviar
+          button#changePasswordCancel Cancelar
         p Copia de seguridad de tus datos
         p Crear copia
         #backupControls

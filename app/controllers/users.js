@@ -5,27 +5,37 @@ const { linksModel } = require('../models/index')
 const { columnasModel } = require('../models/index')
 
 const displayUserProfile = async (req, res) => {
-  const user = req.user.name
-  const userData = await usersModel.find({ name: user })
-  const userImg = userData[0].profileImage
-  console.log(userImg)
-  console.log(userData)
-  const escritorios = await escritoriosModel.find({ user }).sort({ orden: 1 })
-  const fecha = new Date(userData[0].createdAt)
-  const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' }
-  const formatoFecha = fecha.toLocaleDateString('es-ES', opciones)
-  // const formatoHora = fecha.toLocaleTimeString('es-ES')
-  const formatoFinal = `${formatoFecha}`
+  try {
+    const user = req.user.name
+    const userData = await usersModel.find({ name: user })
+    const userImg = userData[0].profileImage
+    console.log(userImg)
+    console.log(userData)
+    const escritorios = await escritoriosModel.find({ user }).sort({ orden: 1 })
+    const escritoriosCount = escritorios.length
+    const panelesCount = await (await columnasModel.find({ user })).length
+    const linksCount = await (await linksModel.find({ user })).length
+    console.log(panelesCount)
+    const fecha = new Date(userData[0].createdAt)
+    const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' }
+    const formatoFecha = fecha.toLocaleDateString('es-ES', opciones)
+    // const formatoHora = fecha.toLocaleTimeString('es-ES')
+    const formatoFinal = `${formatoFecha}`
 
-  console.log(formatoFinal)
-  const locals = {
-    user,
-    escritorios,
-    userImg,
-    userData,
-    formatoFinal
+    const locals = {
+      user,
+      escritorios,
+      userImg,
+      userData,
+      formatoFinal,
+      escritoriosCount,
+      panelesCount,
+      linksCount
+    }
+    res.render('profile.pug', locals)
+  } catch (error) {
+    res.send({ error })
   }
-  res.render('profile.pug', locals)
 }
 const updateProfileImage = async (req, res) => {
   const user = req.user.name

@@ -1,7 +1,9 @@
 #sidepanel
   #sideHeader
     h2 Link Info
-    i.icofont-close
+    button#prev Anterior 
+    button#next Siguiente
+    i#sideClose.icofont-close
     p#linkId
   .sidePanelA2
     #linkInfoContainer
@@ -10,7 +12,7 @@
       p Panel:&nbsp;
         span#lpanel 
       p Url:&nbsp;
-        span#lurl 
+        a#lurl(target='_blank') 
       p Activo:&nbsp;
         span#lactive 
       p Fecha Creación:&nbsp;
@@ -33,6 +35,10 @@
       i.icofont-delete-alt
       button#sendNotes Guardar
   #imgContainer
-    p Imágenes:&nbsp;
-    #linkImages(contenteditable='true')
+    #linkImages(contenteditable='false')
+      iframe(id='videoFrame' src='' frameborder='0' width='560' height='340' scrolling='no' allowfullscreen='')
     button#pasteImg Pegar Imágen
+  #myModal.modal
+    span.close &times;
+    img#img01.modal-content
+    #caption

@@ -96,4 +96,32 @@ const eliminaUsuario = async (req, res) => {
     res.send({ message })
   }
 }
-module.exports = { registraUsuario, compruebaUsuario, eliminaUsuario }
+const cambiaPassword = async (req, res) => {
+  try {
+    const { body } = req
+    const user = req.user.name
+    const oldPassword = body.oldPassword
+    console.log(oldPassword)
+    const dataUser = await usersModel.find({ name: user })
+    const oldPass = dataUser[0].password
+    console.log(dataUser[0].password)
+    const resultado = await compare(oldPassword, oldPass)
+    if (!resultado) {
+      const message = 'Error usuario o contraseña incorrecta'
+      res.send({ message })
+    } else {
+      // Encriptamos la nueva
+      const newPassword = await encrypt(body.newPassword)
+      // Actualizamos el valor en la db
+      const data = await usersModel.findOneAndUpdate({ name: user }, { $set: { password: newPassword } })
+      // Firmamos y mandamos el token
+      const message = 'Las contraseñas coinciden'
+      res.send({ data })
+    }
+    // console.log(body.newPassword)
+    // res.send({ Message: 'Correcto' })
+  } catch (error) {
+    res.send({ error })
+  }
+}
+module.exports = { registraUsuario, compruebaUsuario, eliminaUsuario, cambiaPassword }

@@ -118,6 +118,7 @@ const deleteDeskItem = async (req, res) => {
   res.send(lista)
 }
 const testTemplates = async (req, res) => {
+  console.log(req.query.mode)
   const params = req.query.escritorio
   const user = req.cookies.user
   // User new? if si crear dummy content
@@ -141,17 +142,25 @@ const testTemplates = async (req, res) => {
   }
   // console.log(escritorio)
   const columnas = await columnasModel.find({ user, escritorio }).sort({ order: 1 })
+  const columnasAll = await columnasModel.find({ user }).sort({ order: 1 })
   const links = await linksModel.find({ user, escritorio }).sort({ orden: 1 })
+  const mode = req.query.mode
   const locals = {
     escritorio,
     escritorios,
     columnas,
+    columnasAll,
     links,
     user,
-    userImg
+    userImg,
+    mode
   }
-  console.log(locals)
-  res.render('indexTemplates.pug', locals)
+  // console.log(locals)
+  if (req.query.mode === undefined || req.query.mode === 'normal') {
+    res.render('indexTemplates.pug', locals)
+  } else {
+    res.render('indexTemplatesEdit.pug', locals)
+  }
 }
 const ordenaDesks = async (req, res) => {
   try {

@@ -77,11 +77,6 @@ include includes/header.pug
     input#linkURL(type='text' name='linkURL')
     button#linkSubmit(type='submit') Enviar
     p#linkError
-  #editColForm.deskForm
-    h2 Edita Columna
-    input#editcolName(type='text' name='colName')
-    button#editcolSubmit(type='submit') Modificar
-    p#editColError
   #editLinkForm.deskForm
     h2 Edita Link
     fieldset
@@ -142,10 +137,25 @@ include includes/header.pug
     span.menuItem.moveLink Mover a
       i.icofont-thin-right
       ul#destCol
+        strong#otherDesk Mover a otro escritorio
         if columnas !== undefined
         each val in columnas
           li(id=`${val.name}`)= val.name
     span.menuItem.borralink Borrar
-  #alertCard Mensaje de prueba
+  #menuMoveTo(draggable='true')
+    ul#destDeskMoveTo
+      if escritorios !== undefined
+        each val in escritorios
+          li.accordion(id=`${val.name}`)
+            i.icofont-folder &nbsp;
+            | #{val.name}
+            ul
+              each columnasVal in columnasAll
+                - if (columnasVal.escritorio === val.name)
+                    li(id=`${columnasVal.name}`)= columnasVal.name
+    #moveToControls
+      button#acceptMove Aceptar 
+      button#cancelMove Cancelar
+  #alertCard
 include includes/sidepanel.pug
 script(src='/js/Sortable-master/Sortable.min.js')
