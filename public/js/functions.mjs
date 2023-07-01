@@ -120,9 +120,9 @@ export function handleDbClick () {
 export function handleSimpleClick () {
   document.addEventListener('click', function (event) {
     console.log('Simple Click')
-    const element = document.querySelector('h2[contenteditable="true"]')
+    const element = document.querySelector('h2[contenteditable="true"]') || document.querySelector('button[contenteditable="true"]')
     const buttonMenu = document.querySelector('.editcol')
-    console.log(element)
+    // console.log(element.nodeName)
     console.log(event.target)
     // Si el elemento no es EL H2 que esta con editable a true o el menu contextual
     // Poner editable a false y comprobar si ha cambiado -> Como? cons. el body
@@ -135,7 +135,13 @@ export function handleSimpleClick () {
         console.log('Ha cambiado')
         const name = element.innerText.trim()
         const desk = document.body.getAttribute('data-desk')
-        const idPanel = element.parentNode.parentNode.childNodes[1].dataset.db
+        let idPanel
+        if (element.nodeName === 'H2') {
+          idPanel = element.parentNode.parentNode.childNodes[1].dataset.db
+        } else {
+          idPanel = element.dataset.db
+        }
+
         editColumn(name, desk, idPanel)
       }
     }
@@ -143,14 +149,19 @@ export function handleSimpleClick () {
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault() // Evitar el comportamiento predeterminado de la tecla Enter (por ejemplo, agregar un salto de línea)
-      const element = document.querySelector('h2[contenteditable="true"]')
+      const element = document.querySelector('h2[contenteditable="true"]') || document.querySelector('button[contenteditable="true"]')
       element.setAttribute('contenteditable', 'false')
       console.log('Se ha presionado la tecla Enter')
       if (element.innerText !== document.body.getAttribute('data-panel')) {
         console.log('Ha cambiado')
         const name = element.innerText.trim()
         const desk = document.body.getAttribute('data-desk')
-        const idPanel = element.parentNode.parentNode.childNodes[1].dataset.db
+        let idPanel
+        if (element.nodeName === 'H2') {
+          idPanel = element.parentNode.parentNode.childNodes[1].dataset.db
+        } else {
+          idPanel = element.dataset.db
+        }
         editColumn(name, desk, idPanel)
       }
     }
@@ -162,8 +173,16 @@ export function preEditColumn (event) {
   // llamar a subrayar con los args del target
   // Poner en el body el nombre para comprobar si cambia
   const idPanel = event.target.parentNode.childNodes[1].innerText
+  console.log(idPanel)
   const son = document.querySelector(`[data-db="${idPanel}"]`)
-  const element = son.parentNode.childNodes[0].childNodes[0]
+  console.log(son.nodeName)
+  let element
+  if (son.nodeName === 'BUTTON') {
+    element = son
+  } else {
+    element = son.parentNode.childNodes[0].childNodes[0]
+  }
+  console.log(element)
   selectText(element)
   element.setAttribute('contenteditable', 'true')
   element.focus()
@@ -215,4 +234,17 @@ export function checkUrlMatch (url) {
     }
   }
   return null // Si no hay coincidencia
+}
+export function getCookieValue (cookieName) {
+  const cookies = document.cookie.split(';')
+
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i].trim()
+
+    if (cookie.startsWith(cookieName + '=')) {
+      return cookie.substring(cookieName.length + 1)
+    }
+  }
+
+  return null // Si no se encuentra la cookie
 }

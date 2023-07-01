@@ -1,5 +1,6 @@
-import { darHora, fetchS, sendMessage, handleDbClick, preEditColumn, handleSimpleClick } from './functions.mjs'
+import { darHora, fetchS, sendMessage, handleDbClick, preEditColumn, handleSimpleClick, getCookieValue } from './functions.mjs'
 import { togglePanel } from './sidepanel.js'
+import { openTab } from './editMode.js'
 
 document.addEventListener('DOMContentLoaded', cargaWeb)
 document.addEventListener('click', escondeDialogos)
@@ -253,7 +254,7 @@ function addLinkEvents ($raiz) {
 // Manejo de escritorios
 
 /**
- * Función para navegar entre escritorios
+ * Función para navegar entre escritorios x
  * @param {Object} event
  */
 async function selectDesktop (event) {
@@ -262,7 +263,7 @@ async function selectDesktop (event) {
   window.location = `http://localhost:3001/templates?escritorio=${deskName}`
 }
 /**
- * Función para editar el nombre de un escritorio, refact x
+ * Función para editar el nombre de un escritorio, refact xx
  */
 async function editDesktop () {
   const nombreOld = document.body.getAttribute('data-desk')
@@ -290,12 +291,19 @@ async function editDesktop () {
     refreshDesktops(res)
     addDesktopEvents()
     document.getElementById('deskTitle').innerText = `${nombre}`
+    const count = document.querySelectorAll('a.deskList').length
+    const buttonMenu = document.querySelectorAll('a.deskList')[count - 1]
+    console.log(buttonMenu)
+    buttonMenu.classList.add('active')
+    const url = window.location.href
+    const nuevaUrl = url.replace(/=.*$/, `=${nombre}`)
+    window.history.pushState(null, null, nuevaUrl)
     sendMessage(true, 'Edición Correcta')
   }
-  // TODO animar el cambio de nombre - al actualizar la pag no funciona, cambiar url?
+  // TODO animar el cambio de nombre??
 }
 /**
- * Función para crear un escritorio, refact x
+ * Función para crear un escritorio, refact xx - todo mensaje exito
  */
 async function createDesktop () {
   const nombre = document.getElementById('deskName').value.trim()
@@ -324,7 +332,7 @@ async function createDesktop () {
   }
 }
 /**
- * Función para borrar un escritorio, refact x falta probar borrar con links y cols
+ * Función para borrar un escritorio, refact xx falta probar borrar con links y cols
  */
 async function deleteDesktop () {
   const nombre = document.body.getAttribute('data-desk')
@@ -383,14 +391,29 @@ function changeLayout (event) {
   console.log('Funciona')
   event.stopPropagation()
   const deskName = document.body.getAttribute('data-desk')
-  // Manejar el mode segun sea
-  window.location = `http://localhost:3001/templates?escritorio=${deskName}&mode=edit`
+  // Si existe la cookie
+  if (getCookieValue('mode') !== undefined) {
+    console.log('Entro al if')
+    if (getCookieValue('mode') === 'edit') {
+      document.cookie = 'mode=normal'
+      window.location = `http://localhost:3001/templates?escritorio=${deskName}`
+      console.log('Modo normal')
+    } else if (getCookieValue('mode') === 'normal') {
+      document.cookie = 'mode=edit'
+      window.location = `http://localhost:3001/templates?escritorio=${deskName}&mode=edit`
+      console.log('Modo edit')
+    }
+  } else {
+    document.cookie = 'mode=edit'
+    window.location = `http://localhost:3001/templates?escritorio=${deskName}&mode=edit`
+    console.log('Entro al else')
+  }
 }
 
 // Manejo de columnas
 
 /**
- * Función para editar una columna refact x
+ * Función para editar una columna refact x no funciona bien el mensaje de exito
  */
 export async function editColumn (name, desk, idPanel) {
   const nombre = name
@@ -416,18 +439,25 @@ export async function editColumn (name, desk, idPanel) {
   }
 }
 /**
- * Función para crear columna refact x
+ * Función para crear columna refact xx
  */
 async function createColumn () {
   const nombre = document.getElementById('colName').value.trim()
   const escritorio = document.body.getAttribute('data-desk')
-  const $raiz0 = document.getElementById(`${escritorio}Cols`)
+  // If body.class edit -> else
+  let $raiz0
+  if (document.body.classList.contains('edit')) {
+    $raiz0 = document.querySelector('.tab')
+  } else {
+    $raiz0 = document.getElementById(`${escritorio}Cols`)
+  }
 
   let orden = $raiz0.childNodes.length
   orden = orden + 1
   console.log(orden)
 
   const body = { nombre, escritorio, orden }
+
   const params = {
     url: 'http://localhost:3001/columnas',
     method: 'POST',
@@ -459,6 +489,7 @@ async function createColumn () {
       item.removeEventListener('click', moveLinks)
       item.addEventListener('click', moveLinks)
     })
+    // Ojo
     refreshColumns(res)
     const dialog = document.getElementById('addColForm')
     const visible = dialog.style.display === 'flex'
@@ -491,16 +522,23 @@ async function deleteColumn () {
     $error.innerText = `${firstKey}, ${firstValue}`
   } else {
     const $colBorrar = document.querySelector(`[data-db="${elementoId}"]`)
-
-    $colBorrar.parentNode.remove()
-
+    if (!document.body.classList.contains('edit')) {
+      $colBorrar.parentNode.remove()
+    } else {
+      $colBorrar.remove()
+      const columns = document.querySelectorAll('.tablinks')
+      if (columns) {
+        columns[0].click()
+      }
+    }
+    sendMessage(true, 'Columna Borrada!!')
     const dialog = document.getElementById('deleteColForm')
     const visible = dialog.style.display === 'flex'
     dialog.style.display = visible ? 'none' : 'flex'
   }
 }
 /**
- * Función para mover una columna entre escritorios refact x
+ * Función para mover una columna entre escritorios refact xx
  * @param {} event
  */
 async function moveColumns (event) {
@@ -527,20 +565,33 @@ async function moveColumns (event) {
   const firstValue = res[firstKey]
   console.log(res)
   if (firstKey === 'error') {
-    const $error = document.getElementById('deleteColError')
-    $error.innerText = `${firstKey}, ${firstValue}`
+    sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
-    const $raiz = document.querySelector(`[data-db="${colId}"]`)
-    $raiz.parentNode.remove()
-    console.log($raiz.parentNode)
+    let $raiz
+    if (!document.body.classList.contains('edit')) {
+      $raiz = document.querySelector(`[data-db="${colId}"]`)
+      $raiz.parentNode.remove()
+      console.log($raiz.parentNode)
+    } else {
+      const elems = document.querySelectorAll(`[data-db="${colId}"]`)
+      elems.forEach(elem => {
+        elem.remove()
+      })
+      // Y si no hay buttons?
+      const buttons = document.querySelectorAll('.tablinks')
+      if (buttons.length > 0) {
+        buttons[0].click()
+      }
+    }
+    sendMessage(true, 'Columna Movida!!')
   }
 }
 /**
- * Función que crea la columna cuando se crea con createColumn refact x
+ * Función que crea la columna cuando se crea con createColumn refact xx
  * Recibe la columna creada
  * @param {json} json
  */
-function refreshColumns (json) {
+async function refreshColumns (json) {
   console.log(json[0])
   console.log(json[0].name)
   console.log(json[0]._id)
@@ -550,66 +601,145 @@ function refreshColumns (json) {
   const orden = json[0].order
   console.log(orden)
   const escritorioActual = document.body.getAttribute('data-desk')
-  const $raiz = document.getElementById(`${escritorioActual}Cols`)
-  const arr = []
 
-  document.querySelectorAll('.headercolumn').forEach(element => {
-    console.log(element.childNodes[0].innerText)
-    arr.push(element.childNodes[0].innerText)
-  })
-  console.log(arr)
+  if (!document.body.classList.contains('edit')) {
+    const $raiz = document.getElementById(`${escritorioActual}Cols`)
+    const arr = []
 
-  const $columna = document.createElement('div')
-  $columna.setAttribute('class', 'columna')
+    document.querySelectorAll('.headercolumn').forEach(element => {
+      console.log(element.childNodes[0].innerText)
+      arr.push(element.childNodes[0].innerText)
+    })
+    console.log(arr)
 
-  // Permite detectar duplicados y darles un id distinto incremental, luego cuando se refresque la pag lo implementa en plantilla
+    const $columna = document.createElement('div')
+    $columna.setAttribute('class', 'columna')
 
-  const count = arr.reduce((acc, currentValue) => {
-    if (currentValue === nombre) {
-      return acc + 1
+    // Permite detectar duplicados y darles un id distinto incremental, luego cuando se refresque la pag lo implementa en plantilla
+
+    const count = arr.reduce((acc, currentValue) => {
+      if (currentValue === nombre) {
+        return acc + 1
+      } else {
+        return acc
+      }
+    }, 0)
+    console.log(count)
+    if (count > 0) {
+      $columna.setAttribute('id', `${escritorioActual}${nombre}${count + 1}`)
     } else {
-      return acc
+      $columna.setAttribute('id', `${escritorioActual}${nombre}`)
     }
-  }, 0)
-  console.log(count)
-  if (count > 0) {
-    $columna.setAttribute('id', `${escritorioActual}${nombre}${count + 1}`)
+
+    $columna.setAttribute('data-db', `${id}`)
+
+    const $div = document.createElement('div')
+    $div.setAttribute('class', 'link')
+    $columna.appendChild($div)
+
+    const $envolt = document.createElement('div')
+    $envolt.setAttribute('class', 'envolt')
+    $envolt.setAttribute('orden', `${orden}`)
+    const $headerColumn = document.createElement('div')
+    $headerColumn.setAttribute('class', 'headercolumn')
+    const $header = document.createElement('h2')
+    $header.setAttribute('class', 'ctitle')
+    const $textos = document.createTextNode(`${nombre}`)
+
+    $header.appendChild($textos)
+    $headerColumn.appendChild($header)
+
+    $envolt.appendChild($headerColumn)
+    $envolt.appendChild($columna)
+
+    $raiz.appendChild($envolt)
+
+    addColumnEvents()
+    ordenaItems(nombre)
+    ordenaCols($raiz)
   } else {
-    $columna.setAttribute('id', `${escritorioActual}${nombre}`)
+    const $raiz = document.querySelector('.tab')
+    const orden = $raiz.childElementCount - 1
+    const arr = []
+    document.querySelectorAll('.tablinks').forEach(element => {
+      console.log(element.innerText)
+      arr.push(element.innerText)
+    })
+    console.log(arr)
+
+    const $button = document.createElement('button')
+    $button.setAttribute('class', 'tablinks')
+    $button.classList.add('envolt')
+
+    const count = arr.reduce((acc, currentValue) => {
+      if (currentValue === nombre) {
+        return acc + 1
+      } else {
+        return acc
+      }
+    }, 0)
+    console.log(count)
+    if (count > 0) {
+      $button.setAttribute('id', `${escritorioActual}${nombre}${count + 1}`)
+    } else {
+      $button.setAttribute('id', `${escritorioActual}${nombre}`)
+    }
+    $button.setAttribute('orden', `${orden}`)
+    $button.setAttribute('data-db', `${id}`)
+    const $textos = document.createTextNode(`${nombre}`)
+    $button.appendChild($textos)
+    $raiz.appendChild($button)
+
+    const $raiz2 = document.getElementById(`${escritorioActual}Cols`)
+    const $tabcontent = document.createElement('div')
+    $tabcontent.setAttribute('class', 'tabcontent')
+
+    if (count > 0) {
+      $tabcontent.setAttribute('id', `edit${escritorioActual}${nombre}${count + 1}`)
+    } else {
+      $tabcontent.setAttribute('id', `edit${escritorioActual}${nombre}`)
+    }
+    $tabcontent.setAttribute('orden', `${orden}`)
+    const $columna = document.createElement('div')
+    $columna.setAttribute('class', 'columna')
+    $columna.setAttribute('data-db', `edit${id}`)
+    if (count > 0) {
+      $columna.setAttribute('id', `${escritorioActual}${nombre}${count + 1}`)
+    } else {
+      $columna.setAttribute('id', `${escritorioActual}${nombre}`)
+    }
+    $tabcontent.appendChild($columna)
+    // Pedir sidepanel e introducir en tabcontent
+    const data = await fetch('http://localhost:3001/sidepanel', {
+      method: 'GET',
+      options: {
+        contentType: 'application/json'
+      }
+    })
+    const html = await data.text()
+    console.log('🚀 ~ file: scripts3.js:695 ~ refreshColumns ~ data:', html)
+    const $div = document.createElement('div')
+    $div.setAttribute('class', 'link')
+    $columna.appendChild($div)
+    $raiz2.appendChild($tabcontent)
+    // $tabcontent.style.display = 'none'
+    const columnas = document.querySelectorAll('.tablinks')
+    console.log('🚀 ~ file: scripts3.js:703 ~ refreshColumns ~ columnas:', columnas)
+    columnas.forEach(col => {
+      col.removeEventListener('click', openTab)
+      col.addEventListener('click', openTab)
+    })
+    $tabcontent.innerHTML += html
+    addColumnEvents()
+    ordenaItems(nombre)
+    ordenaCols($raiz)
   }
-
-  $columna.setAttribute('data-db', `${id}`)
-
-  const $div = document.createElement('div')
-  $div.setAttribute('class', 'link')
-  $columna.appendChild($div)
-
-  const $envolt = document.createElement('div')
-  $envolt.setAttribute('class', 'envolt')
-  $envolt.setAttribute('orden', `${orden}`)
-  const $headerColumn = document.createElement('div')
-  $headerColumn.setAttribute('class', 'headercolumn')
-  const $header = document.createElement('h2')
-  $header.setAttribute('class', 'ctitle')
-  const $textos = document.createTextNode(`${nombre}`)
-
-  $header.appendChild($textos)
-  $headerColumn.appendChild($header)
-
-  $envolt.appendChild($headerColumn)
-  $envolt.appendChild($columna)
-
-  $raiz.appendChild($envolt)
-
-  addColumnEvents()
-  ordenaItems(nombre)
-  ordenaCols($raiz)
 }
 
 // Manejo de links
 
 /**
- * Función para editar un link refact x
+ * Función para editar un link refact xx
  */
 async function editLink () {
   const nombreOld = document.body.getAttribute('data-link')
@@ -635,25 +765,38 @@ async function editLink () {
   const firstValue = res[firstKey]
   console.log(res)
   if (firstKey === 'error') {
-    const $error = document.getElementById('editLinkError')
-    $error.innerText = `${firstKey}, ${firstValue}`
+    sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
+    // no refleja el cambio en edit mode
     const dialog = document.getElementById('editLinkForm')
     const visible = dialog.style.display === 'flex'
     dialog.style.display = visible ? 'none' : 'flex'
-    const $raiz = document.querySelector(`[data-db="${dbID}"]`)
-    const arr = Array.from($raiz.childNodes)
-    console.log(arr)
-    const elementoAEditar = arr.find((elemento) => elemento.innerText === nombreOld)
-    if (elementoAEditar) {
-      elementoAEditar.querySelector('img').src = res.imgURL
-      elementoAEditar.querySelector('a').href = res.URL
-      elementoAEditar.querySelector('a').childNodes[1].nodeValue = nombre
+    if (!document.body.classList.contains('edit')) {
+      const $raiz = document.querySelector(`[data-db="${dbID}"]`)
+      const arr = Array.from($raiz.childNodes)
+      console.log(arr)
+      const elementoAEditar = arr.find((elemento) => elemento.innerText === nombreOld)
+      if (elementoAEditar) {
+        elementoAEditar.querySelector('img').src = res.imgURL
+        elementoAEditar.querySelector('a').href = res.URL
+        elementoAEditar.querySelector('a').childNodes[1].nodeValue = nombre
+      }
+    } else {
+      const $raiz = document.querySelector(`[data-db="edit${dbID}"]`)
+      const arr = Array.from($raiz.childNodes)
+      console.log(arr)
+      const elementoAEditar = arr.find((elemento) => elemento.innerText === nombreOld)
+      if (elementoAEditar) {
+        elementoAEditar.querySelector('img').src = res.imgURL
+        elementoAEditar.querySelector('a').href = res.URL
+        elementoAEditar.querySelector('a').childNodes[1].nodeValue = nombre
+      }
     }
+    sendMessage(true, 'Link Editado Correctamente')
   }
 }
 /**
- * Función para crear un link refact x
+ * Función para crear un link refact xx
  */
 async function createLink () {
   // Recogemos los datos para enviarlos a la db
@@ -664,7 +807,13 @@ async function createLink () {
   const imgURL = `https://www.google.com/s2/favicons?domain=${linkURL}`
   const dbID = document.getElementById('linkSubmit').getAttribute('sender')
   // Seleccionamos columna por id, por si hay dos con el mismo nombre
-  const $raiz = document.querySelector(`[data-db="${dbID}"]`)
+  let $raiz
+  if (!document.body.classList.contains('edit')) {
+    $raiz = document.querySelector(`[data-db="${dbID}"]`)
+  } else {
+    const id = dbID.replace(/edit/g, '')
+    $raiz = document.querySelector(`[data-db="${id}"]`)
+  }
 
   let orden = $raiz.childNodes.length
   orden = orden + 1
@@ -689,8 +838,7 @@ async function createLink () {
   const firstValue = res[firstKey]
 
   if (firstKey === 'error') {
-    const $error = document.getElementById('linkError')
-    $error.innerText = `${firstKey}, ${firstValue}`
+    sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
     // Cerramos el cuadro de diálogo
     const dialog = document.getElementById('addLinkForm')
@@ -698,10 +846,11 @@ async function createLink () {
     dialog.style.display = visible ? 'none' : 'flex'
     // La rellenamos con los datos del json
     refreshLinks(res)
+    sendMessage(true, 'Enlace Creado Correctamente')
   }
 }
 /**
- * Función para borrar un link refact x
+ * Función para borrar un link refact xx
  */
 async function deleteLink () {
   const nombre = document.body.getAttribute('data-link')
@@ -725,10 +874,15 @@ async function deleteLink () {
   const firstValue = res[firstKey]
 
   if (firstKey === 'error') {
-    const $error = document.getElementById('deleteLinkError')
-    $error.innerText = `${firstKey}, ${firstValue}`
+    sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
-    const $raiz = document.querySelector(`[data-db="${id}"]`)
+    let $raiz
+    if (!document.body.classList.contains('edit')) {
+      $raiz = document.querySelector(`[data-db="${id}"]`)
+    } else {
+      $raiz = document.querySelector(`[data-db="edit${id}"]`)
+    }
+
     console.log($raiz.childNodes)
     const arr = Array.from($raiz.childNodes)
     console.log(arr)
@@ -747,39 +901,148 @@ async function deleteLink () {
     const visible = dialog.style.display === 'flex'
     console.log(visible)
     dialog.style.display = visible ? 'none' : 'flex'
+    sendMessage(true, 'Enlace Borrado!')
   }
 }
 /**
- * Función para mover un link de una columna a otra en el mismo desktop refact x
+ * Función para mover un link de una columna a otra en el mismo desktop refact xx
  * @param {} event
  */
 async function moveLinks (event) {
-  // Recogemos el id del panel de origen -> Correcto
+  if (document.body.classList.contains('edit')) {
+    moveLinksEdit(event)
+  } else {
+    // Recogemos el id del panel de origen -> Correcto
+    const panelOrigenId = document.body.getAttribute('idpanel')
+    // Recogemos el nombre del panel de destino -> Es el de origen, ver si afecta en server
+    const panelDestinoNombre = event.target.innerText
+    // Declaramos la variable para recoger el id del panel destino -> Correcto
+    let panelDestinoId
+    // Declaramos la variable para recoger la cantidad de hijos que quedan -> Dice la cantidad que hay en el de destino sin contar el nuevo
+    let panelOldChildCount
+    // Recogemos la variable para detectar el panel de destino que coincida con panelDestinoNombre
+    const paneles = document.querySelectorAll('h2.ctitle')
+    if (paneles) {
+      paneles.forEach(element => {
+        if (element.innerText === panelDestinoNombre) {
+        // Hacer algo con el elemento encontrado - y si hay duplicados???
+          panelDestinoId = element.parentNode.parentNode.childNodes[1].dataset.db
+          panelOldChildCount = element.parentNode.parentNode.childNodes[1].childNodes.length
+        }
+      })
+    }
+    console.log('Elementos en el panel Viejo')
+    console.log(panelOldChildCount)
+    // Recogemos el nombre del link movido
+    const linkName = event.target.parentNode.parentNode.parentNode.childNodes[2].innerText
+    // Declaramos el body
+    let body = { panelOrigenId, panelDestinoId, panelDestinoNombre, name: linkName, orden: panelOldChildCount + 1 }
+    console.log('Body')
+    console.log(body)
+    const params = {
+      url: 'http://localhost:3001/moveLinks',
+      method: 'PUT',
+      options: {
+        contentType: 'application/json'
+      },
+      body
+    }
+    const res = await fetchS(params)
+    console.log('Resultado del servidor')
+    console.log(res)
+    const firstKey = Object.keys(res)[0]
+    const firstValue = res[firstKey]
+
+    if (firstKey === 'error') {
+      const $error = document.getElementById('moveError') // Crear
+      $error.innerText = `${firstKey}, ${firstValue}`
+    } else {
+    // Recogemos los links para detectar el movido y eliminarlo
+      const links = document.querySelectorAll('div.link')
+      if (links) {
+        links.forEach(element => {
+          // problema con duplicados, meter id de base de datos como id de elemento
+          if (element.id === res._id) {
+            console.log('Hay coincidencia con el enviado del servidor')
+            console.log(element.id)
+            console.log(res._id)
+            // Hacer algo con el elemento encontrado
+            element.remove()
+          }
+        })
+      }
+    }
+
+    /* --- */
+    const elements = document.querySelectorAll(`[data-db="${panelDestinoId}"]`)[0].childNodes
+    console.log('Elementos en panel de destino')
+    console.log(elements)
+    const id = elements[0].parentNode.getAttribute('data-db')
+    // console.log(id)
+    const sortedElements = Array.from(elements).sort((a, b) => {
+      return a.dataset.orden - b.dataset.orden
+    })
+    console.log('Sorted elements')
+    console.log(sortedElements)
+    const names = []
+    sortedElements.forEach(element => {
+      names.push(element.innerText)
+    })
+    console.log('nombres')
+    console.log(names)
+    body = names
+    const params2 = {
+      url: 'http://localhost:3001/draglink?idColumna=',
+      method: 'PUT',
+      options: {
+        contentType: 'application/json',
+        query: id
+      },
+      body
+    }
+    // La url /draglink ejecuta una función que actualiza el orden del link en la columna
+    const res2 = await fetchS(params2)
+    console.log('Segundo res del servidor')
+    console.log(res2)
+    const firstKey2 = Object.keys(res2)[0]
+    const firstValue2 = res2[firstKey2]
+
+    if (firstKey2 === 'error') {
+      const $error = document.getElementById('linkError') // Crear
+      $error.innerText = `${firstKey2}, ${firstValue2}`
+    } else {
+      const testDummy = document.querySelectorAll(`[data-db="${panelOrigenId}"]`)[0].childNodes.length
+      if (testDummy === 0) {
+      // Meter el dummy
+        const dummy = document.createElement('div')
+        dummy.setAttribute('class', 'link')
+        document.querySelectorAll(`[data-db="${panelOrigenId}"]`)[0].appendChild(dummy)
+      }
+      console.log('test dummy')
+      console.log(testDummy)
+      refreshLinks(res)
+    }
+  }
+}
+async function moveLinksEdit (event) {
+  console.log(event.target)
   const panelOrigenId = document.body.getAttribute('idpanel')
-  // Recogemos el nombre del panel de destino -> Es el de origen, ver si afecta en server
   const panelDestinoNombre = event.target.innerText
-  // Declaramos la variable para recoger el id del panel destino -> Correcto
-  let panelDestinoId
-  // Declaramos la variable para recoger la cantidad de hijos que quedan -> Dice la cantidad que hay en el de destino sin contar el nuevo
   let panelOldChildCount
-  // Recogemos la variable para detectar el panel de destino que coincida con panelDestinoNombre
-  const paneles = document.querySelectorAll('h2.ctitle')
+  let panelDestinoId
+  const paneles = document.querySelectorAll('.tablinks')
   if (paneles) {
     paneles.forEach(element => {
       if (element.innerText === panelDestinoNombre) {
-        // Hacer algo con el elemento encontrado
-        panelDestinoId = element.parentNode.parentNode.childNodes[1].dataset.db
-        panelOldChildCount = element.parentNode.parentNode.childNodes[1].childNodes.length
+        // Hacer algo con el elemento encontrado - y si hay duplicados???
+        panelDestinoId = element.dataset.db
+        panelOldChildCount = document.querySelector(`[data-db="edit${panelDestinoId}"]`).childElementCount
       }
     })
   }
-  console.log('Elementos en el panel Viejo')
-  console.log(panelOldChildCount)
-  // Recogemos el nombre del link movido
+
   const linkName = event.target.parentNode.parentNode.parentNode.childNodes[2].innerText
-  // Declaramos el body
-  let body = { panelOrigenId, panelDestinoId, panelDestinoNombre, name: linkName, orden: panelOldChildCount + 1 }
-  console.log('Body')
+  const body = { panelOrigenId, panelDestinoId, panelDestinoNombre, name: linkName, orden: panelOldChildCount + 1 }
   console.log(body)
   const params = {
     url: 'http://localhost:3001/moveLinks',
@@ -796,14 +1059,12 @@ async function moveLinks (event) {
   const firstValue = res[firstKey]
 
   if (firstKey === 'error') {
-    const $error = document.getElementById('moveError') // Crear
-    $error.innerText = `${firstKey}, ${firstValue}`
+    sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
-    // Recogemos los links para detectar el movido y eliminarlo
     const links = document.querySelectorAll('div.link')
     if (links) {
       links.forEach(element => {
-      // problema con duplicados, meter id de base de datos como id de elemento
+        // problema con duplicados, meter id de base de datos como id de elemento
         if (element.id === res._id) {
           console.log('Hay coincidencia con el enviado del servidor')
           console.log(element.id)
@@ -813,56 +1074,14 @@ async function moveLinks (event) {
         }
       })
     }
-  }
-
-  /* --- */
-  const elements = document.querySelectorAll(`[data-db="${panelDestinoId}"]`)[0].childNodes
-  console.log('Elementos en panel de destino')
-  console.log(elements)
-  const id = elements[0].parentNode.getAttribute('data-db')
-  // console.log(id)
-  const sortedElements = Array.from(elements).sort((a, b) => {
-    return a.dataset.orden - b.dataset.orden
-  })
-  console.log('Sorted elements')
-  console.log(sortedElements)
-  const names = []
-  sortedElements.forEach(element => {
-    names.push(element.innerText)
-  })
-  console.log('nombres')
-  console.log(names)
-  body = names
-  const params2 = {
-    url: 'http://localhost:3001/draglink?idColumna=',
-    method: 'PUT',
-    options: {
-      contentType: 'application/json',
-      query: id
-    },
-    body
-  }
-  // La url /draglink ejecuta una función que actualiza el orden del link en la columna
-  const res2 = await fetchS(params2)
-  console.log('Segundo res del servidor')
-  console.log(res2)
-  const firstKey2 = Object.keys(res2)[0]
-  const firstValue2 = res2[firstKey2]
-
-  if (firstKey2 === 'error') {
-    const $error = document.getElementById('linkError') // Crear
-    $error.innerText = `${firstKey2}, ${firstValue2}`
-  } else {
-    const testDummy = document.querySelectorAll(`[data-db="${panelOrigenId}"]`)[0].childNodes.length
+    const testDummy = document.querySelector(`[data-db="edit${panelOrigenId}"]`).childElementCount
     if (testDummy === 0) {
       // Meter el dummy
       const dummy = document.createElement('div')
       dummy.setAttribute('class', 'link')
-      document.querySelectorAll(`[data-db="${panelOrigenId}"]`)[0].appendChild(dummy)
+      testDummy.appendChild(dummy)
     }
-    console.log('test dummy')
-    console.log(testDummy)
-    refreshLinks(res)
+    sendMessage(true, 'Link Movido Correctamente')
   }
 }
 /**
@@ -1023,7 +1242,12 @@ function refreshLinks (json) {
   console.log(json.name)
 
   // Por cada elemento construimos un link y lo insertamos en su raiz
-  const $raiz = document.querySelector(`[data-db="${json.idpanel}"]`)
+  let $raiz
+  if (!document.body.classList.contains('edit')) {
+    $raiz = document.querySelector(`[data-db="${json.idpanel}"]`)
+  } else {
+    $raiz = document.querySelector(`[data-db="edit${json.idpanel}"]`)
+  }
 
   const $div = document.createElement('div')
   $div.setAttribute('class', 'link')
@@ -1503,7 +1727,7 @@ function logOut () {
   document.cookie = 'token='
   window.location = 'http://localhost:3001'
 }
-// Funcio ir a perfil
+// Funcion ir a perfil
 function profile () {
   console.log('Has hecho click')
   window.location = 'http://localhost:3001/profile'
@@ -1513,7 +1737,7 @@ function mostrarMenu (event) {
 
   // Detectar si se hizo clic con el botón derecho del ratón
   if (event.button === 2) {
-    if (event.target.nodeName === 'H2') {
+    if (event.target.nodeName === 'H2' || event.target.nodeName === 'BUTTON') {
       const menu = document.getElementById('menuColumn')
       menu.style.display = 'block'
       const menuL = document.getElementById('menuLink')
@@ -1530,7 +1754,13 @@ function mostrarMenu (event) {
       menu.style.top = posY + 'px'
       // Obtener la información del elemento en el que se hizo clic
       const elemento = event.target
-      const colId = elemento.parentNode.parentNode.childNodes[1].dataset.db
+      console.log(elemento)
+      let colId
+      if (event.target.nodeName === 'H2') {
+        colId = elemento.parentNode.parentNode.childNodes[1].dataset.db
+      } else {
+        colId = elemento.dataset.db
+      }
       console.log(elemento.parentNode.parentNode.childNodes[1].dataset)
       const informacion = elemento.textContent // Otra propiedad del elemento que desees mostrar
       const botonConfBorrar = document.getElementById('confDeletecolSubmit')
@@ -1541,7 +1771,11 @@ function mostrarMenu (event) {
       document.body.setAttribute('data-panel', informacion.trim())
       // Actualizar el contenido del menú emergente con la información relevante
       const contenidoMenu = document.getElementById('elementoC')
-      contenidoMenu.textContent = elemento.parentNode.parentNode.childNodes[1].dataset.db
+      if (event.target.nodeName === 'H2') {
+        contenidoMenu.textContent = elemento.parentNode.parentNode.childNodes[1].dataset.db
+      } else {
+        contenidoMenu.textContent = elemento.dataset.db
+      }
     }
     if (event.target.nodeName === 'A' || event.target.nodeName === 'IMG') {
       const menu = document.getElementById('menuLink')
@@ -1559,30 +1793,81 @@ function mostrarMenu (event) {
       menu.style.left = posX + 'px'
       menu.style.top = posY + 'px'
       if (event.target.nodeName === 'IMG') {
-        const elemento = event.target.parentNode
-        console.log(elemento.parentNode.parentNode.dataset.db)
-        document.body.setAttribute('idPanel', elemento.parentNode.parentNode.dataset.db)
-        document.body.setAttribute('data-panel', elemento.parentNode.parentNode.previousSibling.childNodes[0].innerText)
-        const informacion = elemento.textContent
-        const info = document.getElementById('infoL')
-        info.textContent = informacion
-        // Actualizar el contenido del menú emergente con la información relevante
-        const contenidoMenu = document.getElementById('elementoL')
-        contenidoMenu.textContent = elemento
+        if (!document.body.classList.contains('edit')) {
+          const elemento = event.target.parentNode
+          console.log(elemento.parentNode.parentNode.dataset.db)
+          // quitar el edit del id en edit
+          document.body.setAttribute('idPanel', elemento.parentNode.parentNode.dataset.db)
+          // Cojer nombre de otro sitio en edit
+          document.body.setAttribute('data-panel', elemento.parentNode.parentNode.previousSibling.childNodes[0].innerText)
+          // Puede que a partir de aqui este bien
+          const informacion = elemento.textContent
+          const info = document.getElementById('infoL')
+          info.textContent = informacion
+          // Actualizar el contenido del menú emergente con la información relevante
+          const contenidoMenu = document.getElementById('elementoL')
+          contenidoMenu.textContent = elemento
+        } else {
+          const elemento = event.target.parentNode
+          console.log(elemento.parentNode.parentNode.dataset.db)
+          // quitar el edit del id en edit
+          let id = elemento.parentNode.parentNode.dataset.db
+          id = id.replace(/edit/g, '')
+          console.log('🚀 ~ file: scripts3.js:1717 ~ mostrarMenu ~ id:', id)
+          document.body.setAttribute('idPanel', id)
+          // Cojer nombre de otro sitio en edit
+          let nombreCol = elemento.parentNode.parentNode.id
+          const desk = document.body.getAttribute('data-desk')
+          nombreCol = nombreCol.replace(new RegExp(desk, 'g'), '')
+          console.log('🚀 ~ file: scripts3.js:1721 ~ mostrarMenu ~ nombreCol:', nombreCol)
+          document.body.setAttribute('data-panel', nombreCol)
+          // Puede que a partir de aqui este bien
+          const informacion = elemento.textContent
+          const info = document.getElementById('infoL')
+          info.textContent = informacion
+          // Actualizar el contenido del menú emergente con la información relevante
+          const contenidoMenu = document.getElementById('elementoL')
+          contenidoMenu.textContent = elemento
+        }
       } else {
-        // Obtener la información del elemento en el que se hizo clic
-        const elemento = event.target
-        // console.log(elemento.parentNode.parentNode.dataset.db)
-        document.body.setAttribute('idPanel', elemento.parentNode.parentNode.dataset.db)
-        document.body.setAttribute('data-panel', elemento.parentNode.parentNode.previousSibling.childNodes[0].innerText)
-        const informacion = elemento.textContent // Otra propiedad del elemento que desees mostrar
+        if (!document.body.classList.contains('edit')) {
+          // Obtener la información del elemento en el que se hizo clic
+          const elemento = event.target
+          // console.log(elemento.parentNode.parentNode.dataset.db)
+          document.body.setAttribute('idPanel', elemento.parentNode.parentNode.dataset.db)
+          document.body.setAttribute('data-panel', elemento.parentNode.parentNode.previousSibling.childNodes[0].innerText)
+          const informacion = elemento.textContent // Otra propiedad del elemento que desees mostrar
 
-        // Actualizar el contenido del menú emergente con la información relevante
-        const info = document.getElementById('infoL')
-        info.textContent = informacion
-        // Actualizar el contenido del menú emergente con la información relevante
-        const contenidoMenu = document.getElementById('elementoL')
-        contenidoMenu.textContent = elemento
+          // Actualizar el contenido del menú emergente con la información relevante
+          const info = document.getElementById('infoL')
+          info.textContent = informacion
+          // Actualizar el contenido del menú emergente con la información relevante
+          const contenidoMenu = document.getElementById('elementoL')
+          contenidoMenu.textContent = elemento
+        } else {
+          // Obtener la información del elemento en el que se hizo clic
+          const elemento = event.target
+          // console.log(elemento.parentNode.parentNode.dataset.db)
+          // quitar el edit del id en edit
+          let id = elemento.parentNode.parentNode.dataset.db
+          id = id.replace(/edit/g, '')
+          console.log('🚀 ~ file: scripts3.js:1717 ~ mostrarMenu ~ id:', id)
+          document.body.setAttribute('idPanel', id)
+          // Cojer nombre de otro sitio en edit
+          let nombreCol = elemento.parentNode.parentNode.id
+          const desk = document.body.getAttribute('data-desk')
+          nombreCol = nombreCol.replace(new RegExp(desk, 'g'), '')
+          console.log('🚀 ~ file: scripts3.js:1721 ~ mostrarMenu ~ nombreCol:', nombreCol)
+          document.body.setAttribute('data-panel', nombreCol)
+          const informacion = elemento.textContent // Otra propiedad del elemento que desees mostrar
+
+          // Actualizar el contenido del menú emergente con la información relevante
+          const info = document.getElementById('infoL')
+          info.textContent = informacion
+          // Actualizar el contenido del menú emergente con la información relevante
+          const contenidoMenu = document.getElementById('elementoL')
+          contenidoMenu.textContent = elemento
+        }
       }
     }
   }

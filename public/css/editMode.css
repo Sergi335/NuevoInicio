@@ -699,9 +699,13 @@ li.accordion {
     border-radius: 15px;
     box-shadow: 0px 3px 19px #ccc;
     right: 50px;
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
+    transform: translateX(335px);
+    transition: transform 0.3s ease-in-out;
+    border-left: 25px solid mediumseagreen;
+    z-index: 1;
 }
 
 #profileDeleteConfirm {

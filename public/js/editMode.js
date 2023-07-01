@@ -18,9 +18,11 @@ function editMode () {
   })
   ordenaColsEdit($raiz)
   // Get the element with id="defaultOpen" and click on it
-  document.querySelector('.defaultOpen').click()
+  if (columnas.length > 0) {
+    document.querySelector('.defaultOpen').click()
+  }
 }
-function openTab (event) {
+export function openTab (event) {
   console.log(event.target.attributes[2].value)
   const tabName = event.target.attributes[2].value
   let i

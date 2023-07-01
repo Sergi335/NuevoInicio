@@ -144,7 +144,7 @@ const testTemplates = async (req, res) => {
   const columnas = await columnasModel.find({ user, escritorio }).sort({ order: 1 })
   const columnasAll = await columnasModel.find({ user }).sort({ order: 1 })
   const links = await linksModel.find({ user, escritorio }).sort({ orden: 1 })
-  const mode = req.query.mode
+  const mode = req.cookies.mode
   const locals = {
     escritorio,
     escritorios,
@@ -156,11 +156,14 @@ const testTemplates = async (req, res) => {
     mode
   }
   // console.log(locals)
-  if (req.query.mode === undefined || req.query.mode === 'normal') {
+  if (!req.cookies.mode || req.cookies.mode === 'normal') {
     res.render('indexTemplates.pug', locals)
   } else {
     res.render('indexTemplatesEdit.pug', locals)
   }
+}
+const getSidePanel = async (req, res) => {
+  res.render('includes/sidepanel.pug')
 }
 const ordenaDesks = async (req, res) => {
   try {
@@ -196,4 +199,4 @@ const ordenaDesks = async (req, res) => {
     res.status(500).json({ message: 'Error al actualizar los elementos' })
   }
 }
-module.exports = { createDeskItem, getDeskItems, deleteDeskItem, editDeskItem, testTemplates, ordenaDesks, cagadasFix }
+module.exports = { createDeskItem, getDeskItems, deleteDeskItem, editDeskItem, testTemplates, ordenaDesks, cagadasFix, getSidePanel }
