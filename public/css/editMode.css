@@ -1,9 +1,107 @@
+.skeleton {
+    animation: skeleton-loading 1s linear infinite alternate;
+    border-radius: 9px;
+}
+.skeleton-loader {
+    display: flex;
+    width: 100%;
+    position: fixed;
+    justify-content: center;
+    top: 156px;
+    transition: opacity .8s;
+}
+.tabsket {
+    display: flex;
+    height: 83vh;
+    justify-content: start;
+    width: 12%;
+    flex-direction: column;
+}
+.linksket {
+    width: 225px;
+    height: 45px;
+    display: flex;
+    padding-left: 11px;
+    justify-content: center;
+    align-items: center;
+}
+.linksket a {
+    width: 230px;
+    height: 15px;
+}
+.linksket img {
+    height: 16px;
+    width: 16px;
+    margin-right: 5px;
+    border-radius: 50%;
+}
+.tabcontentsket {
+    display: flex;
+    flex-direction: column;
+    width: 41%;
+}
+.sidepanelsket {
+    width: 40%;
+    height: 83vh;
+}
+.gridPanel:nth-child(1) {
+    height: 57px;
+}
+.gridPanel:nth-child(3) {
+    height: 205px;
+}
+.gridPanel:nth-child(4) {
+    height: 480px;
+}
+button.skeleton {
+    display: block;
+    width: 69%;
+    height: 15px;
+    border: 0;
+    margin: 15px 10px;
+}
+div.header.skeleton {
+    height: 15px;
+    width: 80%;
+}
+div.imgHolder.skeleton {
+    height: 21vh;
+    width: 50%;
+    margin: 15px auto;
+}
+div.linkInfosket.skeleton {
+    height: 7px;
+    display: inline-block;
+    width: 256px;
+    margin-right: -24px;
+    margin-bottom: 13px;
+}
+div.textHolder.skeleton {
+    height: 20vh;
+    width: 70%;
+    margin: 15px auto;
+}
+.gridPanel {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+}
+@keyframes skeleton-loading {
+    0% {
+        background-color: hsl(0deg 0% 92.93%);
+    }
+    100% {
+        background-color: hsl(0deg 0.67% 86.88%);
+    }
+}
 /* Style the tab */
 .tab {
     float: left;
-    width: 14%;
+    width: auto;
     height: 83vh;
     overflow-y: scroll;
+    background-color: #f9f9f9;
   }
   /* Barra de desplazamiento vertical */
 .tab::-webkit-scrollbar {
@@ -23,41 +121,46 @@
     display: block;
     background-color: inherit;
     color: black;
-    padding: 22px 16px;
-    width: 100%;
     border: none;
     outline: none;
     text-align: left;
     cursor: pointer;
     transition: 0.3s;
-    font-size: 17px;
+    font-size: 13px;
+    font-family: system-ui;
+    width: 225px;
+    height: 45px;
+    padding-left: 12px;
   }
   
   /* Change background color of buttons on hover */
   .tab button:hover {
-    background-color: #ddd;
+    background-color: #f1f1f1;
   }
   
   /* Create an active/current "tab button" class */
   .tab button.active {
-    background-color: #ccc;
+    border-left: 3px solid darkseagreen;
   }
   
   /* Style the tab content */
   .tabcontent {
-    float: left;
     padding: 0px 12px;
-    width: 81%;
+    width: 40%;
     border-left: none;
     height: 83vh;
-    grid-template-columns: 50% 50%;
     align-items: start;
+    justify-content: start;
   }
   .container {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-top: 0;
+    padding: 157px 0 0;
+  }
+  .container2 {
+    padding: 0;
   }
   body {
     /* background: url(/img/background3.jpg); */
@@ -247,23 +350,29 @@ div.avatar img {
 
 body.edit #sidepanel {
     display: grid;
-    grid-template-columns: 100%;
-    grid-template-rows: 10% minmax(0, 1fr);
+    grid-template-rows: 60px 24vh 15vh auto;
+    grid-template-columns: auto;
     grid-column-gap: 0px;
     grid-row-gap: 0px;
     grid-template-areas:
-        "a1 a1"
-        "a3 a3"
-        "a2 a2";
+        "a1"
+        "a3"
+        "a2"
+        "a4";
     top: 100px;
-    background: white;
-    width: auto;
+    background: #f9f9f9;
+    width: 40%;
     position: initial;
-    max-height: 100%;
     padding: 0;
+    height: 83vh;
+    top: 156px;
+    transition: width .5s;
 }
 iframe#videoFrame {
     display: none;
+    width: 70%;
+    height: 20rem;
+    min-height: initial;
 }
 .sidePanelA2 {
     width: 100%;
@@ -271,15 +380,36 @@ iframe#videoFrame {
     justify-content: center;
     grid-area: a2;
     flex-direction: column;
+    align-self: start;
+    z-index: 1;
 }
-
+.sidePanelA2 a {
+    word-wrap: break-word;
+    text-decoration: none;
+    color: #878787;
+    word-break: break-word;
+    text-overflow: ellipsis;
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 252px;
+    vertical-align: bottom;
+}
 #linkInfoContainer {
-    width: 50%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0 29px;
 }
-
+.navActive {
+    background-color: #f9f9f9;
+    border: 1px dotted darkseagreen;
+}
 #linkInfoContainer p {
     font-weight: 600;
-    margin-left: 50px;
+    margin-left: 0;
+    margin-right: 20px;
 }
 
 #sidepanel p span {
@@ -292,7 +422,15 @@ iframe#videoFrame {
     align-items: center;
     grid-area: a1;
 }
-
+#sideHeader button {
+    background-color: #cbcbcb;
+    border: 0;
+    padding: 5px 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: #fdfdfd;
+    font-family: system-ui;
+}
 #sideHeadP {
     width: 265px;
     overflow: hidden;
@@ -310,6 +448,8 @@ iframe#videoFrame {
 #sidepanel h2 {
     font-weight: 400;
     padding-left: 50px;
+    font-size: 15px;
+    font-variant: petite-caps;
 }
 
 #linkId {
@@ -318,22 +458,26 @@ iframe#videoFrame {
 
 button#sendNotes,
 button#saveLinkImage {
-    padding: 4px;
-    font-family: system-ui;
-    cursor: pointer;
-    background-color: #a0e9ad;
+    background-color: #cbcbcb;
     border: 0;
-    border-radius: 50px;
+    padding: 5px 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: #fdfdfd;
+    font-family: system-ui;
 }
 
 button#pasteImg {
-    padding: 15px;
-    margin-top: 35px;
     font-family: system-ui;
+    position: relative;
+    top: -55px;
+    left: 83%;
+    background-color: #cbcbcb;
+    border: 0;
+    padding: 5px 12px;
     cursor: pointer;
-    background-color: transparent;
-    border: 1px solid #ddd;
-    margin-bottom: 35px;
+    border-radius: 5px;
+    color: #fdfdfd;
 }
 
 button#sendNotes:hover,
@@ -345,24 +489,27 @@ button#pasteImg:hover {
 #linkNotes {
     width: 90%;
     min-height: 25vh;
-    background-color: #f8f8f8;
+    background-color: white;
     padding: 15px;
     margin: 0 auto;
 
 }
 
 #linkImages {
-    min-height: 24vh;
+    min-height: 20vh;
     background-color: #f8f8f8;
+    max-height: 20vh;
+    background-size: contain;
 }
 
 .icofont-close {
     padding-right: 50px;
     cursor: pointer;
+    visibility: hidden;
 }
 
 body.edit #notesContainer {
-    grid-area: a2;
+    grid-area: a4;
     padding-left: 0;
     margin: 0 auto;
     width: 90%;
@@ -370,8 +517,8 @@ body.edit #notesContainer {
 
 #imgContainer {
     grid-area: a3;
-    padding-right: 50px;
     padding-right: 0;
+    
 }
 
 .textContActive {
@@ -382,11 +529,11 @@ body.edit #notesContainer {
 
 #imgOptions {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-evenly;
     align-items: center;
-    width: 50%;
+    width: 100%;
     margin: 30px 0;
-    padding-left: 50px;
+    padding-left: 0;
     opacity: 0;
 }
 
@@ -453,7 +600,7 @@ body.edit #notesContainer {
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    width: 80%;
+    width: 100%;
 }
 
 #textControls i {
@@ -769,12 +916,17 @@ body.edit .cuerpoInt {
     margin-top: 0;
     justify-content: center;
     width: 100%;
+    display: none;
+    transition: opacity .8s;
 }
-
+.icofont-expand {
+    margin-right: 81px;
+    cursor: pointer;
+}
 .envolt {
     color: #a6a6a6;
     width: 230px;
-    margin-bottom: 65px;
+    margin-bottom: 0;
     flex-grow: 1;
     padding-left: 62px;
 }
@@ -794,7 +946,6 @@ body.edit .cuerpoInt {
     flex-direction: column;
     flex-wrap: wrap;
     max-height: 83vh;
-    max-width: 33%;
 }
 
 
@@ -817,6 +968,7 @@ body.edit .cuerpoInt {
     align-items: center; */
     /* border-left: 4px solid transparent; */
     max-width: 225px;
+    min-width: 225px;
 }
 
 .link a {
@@ -860,9 +1012,11 @@ body.edit .cuerpoInt {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding-right: 23px;
 }
-
+.icofont-external {
+    color: #a7a2a2;
+    font-size: 22px;
+}
 .headercolumn {
     height: 50px;
 }

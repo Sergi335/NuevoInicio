@@ -20,6 +20,51 @@ head
 body(class=mode)
 include includes/header.pug
 .container
+  .skeleton-loader
+    .tabsket
+      button.tablink.skeleton
+      button.tablink.skeleton
+      button.tablink.skeleton
+      button.tablink.skeleton
+    .tabcontentsket
+      .linksket
+        img.skeleton(src='')
+        a.skeleton
+        div
+          span
+      .linksket
+        img.skeleton(src='')
+        a.skeleton
+        div
+          span
+      .linksket
+        img.skeleton(src='')
+        a.skeleton
+        div
+          span
+      .linksket
+        img.skeleton(src='')
+        a.skeleton
+        div
+          span
+      .linksket
+        img.skeleton(src='')
+        a.skeleton
+        div
+          span
+    .sidepanelsket
+      .gridPanel
+        div.header.skeleton
+      .gridPanel
+        .imgHolder.skeleton
+      .gridPanel
+        .linkInfosket.skeleton
+        .linkInfosket.skeleton
+        .linkInfosket.skeleton
+        .linkInfosket.skeleton
+      .gridPanel
+        .textHolder.skeleton
+
   div(id=escritorio + 'Cols' class='cuerpoInt' data-id='columns')
     if columnas.length === 0
       .tab
@@ -53,10 +98,10 @@ include includes/header.pug
                       img(src=`${link.imgURL}`)
                       | #{link.name}
                     .lcontrols
-                      span.icofont-ui-edit.showPanel
+                      span.icofont-external
               if val.vacio == true
                 .link(orden='0')
-            include includes/sidepanel.pug
+          //- include includes/sidepanel.pug
         else
           - contadortb[item] = 1
           div(id='edit' + escritorio + val.name, class='tabcontent', orden=`${val.order}`)
@@ -68,11 +113,11 @@ include includes/header.pug
                       img(src=`${link.imgURL}`)
                       | #{link.name}
                     .lcontrols
-                      span.icofont-ui-edit.showPanel
+                      span.icofont-external
               if val.vacio == true
                 .link(orden='0')
-            include includes/sidepanel.pug
-.container
+      include includes/sidepanel.pug
+.container2
   p#moveError
   #addDeskForm.deskForm
     h2 A&ntilde;ade Escritorio

@@ -26,7 +26,7 @@ export async function fetchS (params) {
   let { url, method, options } = params
   let { body } = params
   if (options.query !== undefined) {
-    console.log(`${url}${options.query}`)
+    // console.log(`${url}${options.query}`)
     url = `${url}${options.query}`
     body = { body }
   }
@@ -71,7 +71,7 @@ export function formatDate (date) {
   const horaFormateada = fecha.toLocaleTimeString('es-ES', opcionesHora)
 
   const resultado = fechaFormateada + ' ' + horaFormateada
-  console.log(resultado)
+  // console.log(resultado)
   return resultado
 }
 
@@ -98,7 +98,7 @@ export function handleDbClick () {
   document.addEventListener('click', function (event) {
     const tiempoActual = new Date().getTime()
     if (tiempoActual - tiempoUltimoClick < 300) {
-      console.log('Doble Click')
+      // console.log('Doble Click')
       // Si el elemento target es H2
       // Poner editable a true
       // llamar a subrayar con los args del target
@@ -119,20 +119,20 @@ export function handleDbClick () {
  */
 export function handleSimpleClick () {
   document.addEventListener('click', function (event) {
-    console.log('Simple Click')
+    // console.log('Simple Click')
     const element = document.querySelector('h2[contenteditable="true"]') || document.querySelector('button[contenteditable="true"]')
     const buttonMenu = document.querySelector('.editcol')
     // console.log(element.nodeName)
-    console.log(event.target)
+    // console.log(event.target)
     // Si el elemento no es EL H2 que esta con editable a true o el menu contextual
     // Poner editable a false y comprobar si ha cambiado -> Como? cons. el body
     // llamar a envio o sea editColumn(name, desk, idpanel)
     if (element && event.target !== element && event.target !== buttonMenu) {
       element.setAttribute('contenteditable', 'false')
-      console.log(element.innerText)
-      console.log(element.parentNode.parentNode.childNodes[1].dataset.db)
+      // console.log(element.innerText)
+      // console.log(element.parentNode.parentNode.childNodes[1].dataset.db)
       if (element.innerText !== document.body.getAttribute('data-panel')) {
-        console.log('Ha cambiado')
+        // console.log('Ha cambiado')
         const name = element.innerText.trim()
         const desk = document.body.getAttribute('data-desk')
         let idPanel
@@ -151,9 +151,9 @@ export function handleSimpleClick () {
       event.preventDefault() // Evitar el comportamiento predeterminado de la tecla Enter (por ejemplo, agregar un salto de línea)
       const element = document.querySelector('h2[contenteditable="true"]') || document.querySelector('button[contenteditable="true"]')
       element.setAttribute('contenteditable', 'false')
-      console.log('Se ha presionado la tecla Enter')
+      // console.log('Se ha presionado la tecla Enter')
       if (element.innerText !== document.body.getAttribute('data-panel')) {
-        console.log('Ha cambiado')
+        // console.log('Ha cambiado')
         const name = element.innerText.trim()
         const desk = document.body.getAttribute('data-desk')
         let idPanel
@@ -168,21 +168,21 @@ export function handleSimpleClick () {
   })
 }
 export function preEditColumn (event) {
-  console.log('Click contextual')
+  // console.log('Click contextual')
   // Poner editable a true
   // llamar a subrayar con los args del target
   // Poner en el body el nombre para comprobar si cambia
   const idPanel = event.target.parentNode.childNodes[1].innerText
-  console.log(idPanel)
+  // console.log(idPanel)
   const son = document.querySelector(`[data-db="${idPanel}"]`)
-  console.log(son.nodeName)
+  // console.log(son.nodeName)
   let element
   if (son.nodeName === 'BUTTON') {
     element = son
   } else {
     element = son.parentNode.childNodes[0].childNodes[0]
   }
-  console.log(element)
+  // console.log(element)
   selectText(element)
   element.setAttribute('contenteditable', 'true')
   element.focus()

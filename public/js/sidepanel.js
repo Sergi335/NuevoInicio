@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', sidePanel)
 function sidePanel () {
   // console.log('Hay sidepanel')
   addPanelEvents()
+  const element = document.querySelectorAll('div.link')[0]
+  element.classList.add('navActive')
+  showLinkInfo(element)
 }
 function addPanelEvents () {
   document.querySelectorAll('.showPanel').forEach(item => {
@@ -62,15 +65,25 @@ function addPanelEvents () {
   document.querySelector('#upLinkImg').addEventListener('change', changeLinkImg)
   document.querySelector('#saveLinkImage').removeEventListener('click', fetchLinkImage)
   document.querySelector('#saveLinkImage').addEventListener('click', fetchLinkImage)
-  const panelCloser = document.getElementById('sideClose')
-  panelCloser.removeEventListener('click', closePanel)
-  panelCloser.addEventListener('click', closePanel)
+  if (!document.body.classList.contains('edit')) {
+    const panelCloser = document.getElementById('sideClose')
+    panelCloser.removeEventListener('click', closePanel)
+    panelCloser.addEventListener('click', closePanel)
+  }
+
   const nextLink = document.getElementById('next')
   nextLink.removeEventListener('click', navLinkInfos)
   nextLink.addEventListener('click', navLinkInfos)
   const prevLink = document.getElementById('prev')
   prevLink.removeEventListener('click', navLinkInfos)
   prevLink.addEventListener('click', navLinkInfos)
+  if (document.body.classList.contains('edit')) {
+    const links = document.querySelectorAll('div.link')
+    links.forEach(link => {
+      link.removeEventListener('click', navLinkInfos)
+      link.addEventListener('click', navLinkInfos)
+    })
+  }
 }
 function closePanel () {
   const panel = document.getElementById('sidepanel')
@@ -117,35 +130,78 @@ export function togglePanel (event) {
   // panelCloser.addEventListener('click', handleClickOutside)
   showLinkInfo(element)
 }
-function navLinkInfos (event) {
-  console.log(event.target.id)
+export function navLinkInfos (event) {
+  console.log(event.target)
+  event.preventDefault()
   const idHolder = document.getElementById('linkId')
-  console.log(idHolder.innerText)
   const links = document.querySelectorAll('div.link')
   const linksIds = []
   links.forEach(item => {
     linksIds.push(item.id)
   })
+  const panels = document.querySelectorAll('.tablinks')
+  const panelsNames = []
+  panels.forEach(panel => {
+    panelsNames.push(panel.innerText)
+  })
   const imagePanel = document.getElementById('linkImages')
   let actualPos = linksIds.indexOf(idHolder.innerText)
+  if (event.target.nodeName === 'A') {
+    console.log('Es enlace')
+    const element = event.target.parentNode
+    links.forEach(link => {
+      if (link.classList.contains('navActive')) {
+        link.classList.remove('navActive')
+      }
+    })
+    element.classList.add('navActive')
+    imagePanel.innerHTML = ''
+    showLinkInfo(element)
+  }
   if (event.target.id === 'prev') {
     actualPos = actualPos - 1
     if (actualPos >= 0) {
       const element = document.getElementById(linksIds[actualPos])
+      if (element.nextElementSibling) {
+        element.nextElementSibling.classList.remove('navActive')
+      }
+      element.classList.add('navActive')
       imagePanel.innerHTML = ''
       showLinkInfo(element)
+
+      const panel = element.parentNode.id
+      // console.log(panel)
+      const buttons = document.querySelectorAll('button.tablinks')
+      for (const button of buttons) {
+        if (button.id === panel) {
+          button.click()
+          break // Rompe el bucle una vez que se encuentra el botón deseado
+        }
+      }
     }
-  } else {
+  }
+  if (event.target.id === 'next') {
     actualPos = actualPos + 1
     if (actualPos <= linksIds.length) {
       const element = document.getElementById(linksIds[actualPos])
+      if (element.previousElementSibling) {
+        element.previousElementSibling.classList.remove('navActive')
+      }
+      element.classList.add('navActive')
       imagePanel.innerHTML = ''
       showLinkInfo(element)
+
+      const panel = element.parentNode.id
+      // console.log(panel)
+      const buttons = document.querySelectorAll('button.tablinks')
+      for (const button of buttons) {
+        if (button.id === panel) {
+          button.click()
+          break // Rompe el bucle una vez que se encuentra el botón deseado
+        }
+      }
     }
   }
-  console.log(actualPos)
-  console.log(linksIds)
-  // Necesitamos tener una lista con todos los id de los links de la pag por orden si se le da al siguiente se avanza y si se da al anterior se retrocede, a partir del elemento actual en idHolder, si se añaden o borran links?
 }
 async function showLinkInfo (element) {
   // const sideHeadP = document.getElementById('sideHeadP')
@@ -157,7 +213,18 @@ async function showLinkInfo (element) {
   const nameHolder = document.getElementById('lname')
   const name = element.innerText
   const panelHolder = document.getElementById('lpanel')
-  const panel = element.parentNode.parentNode.childNodes[0].innerText
+  let panel
+  if (!document.body.classList.contains('edit')) {
+    panel = element.parentNode.parentNode.childNodes[0].innerText
+  } else {
+    // hay que pasarle el activo
+    const desk = document.body.getAttribute('data-desk')
+    panel = element.parentNode.id
+    const index = panel.indexOf(desk)
+    if (index !== -1) {
+      panel = panel.slice(0, index) + panel.slice(index).replace(desk, '')
+    }
+  }
   const dateHolder = document.getElementById('ladded')
   const urlHolder = document.getElementById('lurl')
   const url = element.childNodes[0].href
@@ -169,12 +236,12 @@ async function showLinkInfo (element) {
     }
   })
   const json = await res.json()
-  console.log(json)
-  console.log(json.data[0].notes)
+  // console.log(json)
+  // console.log(json.data[0].notes)
   const notas = json.data[0].notes
   const notesDiv = document.getElementById('linkNotes')
   if (notas === undefined || notas === '') {
-    console.log('No hay notas')
+    // console.log('No hay notas')
     notesDiv.innerText = 'Escribe aquí ...'
   } else {
     notesDiv.innerHTML = notas
@@ -185,10 +252,10 @@ async function showLinkInfo (element) {
   const dateaddHolder = document.getElementById('ladded')
   // eslint-disable-next-line no-unused-vars
   const imagesHolder = document.getElementById('linkImages')
-  console.log(json.data[0].images)
+  // console.log(json.data[0].images)
   const images = json.data[0].images
   if (images === undefined || images.length === 0) {
-    console.log('No hay imagenes')
+    // console.log('No hay imagenes')
     imagesHolder.style.backgroundImage = "url('../img/placeholderImg.svg')"
     imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
   } else {
@@ -212,17 +279,17 @@ async function showLinkInfo (element) {
     })
   }
   // const baseUrl = url.split('/').slice(0, 3).join('/') + '/'
-  console.log(url)
+  // console.log(url)
   const videoFrame = document.getElementById('videoFrame')
   const matchedUrl = checkUrlMatch(url)
   if (matchedUrl) {
-    console.log(matchedUrl)
-    console.log('Es un video')
+    // console.log(matchedUrl)
+    // console.log('Es un video')
     imagesHolder.style.backgroundImage = "url('')"
     videoFrame.style.display = 'block'
     videoFrame.setAttribute('src', matchedUrl)
   } else {
-    console.log('No se encontró ninguna coincidencia de URL.')
+    // console.log('No se encontró ninguna coincidencia de URL.')
     videoFrame.style.display = 'none'
   }
 

@@ -1,9 +1,16 @@
+:root {
+    --main-bg-color: whitesmoke;
+    --main-ac-color: #f9f9f9;
+    --main-hv-color: #ececec;
+    --main-color: #78d9a5;
+}
+
 body {
     /* background: url(/img/background3.jpg); */
     background-size: cover;
     background-repeat: no-repeat;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: whitesmoke;
+    background-color: var(--main-bg-color);
     margin: 0;
     overflow-x: hidden;
 }
@@ -17,7 +24,7 @@ header {
     width: 100%;
     position: fixed;
     top: 0;
-    background-color: whitesmoke;
+    background-color: var(--main-bg-color);
     height: 83px;
     /* border-bottom: 1px solid #ddddddb8; */
     padding-bottom: 58px;
@@ -566,7 +573,7 @@ div.avatar:hover .controls {
 }
 
 div#profile {
-    background-color: #f9f9f9;
+    background-color: var(--main-ac-color);
     width: 100%;
     display: flex;
 }
@@ -674,7 +681,7 @@ div#profile button {
 
 .active {
     /* border: 1px solid #ddd; */
-    border-bottom: 3px solid #78d9a5;
+    border-bottom: 3px solid var(--main-color);
 }
 
 /* Change background color of buttons on hover */
@@ -701,7 +708,7 @@ div.userInfo {
 /* Create an active/current "tab button" class */
 div#profile button.active {
     background-color: #f1f1f1;
-    border-bottom: 3px solid #78d9a5;
+    border-bottom: 3px solid var(--main-color);
 }
 
 #backupControls {
@@ -719,7 +726,7 @@ div#profile button.active {
     position: fixed;
     top: 22%;
     left: 47%;
-    background-color: whitesmoke;
+    background-color: var(--main-bg-color);
     max-height: 250px;
     border: 1px solid #ccc;
     border-radius: 15px;
@@ -759,7 +766,7 @@ div#profile button.active {
     max-height: 0px;
     overflow: hidden;
     transition: max-height .2s ease-out;
-    background-color: whitesmoke;
+    background-color: var(--main-bg-color);
     padding: 0px 23px;
 }
 
@@ -890,7 +897,7 @@ div.controls button {
 
 
 .link:hover {
-    background-color: #ececec;
+    background-color: var(--main-hv-color);
     /* border-left: 4px solid #32bf6e; */
     border-radius: 11px;
 }
@@ -949,7 +956,7 @@ div.controls button {
 .lcontrols:hover {
     border: 1px solid #ccc;
     border-radius: 40px;
-    background-color: whitesmoke;
+    background-color: var(--main-bg-color);
 }
 
 /* .lcontrols span {
@@ -1077,7 +1084,7 @@ h2.ctitle:hover {
 
 .dropdown-content {
     display: flex;
-    background-color: #f9f9f9;
+    background-color: var(--main-ac-color);
     justify-content: center;
     font-size: 14px;
     position: fixed;
@@ -1121,4 +1128,5 @@ div.headCenter input[type="text"] {
 div.headCenter input[type="text"]:focus-visible {
     outline: #cacaca 1px;
     outline-style: dotted;
+    background-color: var(--main-ac-color);
 }
