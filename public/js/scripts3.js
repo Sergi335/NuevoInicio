@@ -1,5 +1,5 @@
 import { darHora, fetchS, sendMessage, handleDbClick, preEditColumn, handleSimpleClick, getCookieValue } from './functions.mjs'
-import { togglePanel } from './sidepanel.js'
+import { togglePanel, navLinkInfos } from './sidepanel.js'
 import { openTab } from './editMode.js'
 
 document.addEventListener('DOMContentLoaded', cargaWeb)
@@ -453,7 +453,7 @@ async function createColumn () {
   }
 
   let orden = $raiz0.childNodes.length
-  orden = orden + 1
+  orden = orden - 1
   console.log(orden)
 
   const body = { nombre, escritorio, orden }
@@ -522,10 +522,13 @@ async function deleteColumn () {
     $error.innerText = `${firstKey}, ${firstValue}`
   } else {
     const $colBorrar = document.querySelector(`[data-db="${elementoId}"]`)
+    const $tabcontent = document.querySelector(`[data-db="edit${elementoId}"]`).parentNode
     if (!document.body.classList.contains('edit')) {
       $colBorrar.parentNode.remove()
     } else {
+      // Actualizar los ordenes de ambos
       $colBorrar.remove()
+      $tabcontent.remove()
       const columns = document.querySelectorAll('.tablinks')
       if (columns) {
         columns[0].click()
@@ -659,7 +662,7 @@ async function refreshColumns (json) {
     ordenaCols($raiz)
   } else {
     const $raiz = document.querySelector('.tab')
-    const orden = $raiz.childElementCount - 1
+    const orden = $raiz.childElementCount
     const arr = []
     document.querySelectorAll('.tablinks').forEach(element => {
       console.log(element.innerText)
@@ -710,26 +713,28 @@ async function refreshColumns (json) {
     }
     $tabcontent.appendChild($columna)
     // Pedir sidepanel e introducir en tabcontent
-    const data = await fetch('http://localhost:3001/sidepanel', {
-      method: 'GET',
-      options: {
-        contentType: 'application/json'
-      }
-    })
-    const html = await data.text()
-    console.log('🚀 ~ file: scripts3.js:695 ~ refreshColumns ~ data:', html)
+    // const data = await fetch('http://localhost:3001/sidepanel', {
+    //   method: 'GET',
+    //   options: {
+    //     contentType: 'application/json'
+    //   }
+    // })
+    // const html = await data.text()
+    // console.log('🚀 ~ file: scripts3.js:695 ~ refreshColumns ~ data:', html)
     const $div = document.createElement('div')
     $div.setAttribute('class', 'link')
     $columna.appendChild($div)
-    $raiz2.appendChild($tabcontent)
-    // $tabcontent.style.display = 'none'
+    const penultimoElemento = $raiz2.children[$raiz2.children.length - 1]
+    $raiz2.insertBefore($tabcontent, penultimoElemento)
+    // $raiz2.appendChild($tabcontent)
+    $tabcontent.style.display = 'none'
     const columnas = document.querySelectorAll('.tablinks')
     console.log('🚀 ~ file: scripts3.js:703 ~ refreshColumns ~ columnas:', columnas)
     columnas.forEach(col => {
       col.removeEventListener('click', openTab)
       col.addEventListener('click', openTab)
     })
-    $tabcontent.innerHTML += html
+    // $tabcontent.innerHTML += html
     addColumnEvents()
     ordenaItems(nombre)
     ordenaCols($raiz)
@@ -767,7 +772,6 @@ async function editLink () {
   if (firstKey === 'error') {
     sendMessage(false, `${firstKey}, ${firstValue}`)
   } else {
-    // no refleja el cambio en edit mode
     const dialog = document.getElementById('editLinkForm')
     const visible = dialog.style.display === 'flex'
     dialog.style.display = visible ? 'none' : 'flex'
@@ -775,6 +779,7 @@ async function editLink () {
       const $raiz = document.querySelector(`[data-db="${dbID}"]`)
       const arr = Array.from($raiz.childNodes)
       console.log(arr)
+      // si permitimos mismo nombre esto habrá que cambiarlo tmb (elementp.id?)
       const elementoAEditar = arr.find((elemento) => elemento.innerText === nombreOld)
       if (elementoAEditar) {
         elementoAEditar.querySelector('img').src = res.imgURL
@@ -783,6 +788,7 @@ async function editLink () {
       }
     } else {
       const $raiz = document.querySelector(`[data-db="edit${dbID}"]`)
+      const sidePanelText = document.getElementById('lname')
       const arr = Array.from($raiz.childNodes)
       console.log(arr)
       const elementoAEditar = arr.find((elemento) => elemento.innerText === nombreOld)
@@ -791,6 +797,7 @@ async function editLink () {
         elementoAEditar.querySelector('a').href = res.URL
         elementoAEditar.querySelector('a').childNodes[1].nodeValue = nombre
       }
+      sidePanelText.innerText = nombre
     }
     sendMessage(true, 'Link Editado Correctamente')
   }
@@ -819,11 +826,8 @@ async function createLink () {
   orden = orden + 1
   console.log(orden)
 
-  // Declaramos el body para enviar y lo pasamos a cadena de texto
+  // Declaramos el body para enviar
   const body = { nombre, URL: linkURL, imgURL, escritorio, columna, id: dbID, orden }
-  // body = JSON.stringify(body)
-  // Enviamos el post con el link
-  // TODO Control de errores del fetch
   const params = {
     url: 'http://localhost:3001/links',
     method: 'POST',
@@ -1239,7 +1243,7 @@ async function getNameByUrl (url) {
  * @param {*} json
  */
 function refreshLinks (json) {
-  console.log(json.name)
+  console.log(json.panel)
 
   // Por cada elemento construimos un link y lo insertamos en su raiz
   let $raiz
@@ -1261,8 +1265,14 @@ function refreshLinks (json) {
   const $textos = document.createTextNode(`${json.name}`)
   const $lcontrols = document.createElement('div')
   $lcontrols.setAttribute('class', 'lcontrols')
-  const $editControl = document.createElement('span')
-  $editControl.setAttribute('class', 'icofont-ui-edit showPanel')
+  let $editControl
+  if (document.body.classList.contains('edit')) {
+    $editControl = document.createElement('span')
+    $editControl.setAttribute('class', 'icofont-external')
+  } else {
+    $editControl = document.createElement('span')
+    $editControl.setAttribute('class', 'icofont-ui-edit showPanel')
+  }
 
   $lcontrols.appendChild($editControl)
   $link.appendChild($img)
@@ -1288,6 +1298,23 @@ function refreshLinks (json) {
     item.removeEventListener('click', togglePanel)
     item.addEventListener('click', togglePanel)
   })
+  if (document.body.classList.contains('edit')) {
+    $div.addEventListener('click', navLinkInfos)
+    $editControl.addEventListener('click', (event) => {
+      const link = event.target.parentNode.parentNode.childNodes[0].href
+      window.open(link, '_blank')
+    })
+    const columns = document.querySelectorAll('.tablinks')
+    if (columns) {
+      columns.forEach(col => {
+        if (col.innerText === json.panel) {
+          col.click()
+        }
+      })
+    }
+    $div.childNodes[0].click()
+    $div.classList.add('navActive')
+  }
 }
 
 // funciones auxiliares para mostrar/ocultar cuadros de diálogo
