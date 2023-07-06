@@ -248,3 +248,18 @@ export function getCookieValue (cookieName) {
 
   return null // Si no se encuentra la cookie
 }
+export function openTab (event) {
+  // console.log(event.target.attributes[2].value)
+  const tabName = event.target.attributes[2].value
+  let i
+  const tabcontent = document.getElementsByClassName('tabcontent')
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = 'none'
+  }
+  const tablinks = document.getElementsByClassName('tablinks')
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(' active', '')
+  }
+  document.querySelector(`.tabcontent[orden="${tabName}"]`).style.display = 'grid'
+  event.currentTarget.className += ' active'
+}

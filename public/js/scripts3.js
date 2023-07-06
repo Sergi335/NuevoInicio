@@ -1,6 +1,5 @@
-import { darHora, fetchS, sendMessage, handleDbClick, preEditColumn, handleSimpleClick, getCookieValue } from './functions.mjs'
+import { darHora, fetchS, sendMessage, handleDbClick, preEditColumn, handleSimpleClick, getCookieValue, openTab } from './functions.mjs'
 import { togglePanel, navLinkInfos } from './sidepanel.js'
-import { openTab } from './editMode.js'
 
 document.addEventListener('DOMContentLoaded', cargaWeb)
 document.addEventListener('click', escondeDialogos)
@@ -747,15 +746,15 @@ async function refreshColumns (json) {
  * Función para editar un link refact xx
  */
 async function editLink () {
-  const nombreOld = document.body.getAttribute('data-link')
-  const escritorio = document.body.getAttribute('data-desk')
-  const columna = document.body.getAttribute('data-panel')
+  const id = document.body.getAttribute('data-link')
+  // const escritorio = document.body.getAttribute('data-desk')
+  // const columna = document.body.getAttribute('data-panel')
   const nombre = document.querySelector('#editlinkName').value.trim()
   const linkURL = document.querySelector('#editlinkURL').value.trim()
   const imgURL = `https://www.google.com/s2/favicons?domain=${linkURL}`
   const dbID = document.getElementById('editlinkSubmit').getAttribute('sender')
 
-  const body = { nombreOld, nombre, URL: linkURL, imgURL, escritorio, columna, id: dbID }
+  const body = { id, nombre, URL: linkURL, imgURL }
   console.log(body)
   const params = {
     url: 'http://localhost:3001/links',
@@ -780,7 +779,7 @@ async function editLink () {
       const arr = Array.from($raiz.childNodes)
       console.log(arr)
       // si permitimos mismo nombre esto habrá que cambiarlo tmb (elementp.id?)
-      const elementoAEditar = arr.find((elemento) => elemento.innerText === nombreOld)
+      const elementoAEditar = arr.find((elemento) => elemento.id === id)
       if (elementoAEditar) {
         elementoAEditar.querySelector('img').src = res.imgURL
         elementoAEditar.querySelector('a').href = res.URL
@@ -791,7 +790,7 @@ async function editLink () {
       const sidePanelText = document.getElementById('lname')
       const arr = Array.from($raiz.childNodes)
       console.log(arr)
-      const elementoAEditar = arr.find((elemento) => elemento.innerText === nombreOld)
+      const elementoAEditar = arr.find((elemento) => elemento.id === id)
       if (elementoAEditar) {
         elementoAEditar.querySelector('img').src = res.imgURL
         elementoAEditar.querySelector('a').href = res.URL
@@ -857,13 +856,13 @@ async function createLink () {
  * Función para borrar un link refact xx
  */
 async function deleteLink () {
-  const nombre = document.body.getAttribute('data-link')
+  const linkId = document.body.getAttribute('data-link')
   const panel = document.body.getAttribute('data-panel')
 
   const id = document.getElementById('confDeletelinkSubmit').getAttribute('sender')
 
   const escritorio = document.body.getAttribute('data-desk')
-  const body = { nombre, panel, escritorio, id }
+  const body = { linkId, panel, escritorio, id }
   const params = {
     url: 'http://localhost:3001/links',
     method: 'DELETE',
@@ -890,7 +889,7 @@ async function deleteLink () {
     console.log($raiz.childNodes)
     const arr = Array.from($raiz.childNodes)
     console.log(arr)
-    const elementoABorrar = arr.find((elemento) => elemento.innerText === nombre)
+    const elementoABorrar = arr.find((elemento) => elemento.id === linkId)
     if (elementoABorrar) {
       elementoABorrar.remove()
     }
@@ -1371,7 +1370,7 @@ function toggleDialogEditLink (event) {
 
   boton.setAttribute('sender', `${panelID}`)
   document.body.setAttribute('data-panel', `${panel}`)
-  document.body.setAttribute('data-link', `${linkName}`)
+  // document.body.setAttribute('data-link', `${linkName}`)
 
   const dialog = document.getElementById('editLinkForm')
   const visible = dialog.style.display === 'flex'
@@ -1380,13 +1379,13 @@ function toggleDialogEditLink (event) {
 function toggleDeleteDialogLink (event) {
   // nombre panel escritorio id
   console.log(event.target)
-  const nombre = event.target.parentNode.childNodes[2].innerText
+  // const nombre = event.target.parentNode.childNodes[2].innerText
   const panelId = document.body.getAttribute('idpanel')
   const panel = document.body.getAttribute('data-panel')
   const boton = document.getElementById('confDeletelinkSubmit')
   boton.setAttribute('sender', `${panelId}`)
   document.body.setAttribute('data-panel', `${panel}`)
-  document.body.setAttribute('data-link', `${nombre}`)
+  // document.body.setAttribute('data-link', `${nombre}`)
   console.log('Confirmación de Borrado')
   const dialog = document.getElementById('deleteLinkForm')
   const visible = dialog.style.display === 'flex'
@@ -1820,6 +1819,7 @@ function mostrarMenu (event) {
       menu.style.left = posX + 'px'
       menu.style.top = posY + 'px'
       if (event.target.nodeName === 'IMG') {
+        document.body.setAttribute('data-link', event.target.parentNode.parentNode.id)
         if (!document.body.classList.contains('edit')) {
           const elemento = event.target.parentNode
           console.log(elemento.parentNode.parentNode.dataset.db)
@@ -1857,6 +1857,7 @@ function mostrarMenu (event) {
           contenidoMenu.textContent = elemento
         }
       } else {
+        document.body.setAttribute('data-link', event.target.parentNode.id)
         if (!document.body.classList.contains('edit')) {
           // Obtener la información del elemento en el que se hizo clic
           const elemento = event.target

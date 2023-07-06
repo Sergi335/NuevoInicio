@@ -335,7 +335,7 @@ const deleteItem = async (req, res) => {
   const { body } = req
   const user = req.user.name
   console.log(body)
-  await linksModel.deleteOne({ name: `${body.nombre}`, escritorio: `${body.escritorio}`, idpanel: `${body.id}`, user })
+  await linksModel.deleteOne({ _id: `${body.linkId}`, user })
   // Find y contar si 0 cambiar vacio true
   const count = await linksModel.find({ idpanel: body.id, user })
   if (count.length === 0) {
@@ -360,8 +360,8 @@ const editItem = async (req, res) => {
 
   try {
     const documentoActualizado = await linksModel.findOneAndUpdate(
-      { name: `${body.nombreOld}`, escritorio: `${body.escritorio}`, panel: `${body.columna}`, idpanel: `${body.id}`, user }, // El filtro para buscar el documento
-      { $set: { name: `${body.nombre}`, escritorio: `${body.escritorio}`, panel: `${body.columna}`, URL: `${body.URL}`, imgURL: `${body.imgURL}` } }, // La propiedad a actualizar
+      { _id: `${body.id}`, user }, // El filtro para buscar el documento
+      { $set: { name: `${body.nombre}`, URL: `${body.URL}`, imgURL: `${body.imgURL}` } }, // La propiedad a actualizar
       { new: true } // Opciones adicionales (en este caso, devuelve el documento actualizado)
     )
     if (documentoActualizado !== null) {
