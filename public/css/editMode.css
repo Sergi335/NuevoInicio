@@ -1092,21 +1092,6 @@ i.icofont-gear {
     font-size: 14px;
 }
 
-.deskForm {
-    width: 525px;
-    height: 525px;
-    top: 15%;
-    background-color: antiquewhite;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, 0);
-    display: none;
-}
-
 /* W3C SCHOOLS -----------------------------------*/
 .dropbtn {
     background-color: #9d9d9d;

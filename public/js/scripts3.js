@@ -264,7 +264,8 @@ async function selectDesktop (event) {
 /**
  * Función para editar el nombre de un escritorio, refact xx
  */
-async function editDesktop () {
+async function editDesktop (event) {
+  event.preventDefault()
   const nombreOld = document.body.getAttribute('data-desk')
   const nombre = document.getElementById('editdeskName').value.trim()
   const body = { nombre, nombreOld }
@@ -281,19 +282,26 @@ async function editDesktop () {
   const firstKey = Object.keys(res)[0]
   const firstValue = res[firstKey]
 
-  if (firstKey === 'error') {
-    sendMessage(false, `${firstKey}, ${firstValue}`)
+  if (firstKey === 'error' || firstKey === 'errors') {
+    if (firstKey === 'errors') {
+      sendMessage(false, `Error, valor ${firstValue[0].path} no válido`)
+    } else {
+      sendMessage(false, `${firstKey}, ${firstValue}`)
+    }
   } else {
+    // TODO esto se repite mucho, pero no hay algo ya que esconde dialogos?
     const dialog = document.getElementById('editDeskForm')
     const visible = dialog.style.display === 'flex'
     dialog.style.display = visible ? 'none' : 'flex'
     refreshDesktops(res)
     addDesktopEvents()
     document.getElementById('deskTitle').innerText = `${nombre}`
-    const count = document.querySelectorAll('a.deskList').length
-    const buttonMenu = document.querySelectorAll('a.deskList')[count - 1]
-    console.log(buttonMenu)
-    buttonMenu.classList.add('active')
+    const buttons = document.querySelectorAll('a.deskList')
+    buttons.forEach(button => {
+      if (button.innerText === nombre) {
+        button.classList.add('active')
+      }
+    })
     const url = window.location.href
     const nuevaUrl = url.replace(/=.*$/, `=${nombre}`)
     window.history.pushState(null, null, nuevaUrl)

@@ -15,7 +15,7 @@ const { authMiddleware } = require('../middleware/session')
 const { displayUserProfile, updateProfileImage } = require('../controllers/users')
 const { searchLinks } = require('../controllers/searchController')
 const { backup, restore, downloadBackup } = require('../controllers/backup')
-
+const { validateEditDesktop } = require('../validators/escritorios')
 const { insertLinks } = require('../helpers/createDummyContent')
 
 router.get('/', (req, res) => {
@@ -45,7 +45,7 @@ router.delete('/columnas', authMiddleware, deleteColItem)
 router.delete('/deleteImg', authMiddleware, deleteImage)
 router.delete('/links', authMiddleware, deleteItem)
 router.delete('/escritorios', authMiddleware, deleteDeskItem)
-router.put('/escritorios', authMiddleware, editDeskItem)
+router.put('/escritorios', authMiddleware, validateEditDesktop, editDeskItem)
 router.put('/ordenaDesks', authMiddleware, ordenaDesks)
 router.put('/columnas', authMiddleware, editColItem)
 router.put('/moveCols', authMiddleware, moveColumns)

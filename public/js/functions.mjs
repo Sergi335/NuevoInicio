@@ -40,11 +40,13 @@ export async function fetchS (params) {
       body
     })
     if (!response.ok) {
-      throw new Error('Error en la solicitud: ' + response.status)
+      // throw new Error('Error en la solicitud: ' + response.status)
+      const data = await response.json()
+      return data
+    } else {
+      const data = await response.json()
+      return data
     }
-    const data = await response.json()
-    // console.log(data)
-    return data
   } catch (error) {
     // Manejar el error
     console.error('Error en la solicitud:', error)
