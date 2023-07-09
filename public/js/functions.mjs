@@ -130,6 +130,9 @@ export function handleSimpleClick () {
     // Poner editable a false y comprobar si ha cambiado -> Como? cons. el body
     // llamar a envio o sea editColumn(name, desk, idpanel)
     if (element && event.target !== element && event.target !== buttonMenu) {
+      if (element.innerText === '') {
+        element.innerText = document.body.getAttribute('data-panel')
+      }
       element.setAttribute('contenteditable', 'false')
       // console.log(element.innerText)
       // console.log(element.parentNode.parentNode.childNodes[1].dataset.db)
@@ -152,6 +155,9 @@ export function handleSimpleClick () {
     if (event.key === 'Enter') {
       event.preventDefault() // Evitar el comportamiento predeterminado de la tecla Enter (por ejemplo, agregar un salto de línea)
       const element = document.querySelector('h2[contenteditable="true"]') || document.querySelector('button[contenteditable="true"]')
+      if (element.innerText === '') {
+        element.innerText = document.body.getAttribute('data-panel')
+      }
       element.setAttribute('contenteditable', 'false')
       // console.log('Se ha presionado la tecla Enter')
       if (element.innerText !== document.body.getAttribute('data-panel')) {

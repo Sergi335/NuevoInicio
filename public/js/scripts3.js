@@ -265,6 +265,7 @@ async function selectDesktop (event) {
  * Función para editar el nombre de un escritorio, refact xx
  */
 async function editDesktop (event) {
+  // No sirve habrá que quitar el form
   event.preventDefault()
   const nombreOld = document.body.getAttribute('data-desk')
   const nombre = document.getElementById('editdeskName').value.trim()
@@ -331,8 +332,12 @@ async function createDesktop () {
   const firstKey = Object.keys(res)[0]
   const firstValue = res[firstKey]
 
-  if (firstKey === 'error') {
-    sendMessage(false, `${firstKey}, ${firstValue}`)
+  if (firstKey === 'error' || firstKey === 'errors') {
+    if (firstKey === 'errors') {
+      sendMessage(false, `Error, valor ${firstValue[0].path} no válido`)
+    } else {
+      sendMessage(false, `${firstKey}, ${firstValue}`)
+    }
   } else {
     window.location = `http://localhost:3001/templates?escritorio=${nombre}`
     // Mensaje exito despues
@@ -439,8 +444,12 @@ export async function editColumn (name, desk, idPanel) {
   const firstKey = Object.keys(res)[0]
   const firstValue = res[firstKey]
   // console.log(res)
-  if (firstKey === 'error') {
-    sendMessage(false, `${firstKey}, ${firstValue}`)
+  if (firstKey === 'error' || firstKey === 'errors') {
+    if (firstKey === 'errors') {
+      sendMessage(false, `Error, valor ${firstValue[0].path} no válido`)
+    } else {
+      sendMessage(false, `${firstKey}, ${firstValue}`)
+    }
   } else {
     sendMessage(true, 'Nombre Cambiado!!')
   }
@@ -478,9 +487,12 @@ async function createColumn () {
   const firstKey = Object.keys(res)[0]
   const firstValue = res[firstKey]
   console.log(res)
-  if (firstKey === 'error') {
-    const $error = document.getElementById('addColError')
-    $error.innerText = `${firstKey}, ${firstValue}`
+  if (firstKey === 'error' || firstKey === 'errors') {
+    if (firstKey === 'errors') {
+      sendMessage(false, `Error, valor ${firstValue[0].path} no válido`)
+    } else {
+      sendMessage(false, `${firstKey}, ${firstValue}`)
+    }
   } else {
     const menuMoverLink = document.getElementById('destCol')
     const itemLista = document.createElement('li')
@@ -529,12 +541,12 @@ async function deleteColumn () {
     $error.innerText = `${firstKey}, ${firstValue}`
   } else {
     const $colBorrar = document.querySelector(`[data-db="${elementoId}"]`)
-    const $tabcontent = document.querySelector(`[data-db="edit${elementoId}"]`).parentNode
     if (!document.body.classList.contains('edit')) {
       $colBorrar.parentNode.remove()
     } else {
       // Actualizar los ordenes de ambos
       $colBorrar.remove()
+      const $tabcontent = document.querySelector(`[data-db="edit${elementoId}"]`).parentNode
       $tabcontent.remove()
       const columns = document.querySelectorAll('.tablinks')
       if (columns) {
@@ -776,8 +788,12 @@ async function editLink () {
   const firstKey = Object.keys(res)[0]
   const firstValue = res[firstKey]
   console.log(res)
-  if (firstKey === 'error') {
-    sendMessage(false, `${firstKey}, ${firstValue}`)
+  if (firstKey === 'error' || firstKey === 'errors') {
+    if (firstKey === 'errors') {
+      sendMessage(false, `Error, valor ${firstValue[0].path} no válido`)
+    } else {
+      sendMessage(false, `${firstKey}, ${firstValue}`)
+    }
   } else {
     const dialog = document.getElementById('editLinkForm')
     const visible = dialog.style.display === 'flex'
@@ -848,8 +864,12 @@ async function createLink () {
   const firstKey = Object.keys(res)[0]
   const firstValue = res[firstKey]
 
-  if (firstKey === 'error') {
-    sendMessage(false, `${firstKey}, ${firstValue}`)
+  if (firstKey === 'error' || firstKey === 'errors') {
+    if (firstKey === 'errors') {
+      sendMessage(false, `Error, valor ${firstValue[0].path} no válido`)
+    } else {
+      sendMessage(false, `${firstKey}, ${firstValue}`)
+    }
   } else {
     // Cerramos el cuadro de diálogo
     const dialog = document.getElementById('addLinkForm')

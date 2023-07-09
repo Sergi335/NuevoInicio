@@ -6,7 +6,7 @@ const { createDummyContent } = require('../helpers/createDummyContent')
 const cagadasFix = async (req, res) => {
   try {
     // Actualizamos las columnas
-    const filtro = { escritorio: 'Testo', user: 'SergioSR' } // Filtrar documentos
+    const filtro = { escritorio: '&lt;h1&gt;Hola&lt;&#x2F;h1&gt;', user: 'SergioSR' } // Filtrar documentos
     console.log(filtro)
     const actualizacion = { $set: { escritorio: 'Test' } } // Actualizar
     console.log(actualizacion)
@@ -14,7 +14,7 @@ const cagadasFix = async (req, res) => {
     await columnasModel.updateMany(filtro, actualizacion)
 
     // Actualizamos los Links
-    const filtroL = { escritorio: 'Testo', user: 'SergioSR' } // Filtrar documentos
+    const filtroL = { escritorio: '&lt;h1&gt;Hola&lt;&#x2F;h1&gt;', user: 'SergioSR' } // Filtrar documentos
     const actualizacionL = { $set: { escritorio: 'Test' } } // Actualizar
 
     await linksModel.updateMany(filtroL, actualizacionL)
@@ -120,6 +120,7 @@ const deleteDeskItem = async (req, res) => {
 const testTemplates = async (req, res) => {
   console.log(req.query.mode)
   const params = req.query.escritorio
+  console.log('🚀 ~ file: escritorios.js:124 ~ testTemplates ~ params:', params)
   const user = req.cookies.user
   // User new? if si crear dummy content
   let isNewUser = await usersModel.find({ name: `${user}` })
@@ -140,7 +141,12 @@ const testTemplates = async (req, res) => {
   } else {
     escritorio = null
   }
-  // console.log(escritorio)
+  const existeEscritorio = await escritoriosModel.findOne({ name: escritorio, user })
+  if (existeEscritorio === null) {
+    console.log('No exite escritorio')
+    res.status(404).send({ error: 'not found' })
+  }
+  console.log(escritorio)
   const columnas = await columnasModel.find({ user, escritorio }).sort({ order: 1 })
   const columnasAll = await columnasModel.find({ user }).sort({ order: 1 })
   const links = await linksModel.find({ user, escritorio }).sort({ orden: 1 })
@@ -155,7 +161,6 @@ const testTemplates = async (req, res) => {
     userImg,
     mode
   }
-  // console.log(locals)
   if (!req.cookies.mode || req.cookies.mode === 'normal') {
     res.render('indexTemplates.pug', locals)
   } else {

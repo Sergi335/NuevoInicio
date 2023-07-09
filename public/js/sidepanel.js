@@ -5,8 +5,10 @@ function sidePanel () {
   // console.log('Hay sidepanel')
   addPanelEvents()
   const element = document.querySelectorAll('div.link')[0]
-  element.classList.add('navActive')
-  showLinkInfo(element)
+  if (element && element !== null) {
+    element.classList.add('navActive')
+    showLinkInfo(element)
+  }
 }
 function addPanelEvents () {
   document.querySelectorAll('.showPanel').forEach(item => {
