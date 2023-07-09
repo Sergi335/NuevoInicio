@@ -13,6 +13,10 @@ function cargaWeb () {
   darHora()
   handleDbClick()
   handleSimpleClick()
+  window.onscroll = function () {
+    toggleBotonSubirArriba()
+  }
+
   // Pasar a select desktop
   const menuItems = document.querySelectorAll('.deskList')
   const desktop = window.location.href
@@ -181,6 +185,8 @@ function addDesktopEvents () {
   // Agregar evento de clic al botón de ir a perfil
   document.querySelector('#profile').removeEventListener('click', profile)
   document.querySelector('#profile').addEventListener('click', profile)
+
+  document.getElementById('btnSubirArriba').addEventListener('click', scrollToTop)
 }
 /**
  * Carga los manejadores de eventos para la manipulación de columnas
@@ -244,7 +250,10 @@ function addLinkEvents ($raiz) {
   // Agregar evento de clic al botón de envío dentro del cuadro de diálogo
   document.querySelector('#noDeletelinkSubmit').removeEventListener('click', escondeDeleteDialog)
   document.querySelector('#noDeletelinkSubmit').addEventListener('click', escondeDeleteDialog)
-
+  document.querySelectorAll('div.link').forEach(link => {
+    link.removeEventListener('click', setLastVisited)
+    link.addEventListener('click', setLastVisited)
+  })
   if (!document.body.classList.contains('edit')) {
     ordenaCols($raiz)
   }
@@ -1452,63 +1461,98 @@ function escondeDeleteDeskDialog () {
   const visible = dialog.style.display === 'flex'
   dialog.style.display = visible ? 'none' : 'flex'
 }
-function escondeDialogos (event) {
-  let cuadros = []
-  // Introducimos todos los formularios
-  cuadros.push(Array.from(document.querySelectorAll('.deskForm')))
-  cuadros = [].concat.apply([], cuadros)
-  // Introducimos los botones de control de escritorios
-  cuadros.push(document.getElementById('addDesk'))
-  cuadros.push(document.getElementById('addCol'))
-  cuadros.push(document.getElementById('editDesk'))
-  cuadros.push(document.getElementById('removeDesk'))
-  cuadros.push(document.getElementById('menuMoveTo'))
-  cuadros.push(document.getElementById('otherDesk'))
-  // Introducimos los botones de las columnas para añadir links
-  cuadros.push(Array.from(document.querySelectorAll('.addlink')))
-  cuadros = [].concat.apply([], cuadros)
-  cuadros.forEach(element => {
-    element.addEventListener('click', (event) => {
-      event.stopPropagation()
-    })
-  })
-  // Introducimos los botones de las columnas para editar columnas
-  // cuadros.push(Array.from(document.querySelectorAll('.editcol')))
-  // cuadros = [].concat.apply([], cuadros)
-  // cuadros.forEach(element => {
-  //   element.addEventListener('click', (event) => {
-  //     event.stopPropagation()
-  //   })
-  // })
-  // Introducimos los botones de los links para editar links
-  cuadros.push(Array.from(document.querySelectorAll('.editalink')))
-  cuadros = [].concat.apply([], cuadros)
-  cuadros.forEach(element => {
-    element.addEventListener('click', (event) => {
-      event.stopPropagation()
-    })
-  })
-  // Introducimos los botones de los links para borrar links
-  cuadros.push(Array.from(document.querySelectorAll('.borralink')))
-  cuadros = [].concat.apply([], cuadros)
-  cuadros.forEach(element => {
-    element.addEventListener('click', (event) => {
-      event.stopPropagation()
-    })
-  })
-  // Introducimos los botones de las columnas para borrar columna
-  cuadros.push(Array.from(document.querySelectorAll('.borracol')))
-  cuadros = [].concat.apply([], cuadros)
-  cuadros.forEach(element => {
-    element.addEventListener('click', (event) => {
-      event.stopPropagation()
-    })
-  })
-  // console.log(cuadros);
+// function escondeDialogos (event) {
+//   let cuadros = []
+//   // Introducimos todos los formularios
+//   cuadros.push(Array.from(document.querySelectorAll('.deskForm')))
+//   cuadros = [].concat.apply([], cuadros)
+//   // Introducimos los botones de control de escritorios
+//   cuadros.push(document.getElementById('addDesk'))
+//   cuadros.push(document.getElementById('addCol'))
+//   cuadros.push(document.getElementById('editDesk'))
+//   cuadros.push(document.getElementById('removeDesk'))
+//   cuadros.push(document.getElementById('menuMoveTo'))
+//   cuadros.push(document.getElementById('otherDesk'))
+//   // Introducimos los botones de las columnas para añadir links
+//   cuadros.push(Array.from(document.querySelectorAll('.addlink')))
+//   cuadros.push(Array.from(document.querySelectorAll('.icofont-close-line')))
+//   cuadros = [].concat.apply([], cuadros)
+//   cuadros.forEach(element => {
+//     element.addEventListener('click', (event) => {
+//       event.stopPropagation()
+//     })
+//   })
+//   // Introducimos los botones de las columnas para editar columnas
+//   // cuadros.push(Array.from(document.querySelectorAll('.editcol')))
+//   // cuadros = [].concat.apply([], cuadros)
+//   // cuadros.forEach(element => {
+//   //   element.addEventListener('click', (event) => {
+//   //     event.stopPropagation()
+//   //   })
+//   // })
+//   // Introducimos los botones de los links para editar links
+//   cuadros.push(Array.from(document.querySelectorAll('.editalink')))
+//   cuadros = [].concat.apply([], cuadros)
+//   cuadros.forEach(element => {
+//     element.addEventListener('click', (event) => {
+//       event.stopPropagation()
+//     })
+//   })
+//   // Introducimos los botones de los links para borrar links
+//   cuadros.push(Array.from(document.querySelectorAll('.borralink')))
+//   cuadros = [].concat.apply([], cuadros)
+//   cuadros.forEach(element => {
+//     element.addEventListener('click', (event) => {
+//       event.stopPropagation()
+//     })
+//   })
+//   // Introducimos los botones de las columnas para borrar columna
+//   cuadros.push(Array.from(document.querySelectorAll('.borracol')))
+//   cuadros = [].concat.apply([], cuadros)
+//   cuadros.forEach(element => {
+//     element.addEventListener('click', (event) => {
+//       event.stopPropagation()
+//     })
+//   })
+//   // console.log(cuadros);
 
-  // Si se ha hecho click fuera de cualquier boton y dialogo
+//   // Si se ha hecho click fuera de cualquier boton y dialogo
+//   if (!cuadros.includes(event.target)) {
+//     // console.log(event.target);
+//     cuadros.forEach(element => {
+//       element.addEventListener('click', (event) => {
+//         event.stopPropagation()
+//       })
+//       const visible = element.style.display === 'flex' || element.style.display === 'block'
+//       if (visible) {
+//         element.style.display = 'none'
+//       }
+//     })
+//   }
+// }
+function escondeDialogos (event) {
+  const cuadros = [
+    ...document.querySelectorAll('.deskForm'),
+    document.getElementById('addDesk'),
+    document.getElementById('addCol'),
+    document.getElementById('editDesk'),
+    document.getElementById('removeDesk'),
+    document.getElementById('menuMoveTo'),
+    document.getElementById('otherDesk'),
+    ...document.querySelectorAll('.addlink'),
+    ...document.querySelectorAll('.icofont-close-line'),
+    ...document.querySelectorAll('.editalink'),
+    ...document.querySelectorAll('.borralink'),
+    ...document.querySelectorAll('.borracol')
+  ]
+
+  cuadros.forEach(element => {
+    element.addEventListener('click', (event) => {
+      event.stopPropagation()
+    })
+  })
+
   if (!cuadros.includes(event.target)) {
-    // console.log(event.target);
     cuadros.forEach(element => {
       element.addEventListener('click', (event) => {
         event.stopPropagation()
@@ -1520,7 +1564,6 @@ function escondeDialogos (event) {
     })
   }
 }
-
 // Funciones para aplicar Sortablejs
 
 function ordenaItems (panel) {
@@ -2023,5 +2066,30 @@ async function handleSubmitMove () {
     } else {
       menu.style.display = 'none'
     }
+  }
+}
+function setLastVisited (event) {
+  const links = document.querySelectorAll('div.link')
+  links.forEach(link => {
+    if (link.classList.contains('lastVisited')) {
+      link.classList.remove('lastVisited')
+    }
+  })
+  console.log(event.target.parentNode)
+  const lastVisited = event.target.parentNode
+  lastVisited.classList.add('lastVisited')
+}
+function scrollToTop () {
+  document.body.scrollTop = 0
+  document.documentElement.scrollTop = 0
+}
+function toggleBotonSubirArriba () {
+  const btnSubirArriba = document.getElementById('btnSubirArriba')
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    btnSubirArriba.style.opacity = 1
+    btnSubirArriba.style.visibility = 'visible'
+  } else {
+    btnSubirArriba.style.opacity = 0
+    btnSubirArriba.style.visibility = 'hidden'
   }
 }

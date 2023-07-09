@@ -6,8 +6,6 @@ head
   title Document
   link(rel='stylesheet' href='/css/style2.css')
   link(rel='stylesheet' href='/css/icofont/icofont/icofont.min.css')
-  link(href='node_modules/gridstack/dist/gridstack.min.css' rel='stylesheet')
-  script(src='node_modules/gridstack/dist/gridstack-all.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js')
   script(src='/js/MiniMasonry.js-master/build/minimasonry.min.js')
   script(type='module' src='/js/scripts3.js')
@@ -106,6 +104,11 @@ include includes/header.pug
     button#confDeletelinkSubmit(type='submit') Si
     button#noDeletelinkSubmit(type='submit') No
     p#deleteLinkError
+  #deleteLinkImgForm.deskForm
+    h2 Seguro que quieres borrar esta imagen?
+    button#confDeleteImgSubmit(type='submit') Si
+    button#noDeleteImgSubmit(type='submit') No
+    p#deleteImgError
   #deleteColForm.deskForm
     h2 Seguro que quieres borrar esta columna?
     button#confDeletecolSubmit(type='submit') Si
@@ -157,6 +160,8 @@ include includes/header.pug
     #moveToControls
       button#acceptMove Aceptar 
       button#cancelMove Cancelar
+  button#btnSubirArriba
+    i.icofont-scroll-up
   #alertCard
 include includes/sidepanel.pug
 script(src='/js/Sortable-master/Sortable.min.js')

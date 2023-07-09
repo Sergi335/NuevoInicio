@@ -7,8 +7,6 @@ head
   link(rel='stylesheet' href='/css/style2.css')
   link(rel='stylesheet' href='/css/editMode.css')
   link(rel='stylesheet' href='/css/icofont/icofont/icofont.min.css')
-  link(href='node_modules/gridstack/dist/gridstack.min.css' rel='stylesheet')
-  script(src='node_modules/gridstack/dist/gridstack-all.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js')
   script(src='/js/MiniMasonry.js-master/build/minimasonry.min.js')
   script(type='module' src='/js/editMode.js')
@@ -170,6 +168,11 @@ include includes/header.pug
     button#confDeletelinkSubmit(type='submit') Si
     button#noDeletelinkSubmit(type='submit') No
     p#deleteLinkError
+  #deleteLinkImgForm.deskForm
+    h2 Seguro que quieres borrar esta imagen?
+    button#confDeleteImgSubmit(type='submit') Si
+    button#noDeleteImgSubmit(type='submit') No
+    p#deleteImgError
   #deleteColForm.deskForm
     h2 Seguro que quieres borrar esta columna?
     button#confDeletecolSubmit(type='submit') Si

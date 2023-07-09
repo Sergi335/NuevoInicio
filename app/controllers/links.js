@@ -4,11 +4,7 @@ const axios = require('axios')
 const cheerio = require('cheerio')
 const fs = require('fs')
 const path = require('path')
-// const https = require('https')
 
-// const httpsAgent = new https.Agent({
-//     rejectUnauthorized: false,
-// });
 const getItem = async (req, res) => {
   const user = req.user.name
   const idLink = req.query.id
@@ -55,10 +51,12 @@ const setImages = async (req, res) => {
     console.log(imagePath)
     const data = await linksModel.findOneAndUpdate(
       { _id: req.body.linkId, user },
-      { $push: { images: newPath } }
+      { $push: { images: newPath } },
+      { new: true }
     )
     console.log(data)
-    res.send({ ok: 'Imagen subida y actualizada' })
+    res.send(data)
+    // res.send({ ok: 'Imagen subida y actualizada' })
   } else {
     console.log('No hay imagePath')
     console.log(req.body.filePath)
@@ -71,7 +69,9 @@ const deleteImage = async (req, res) => {
   console.log(body.image)
   console.log(body.id)
   const originalUrl = body.image
-  const modifiedUrl = originalUrl.replace('http://localhost:3001/', '').split('/').join('\\')
+  let modifiedUrl = originalUrl.replace('http://localhost:3001/', '').split('/').join('\\')
+  modifiedUrl = modifiedUrl.replace('blob:', '')
+  console.log('🚀 ~ file: links.js:71 ~ deleteImage ~ modifiedUrl:', modifiedUrl)
 
   try {
     const updatedArticle = await linksModel.findOneAndUpdate(
@@ -87,7 +87,7 @@ const deleteImage = async (req, res) => {
       fs.unlink(filePath, (err) => {
         if (err) {
           console.error('Error al eliminar el archivo:', err)
-          res.send({ message: 'Error al borrar' })
+          res.send({ error: 'Error al borrar' })
         } else {
           console.log('Archivo eliminado exitosamente.')
           res.send({ message: 'Borrado' })
@@ -96,11 +96,11 @@ const deleteImage = async (req, res) => {
       // res.send({ message: 'Borrado' })
     } else {
       console.log('No se encontró ningún artículo que cumpla los criterios de búsqueda.')
-      res.send({ message: 'No encontrado' })
+      res.send({ error: 'No encontrado' })
     }
   } catch (error) {
     console.error('Error al actualizar el artículo:', error)
-    res.send({ message: 'Error al borrar' })
+    res.send({ error: 'Error al borrar' })
   }
 }
 const getNameByUrl = async (req, res) => {
@@ -252,17 +252,18 @@ const createItem = async (req, res) => {
   } else {
     console.log('No estaba vacia')
   }
-  const findDuplicate = await linksModel.find({ name: body.nombre, idpanel: body.id, user })
-  console.log(findDuplicate)
-  console.log(findDuplicate.length)
-  if (findDuplicate.length === 0) {
-    const data = await linksModel.create(objeto)
-    res.send(data)
-  } else {
-    const err = { error: 'El link ya existe en esta columna' }
-    res.send(err)
-  }
-
+  // const findDuplicate = await linksModel.find({ name: body.nombre, idpanel: body.id, user })
+  // console.log(findDuplicate)
+  // console.log(findDuplicate.length)
+  // if (findDuplicate.length === 0) {
+  //   const data = await linksModel.create(objeto)
+  //   res.send(data)
+  // } else {
+  //   const err = { error: 'El link ya existe en esta columna' }
+  //   res.send(err)
+  // }
+  const data = await linksModel.create(objeto)
+  res.send(data)
   // Obtener los paneles del escritorio
   const data2 = await linksModel.find({ escritorio: body.escritorio, panel: body.columna })
   const paneles = [...new Set(data2.map((element) => element.panel))]

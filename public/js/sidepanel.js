@@ -9,6 +9,11 @@ function sidePanel () {
     element.classList.add('navActive')
     showLinkInfo(element)
   }
+  // eslint-disable-next-line no-unused-vars, no-undef
+  // const masonry = new MiniMasonry({
+  //   container: '#linkImages'
+  // })
+  // console.log(masonry)
 }
 function addPanelEvents () {
   document.querySelectorAll('.showPanel').forEach(item => {
@@ -28,6 +33,11 @@ function addPanelEvents () {
     const pastedText = clipboardData.getData('text/html')
     console.log(pastedText)
   })
+  document.getElementById('confDeleteImgSubmit').removeEventListener('click', deleteImage)
+  document.getElementById('confDeleteImgSubmit').addEventListener('click', deleteImage)
+  document.getElementById('noDeleteImgSubmit').removeEventListener('click', closeConfDeleteImage)
+  document.getElementById('noDeleteImgSubmit').addEventListener('click', closeConfDeleteImage)
+
   document.querySelector('.icofont-code-alt').classList.add('textContActive')
   document.querySelector('.icofont-code-alt').addEventListener('click', function textFormat () {
     console.log('Pasamos a texto html')
@@ -205,107 +215,215 @@ export function navLinkInfos (event) {
     }
   }
 }
+// async function showLinkInfo (element) {
+//   // const sideHeadP = document.getElementById('sideHeadP')
+//   // const sideHeadImg = document.getElementById('sideHeadImg')
+//   const idHolder = document.getElementById('linkId')
+//   const id = element.id
+//   const imageHolder = document.getElementById('limage')
+//   const imgUrl = element.childNodes[0].childNodes[0].src
+//   const nameHolder = document.getElementById('lname')
+//   const name = element.innerText
+//   const panelHolder = document.getElementById('lpanel')
+//   let panel
+//   if (!document.body.classList.contains('edit')) {
+//     panel = element.parentNode.parentNode.childNodes[0].innerText
+//   } else {
+//     // hay que pasarle el activo
+//     const desk = document.body.getAttribute('data-desk')
+//     panel = element.parentNode.id
+//     const index = panel.indexOf(desk)
+//     if (index !== -1) {
+//       panel = panel.slice(0, index) + panel.slice(index).replace(desk, '')
+//     }
+//   }
+//   const dateHolder = document.getElementById('ladded')
+//   const urlHolder = document.getElementById('lurl')
+//   const url = element.childNodes[0].href
+//   // Aquí podemos recoger si es un link de video o no
+//   const res = await fetch(`http://localhost:3001/link?id=${id}`, {
+//     method: 'GET',
+//     headers: {
+//       'content-type': 'application/json'
+//     }
+//   })
+//   const json = await res.json()
+//   // console.log(json)
+//   // console.log(json.data[0].notes)
+//   const notas = json.data[0].notes
+//   const notesDiv = document.getElementById('linkNotes')
+//   if (notas === undefined || notas === '') {
+//     // console.log('No hay notas')
+//     notesDiv.innerText = 'Escribe aquí ...'
+//   } else {
+//     notesDiv.innerHTML = notas
+//   }
+//   // eslint-disable-next-line no-unused-vars
+//   const activeHolder = document.getElementById('lactive')
+//   // eslint-disable-next-line no-unused-vars
+//   const dateaddHolder = document.getElementById('ladded')
+//   // eslint-disable-next-line no-unused-vars
+//   const imagesHolder = document.getElementById('linkImages')
+//   // console.log(json.data[0].images)
+//   const images = json.data[0].images
+//   if (images === undefined || images.length === 0) {
+//     // console.log('No hay imagenes')
+//     imagesHolder.style.backgroundImage = "url('../img/placeholderImg.svg')"
+//     imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
+//   } else {
+//     imagesHolder.style.backgroundImage = "url('')"
+//     imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
+//     images.forEach(img => {
+//       const image = document.createElement('img')
+//       image.setAttribute('src', img)
+//       const id = img.match(/(\d+-\d+)/)[1]
+//       image.setAttribute('id', id)
+//       const anchor = document.createElement('a')
+//       const closer = document.createElement('i')
+//       closer.setAttribute('class', 'icofont-close-line')
+//       anchor.appendChild(image)
+//       anchor.appendChild(closer)
+//       imagesHolder.appendChild(anchor)
+//     })
+//     document.querySelectorAll('.icofont-close-line').forEach(item => {
+//       item.addEventListener('click', confDeleteImage)
+//     })
+//     document.querySelectorAll('#linkImages a').forEach(item => {
+//       item.addEventListener('click', openModal)
+//     })
+//   }
+//   // const baseUrl = url.split('/').slice(0, 3).join('/') + '/'
+//   // console.log(url)
+//   const videoFrame = document.getElementById('videoFrame')
+//   const matchedUrl = checkUrlMatch(url)
+//   if (matchedUrl) {
+//     // console.log(matchedUrl)
+//     // console.log('Es un video')
+//     imagesHolder.style.backgroundImage = "url('')"
+//     videoFrame.style.display = 'block'
+//     videoFrame.setAttribute('src', matchedUrl)
+//   } else {
+//     // console.log('No se encontró ninguna coincidencia de URL.')
+//     videoFrame.style.display = 'none'
+//   }
+
+//   idHolder.innerText = id
+//   imageHolder.src = imgUrl
+//   // sideHeadImg.src = imgUrl
+//   nameHolder.innerText = name
+//   // sideHeadP.innerText = name
+//   panelHolder.innerText = panel
+//   // const enlace = document.createElement('a')
+//   // const texto = document.createTextNode(url)
+//   urlHolder.href = url
+//   urlHolder.innerText = url
+//   dateHolder.innerText = formatDate(json.data[0].createdAt)
+//   makeMasonry()
+// }
 async function showLinkInfo (element) {
-  // const sideHeadP = document.getElementById('sideHeadP')
-  // const sideHeadImg = document.getElementById('sideHeadImg')
-  const idHolder = document.getElementById('linkId')
-  const id = element.id
-  const imageHolder = document.getElementById('limage')
-  const imgUrl = element.childNodes[0].childNodes[0].src
-  const nameHolder = document.getElementById('lname')
-  const name = element.innerText
-  const panelHolder = document.getElementById('lpanel')
-  let panel
-  if (!document.body.classList.contains('edit')) {
-    panel = element.parentNode.parentNode.childNodes[0].innerText
-  } else {
-    // hay que pasarle el activo
-    const desk = document.body.getAttribute('data-desk')
-    panel = element.parentNode.id
-    const index = panel.indexOf(desk)
-    if (index !== -1) {
-      panel = panel.slice(0, index) + panel.slice(index).replace(desk, '')
+  const loader = document.createElement('div')
+  loader.setAttribute('id', 'liLoader')
+  const loadText = document.createTextNode('Cargando ...')
+  loader.appendChild(loadText)
+  document.getElementById('linkImages').appendChild(loader)
+  try {
+    const id = element.id
+    const imgUrl = element.childNodes[0].childNodes[0].src
+    const name = element.innerText
+    let panel
+
+    if (!document.body.classList.contains('edit')) {
+      panel = element.parentNode.parentNode.childNodes[0].innerText
+    } else {
+      const desk = document.body.getAttribute('data-desk')
+      panel = element.parentNode.id
+      const index = panel.indexOf(desk)
+      if (index !== -1) {
+        panel = panel.slice(0, index) + panel.slice(index).replace(desk, '')
+      }
     }
-  }
-  const dateHolder = document.getElementById('ladded')
-  const urlHolder = document.getElementById('lurl')
-  const url = element.childNodes[0].href
-  // Aquí podemos recoger si es un link de video o no
-  const res = await fetch(`http://localhost:3001/link?id=${id}`, {
-    method: 'GET',
-    headers: {
-      'content-type': 'application/json'
-    }
-  })
-  const json = await res.json()
-  // console.log(json)
-  // console.log(json.data[0].notes)
-  const notas = json.data[0].notes
-  const notesDiv = document.getElementById('linkNotes')
-  if (notas === undefined || notas === '') {
-    // console.log('No hay notas')
-    notesDiv.innerText = 'Escribe aquí ...'
-  } else {
-    notesDiv.innerHTML = notas
-  }
-  // eslint-disable-next-line no-unused-vars
-  const activeHolder = document.getElementById('lactive')
-  // eslint-disable-next-line no-unused-vars
-  const dateaddHolder = document.getElementById('ladded')
-  // eslint-disable-next-line no-unused-vars
-  const imagesHolder = document.getElementById('linkImages')
-  // console.log(json.data[0].images)
-  const images = json.data[0].images
-  if (images === undefined || images.length === 0) {
-    // console.log('No hay imagenes')
+
+    const res = await fetch(`http://localhost:3001/link?id=${id}`, {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json'
+      }
+    })
+
+    const json = await res.json()
+    const notas = json.data[0].notes
+    const images = json.data[0].images
+
+    const idHolder = document.getElementById('linkId')
+    idHolder.innerText = id
+
+    const imageHolder = document.getElementById('limage')
+    imageHolder.src = imgUrl
+
+    const nameHolder = document.getElementById('lname')
+    nameHolder.innerText = name
+
+    const panelHolder = document.getElementById('lpanel')
+    panelHolder.innerText = panel
+
+    const urlHolder = document.getElementById('lurl')
+    const url = element.childNodes[0].href
+    urlHolder.href = url
+    urlHolder.innerText = url
+
+    const dateHolder = document.getElementById('ladded')
+    dateHolder.innerText = formatDate(json.data[0].createdAt)
+
+    const notesDiv = document.getElementById('linkNotes')
+    notesDiv.innerHTML = notas === undefined || notas === '' ? 'Escribe aquí ...' : notas
+
+    const imagesHolder = document.getElementById('linkImages')
     imagesHolder.style.backgroundImage = "url('../img/placeholderImg.svg')"
     imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
-  } else {
-    imagesHolder.style.backgroundImage = "url('')"
-    imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
-    images.forEach(img => {
-      const image = document.createElement('img')
-      image.setAttribute('src', img)
-      const anchor = document.createElement('a')
-      const closer = document.createElement('i')
-      closer.setAttribute('class', 'icofont-close-line')
-      anchor.appendChild(image)
-      anchor.appendChild(closer)
-      imagesHolder.appendChild(anchor)
-    })
-    document.querySelectorAll('.icofont-close-line').forEach(item => {
-      item.addEventListener('click', deleteImage)
-    })
-    document.querySelectorAll('#linkImages a').forEach(item => {
-      item.addEventListener('click', openModal)
-    })
-  }
-  // const baseUrl = url.split('/').slice(0, 3).join('/') + '/'
-  // console.log(url)
-  const videoFrame = document.getElementById('videoFrame')
-  const matchedUrl = checkUrlMatch(url)
-  if (matchedUrl) {
-    // console.log(matchedUrl)
-    // console.log('Es un video')
-    imagesHolder.style.backgroundImage = "url('')"
-    videoFrame.style.display = 'block'
-    videoFrame.setAttribute('src', matchedUrl)
-  } else {
-    // console.log('No se encontró ninguna coincidencia de URL.')
-    videoFrame.style.display = 'none'
-  }
 
-  idHolder.innerText = id
-  imageHolder.src = imgUrl
-  // sideHeadImg.src = imgUrl
-  nameHolder.innerText = name
-  // sideHeadP.innerText = name
-  panelHolder.innerText = panel
-  // const enlace = document.createElement('a')
-  // const texto = document.createTextNode(url)
-  urlHolder.href = url
-  urlHolder.innerText = url
-  dateHolder.innerText = formatDate(json.data[0].createdAt)
+    if (images !== undefined && images.length > 0) {
+      imagesHolder.style.backgroundImage = "url('')"
+      imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
+
+      images.forEach(img => {
+        const image = document.createElement('img')
+        image.src = img
+        const id = img.match(/(\d+-\d+)/)[1]
+        image.id = id
+
+        const anchor = document.createElement('a')
+        const closer = document.createElement('i')
+        closer.classList.add('icofont-close-line')
+
+        anchor.appendChild(image)
+        anchor.appendChild(closer)
+        imagesHolder.appendChild(anchor)
+      })
+
+      document.querySelectorAll('.icofont-close-line').forEach(item => {
+        item.addEventListener('click', confDeleteImage)
+      })
+
+      document.querySelectorAll('#linkImages a').forEach(item => {
+        item.addEventListener('click', openModal)
+      })
+    }
+
+    const videoFrame = document.getElementById('videoFrame')
+    videoFrame.style.display = 'none'
+
+    const matchedUrl = checkUrlMatch(url)
+    if (matchedUrl) {
+      imagesHolder.style.backgroundImage = "url('')"
+      videoFrame.style.display = 'block'
+      videoFrame.src = matchedUrl
+    }
+
+    makeMasonry(loader)
+  } catch (error) {
+    console.error(error)
+    loader.style.display = 'none'
+  }
 }
 
 async function handleNotes (event) {
@@ -360,7 +478,8 @@ function pasteImg () {
             // Establecer la URL de datos como el src de la imagen
             document.getElementById('linkImages').style.backgroundImage = 'none'
             document.getElementById('linkImages').appendChild(anchor)
-            closer.addEventListener('click', deleteImage)
+            anchor.addEventListener('click', openModal)
+            closer.addEventListener('click', confDeleteImage)
             fetchImage()
           })
         }
@@ -397,6 +516,7 @@ async function changeLinkImg (event) {
     // imageH.src = 'img/opcion3.png'
   }
 }
+// Para guardar la imagen favicon del link
 async function fetchLinkImage () {
   const image = document.getElementById('limage')
   const src = image.src
@@ -484,11 +604,14 @@ async function fetchImage () {
       method: 'POST',
       body: formData
     })
-
+    // Recibir la url definitiva e insertar en el src para evitar problemas
     if (res.ok) {
       const result = await res.json()
-      console.log(result)
-      console.log('Imágenes subidas correctamente al servidor.')
+      const image = imagesContainer.childNodes[imagesCount - 1].childNodes[0]
+      image.src = result.images[result.images.length - 1]
+      const id = result.images[result.images.length - 1].match(/(\d+-\d+)/)[1]
+      console.log(id)
+      image.setAttribute('id', id)
       sendMessage(true, 'Imagen guardada.')
     } else {
       console.error('Error al subir las imágenes al servidor.')
@@ -502,8 +625,11 @@ async function fetchImage () {
 }
 async function deleteImage (event) {
   console.log(event.target.parentNode)
-  const anchor = event.target.parentNode
-  const imageToDelete = event.target.parentNode.childNodes[0].src
+  const sender = event.target
+  const idImg = sender.getAttribute('sender')
+  // seleccionar por sender
+  const anchor = document.getElementById(idImg).parentNode
+  const imageToDelete = document.getElementById(idImg).src
   const id = document.getElementById('linkId').innerText
 
   try {
@@ -522,16 +648,42 @@ async function deleteImage (event) {
     if (res.ok) {
       const result = await res.json()
       console.log(result)
-      console.log('Imágen borrada correctamente.')
-      anchor.remove()
-      if (document.getElementById('linkImages').children.length === 0) {
-        document.getElementById('linkImages').style.backgroundImage = "url('../img/placeholderImg.svg')"
+      const firstKey = Object.keys(result)[0]
+      const firstValue = result[firstKey]
+
+      if (firstKey === 'error' || firstKey === 'errors') {
+        if (firstKey === 'errors') {
+          sendMessage(false, `Error, valor ${firstValue[0].path} no válido`)
+        } else {
+          sendMessage(false, `${firstKey}, ${firstValue}`)
+        }
+      } else {
+        anchor.remove()
+        if (document.getElementById('linkImages').children.length === 1) {
+          document.getElementById('linkImages').style.backgroundImage = "url('../img/placeholderImg.svg')"
+        }
+        const confirmBox = document.getElementById('deleteLinkImgForm')
+        confirmBox.style.display = 'none'
+        sendMessage(true, 'Imagen borrada correctamente')
       }
-      sendMessage(true, 'Imagen borrada correctamente')
     } else {
       console.error('Error al subir las imágenes al servidor.')
       sendMessage(false, 'Error al borrar imagen')
     }
+
+    // if (res.ok) {
+    //   const result = await res.json()
+    //   console.log(result)
+    //   console.log('Imágen borrada correctamente.')
+    //   anchor.remove()
+    //   if (document.getElementById('linkImages').children.length === 0) {
+    //     document.getElementById('linkImages').style.backgroundImage = "url('../img/placeholderImg.svg')"
+    //   }
+    //   sendMessage(true, 'Imagen borrada correctamente')
+    // } else {
+    //   console.error('Error al subir las imágenes al servidor.')
+    //   sendMessage(false, 'Error al borrar imagen')
+    // }
   } catch (error) {
     console.error('Error al borrar la imagen:', error)
     sendMessage(false, 'Error en la comunicación con el servidor')
@@ -556,4 +708,27 @@ function openModal (event) {
       modal.style.display = 'none'
     })
   }
+}
+
+function confDeleteImage (event) {
+  console.log(event.target.parentNode.childNodes[0])
+  const confirmButton = document.getElementById('confDeleteImgSubmit')
+  confirmButton.setAttribute('sender', event.target.parentNode.childNodes[0].id)
+  const confirmBox = document.getElementById('deleteLinkImgForm')
+  confirmBox.style.display = 'flex'
+}
+function closeConfDeleteImage () {
+  const confirmBox = document.getElementById('deleteLinkImgForm')
+  confirmBox.style.display = 'none'
+}
+function makeMasonry (loader) {
+  setTimeout(() => {
+    // eslint-disable-next-line no-unused-vars, no-undef
+    const masonry = new MiniMasonry({
+      container: '#linkImages',
+      baseWidth: 300
+    })
+    console.log(masonry)
+  }, 100)
+  loader.style.display = 'none'
 }

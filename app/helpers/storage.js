@@ -4,7 +4,7 @@ const fs = require('fs')
 // Configuración de multer para la carga de archivos
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    console.log(req)
+    // console.log(req)
     console.log(file)
     console.log(req.route.path)
     const user = req.user.name
