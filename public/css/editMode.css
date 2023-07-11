@@ -350,7 +350,7 @@ div.avatar img {
 
 body.edit #sidepanel {
     display: grid;
-    grid-template-rows: 60px 24vh 15vh auto;
+    grid-template-rows: 60px 33vh 15vh 1fr;
     grid-template-columns: auto;
     grid-column-gap: 0px;
     grid-row-gap: 0px;
@@ -488,7 +488,7 @@ button#pasteImg:hover {
 
 #linkNotes {
     width: 90%;
-    min-height: 25vh;
+    min-height: 18vh;
     background-color: white;
     padding: 15px;
     margin: 0 auto;
@@ -498,7 +498,7 @@ button#pasteImg:hover {
 #linkImages {
     min-height: 20vh;
     background-color: #f8f8f8;
-    max-height: 20vh;
+    max-height: 28vh;
     background-size: contain;
 }
 

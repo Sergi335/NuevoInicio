@@ -1040,8 +1040,9 @@ i.icofont-gear {
 
 #videoFrame {
     display: none;
-    width: 100%;
+    width: 100% !important;
     min-height: 500px;
+    transform: none !important;
 }
 
 h2.ctitle:hover {

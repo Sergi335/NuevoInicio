@@ -9,11 +9,6 @@ function sidePanel () {
     element.classList.add('navActive')
     showLinkInfo(element)
   }
-  // eslint-disable-next-line no-unused-vars, no-undef
-  // const masonry = new MiniMasonry({
-  //   container: '#linkImages'
-  // })
-  // console.log(masonry)
 }
 function addPanelEvents () {
   document.querySelectorAll('.showPanel').forEach(item => {
@@ -115,17 +110,6 @@ export function togglePanel (event) {
   console.log(event.target.parentNode.parentNode)
   const element = event.target.parentNode.parentNode
   const panel = document.getElementById('sidepanel')
-  // const controls = document.querySelectorAll('.showPanel')
-  // const panelCloser = document.getElementById('sideClose')
-  // const handleClickOutside = (event) => {
-  //   console.log(event.target)
-  //   if (!panel.contains(event.target) && !Array.from(controls).includes(event.target)) {
-  //     panel.style.display = 'none'
-  //     const imagePanel = document.getElementById('linkImages')
-  //     imagePanel.innerHTML = ''
-  //     console.log('entro')
-  //   }
-  // }
   console.log('Has hecho click')
   // Esta comprobación tiene sentido?
   if (panel.style.display === 'none' || panel.style.display === '') {
@@ -136,10 +120,6 @@ export function togglePanel (event) {
     panel.style.display = 'none'
     console.log('entro')
   }
-  // document.removeEventListener('click', handleClickOutside)
-  // document.addEventListener('click', handleClickOutside)
-  // panelCloser.removeEventListener('click', handleClickOutside)
-  // panelCloser.addEventListener('click', handleClickOutside)
   showLinkInfo(element)
 }
 export function navLinkInfos (event) {
@@ -215,111 +195,6 @@ export function navLinkInfos (event) {
     }
   }
 }
-// async function showLinkInfo (element) {
-//   // const sideHeadP = document.getElementById('sideHeadP')
-//   // const sideHeadImg = document.getElementById('sideHeadImg')
-//   const idHolder = document.getElementById('linkId')
-//   const id = element.id
-//   const imageHolder = document.getElementById('limage')
-//   const imgUrl = element.childNodes[0].childNodes[0].src
-//   const nameHolder = document.getElementById('lname')
-//   const name = element.innerText
-//   const panelHolder = document.getElementById('lpanel')
-//   let panel
-//   if (!document.body.classList.contains('edit')) {
-//     panel = element.parentNode.parentNode.childNodes[0].innerText
-//   } else {
-//     // hay que pasarle el activo
-//     const desk = document.body.getAttribute('data-desk')
-//     panel = element.parentNode.id
-//     const index = panel.indexOf(desk)
-//     if (index !== -1) {
-//       panel = panel.slice(0, index) + panel.slice(index).replace(desk, '')
-//     }
-//   }
-//   const dateHolder = document.getElementById('ladded')
-//   const urlHolder = document.getElementById('lurl')
-//   const url = element.childNodes[0].href
-//   // Aquí podemos recoger si es un link de video o no
-//   const res = await fetch(`http://localhost:3001/link?id=${id}`, {
-//     method: 'GET',
-//     headers: {
-//       'content-type': 'application/json'
-//     }
-//   })
-//   const json = await res.json()
-//   // console.log(json)
-//   // console.log(json.data[0].notes)
-//   const notas = json.data[0].notes
-//   const notesDiv = document.getElementById('linkNotes')
-//   if (notas === undefined || notas === '') {
-//     // console.log('No hay notas')
-//     notesDiv.innerText = 'Escribe aquí ...'
-//   } else {
-//     notesDiv.innerHTML = notas
-//   }
-//   // eslint-disable-next-line no-unused-vars
-//   const activeHolder = document.getElementById('lactive')
-//   // eslint-disable-next-line no-unused-vars
-//   const dateaddHolder = document.getElementById('ladded')
-//   // eslint-disable-next-line no-unused-vars
-//   const imagesHolder = document.getElementById('linkImages')
-//   // console.log(json.data[0].images)
-//   const images = json.data[0].images
-//   if (images === undefined || images.length === 0) {
-//     // console.log('No hay imagenes')
-//     imagesHolder.style.backgroundImage = "url('../img/placeholderImg.svg')"
-//     imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
-//   } else {
-//     imagesHolder.style.backgroundImage = "url('')"
-//     imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
-//     images.forEach(img => {
-//       const image = document.createElement('img')
-//       image.setAttribute('src', img)
-//       const id = img.match(/(\d+-\d+)/)[1]
-//       image.setAttribute('id', id)
-//       const anchor = document.createElement('a')
-//       const closer = document.createElement('i')
-//       closer.setAttribute('class', 'icofont-close-line')
-//       anchor.appendChild(image)
-//       anchor.appendChild(closer)
-//       imagesHolder.appendChild(anchor)
-//     })
-//     document.querySelectorAll('.icofont-close-line').forEach(item => {
-//       item.addEventListener('click', confDeleteImage)
-//     })
-//     document.querySelectorAll('#linkImages a').forEach(item => {
-//       item.addEventListener('click', openModal)
-//     })
-//   }
-//   // const baseUrl = url.split('/').slice(0, 3).join('/') + '/'
-//   // console.log(url)
-//   const videoFrame = document.getElementById('videoFrame')
-//   const matchedUrl = checkUrlMatch(url)
-//   if (matchedUrl) {
-//     // console.log(matchedUrl)
-//     // console.log('Es un video')
-//     imagesHolder.style.backgroundImage = "url('')"
-//     videoFrame.style.display = 'block'
-//     videoFrame.setAttribute('src', matchedUrl)
-//   } else {
-//     // console.log('No se encontró ninguna coincidencia de URL.')
-//     videoFrame.style.display = 'none'
-//   }
-
-//   idHolder.innerText = id
-//   imageHolder.src = imgUrl
-//   // sideHeadImg.src = imgUrl
-//   nameHolder.innerText = name
-//   // sideHeadP.innerText = name
-//   panelHolder.innerText = panel
-//   // const enlace = document.createElement('a')
-//   // const texto = document.createTextNode(url)
-//   urlHolder.href = url
-//   urlHolder.innerText = url
-//   dateHolder.innerText = formatDate(json.data[0].createdAt)
-//   makeMasonry()
-// }
 async function showLinkInfo (element) {
   const loader = document.createElement('div')
   loader.setAttribute('id', 'liLoader')

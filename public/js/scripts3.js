@@ -185,8 +185,9 @@ function addDesktopEvents () {
   // Agregar evento de clic al botón de ir a perfil
   document.querySelector('#profile').removeEventListener('click', profile)
   document.querySelector('#profile').addEventListener('click', profile)
-
-  document.getElementById('btnSubirArriba').addEventListener('click', scrollToTop)
+  if (!document.body.classList.contains('edit')) {
+    document.getElementById('btnSubirArriba').addEventListener('click', scrollToTop)
+  }
 }
 /**
  * Carga los manejadores de eventos para la manipulación de columnas
@@ -413,7 +414,7 @@ function changeLayout (event) {
   event.stopPropagation()
   const deskName = document.body.getAttribute('data-desk')
   // Si existe la cookie
-  if (getCookieValue('mode') !== undefined) {
+  if (getCookieValue('mode') !== null) {
     console.log('Entro al if')
     if (getCookieValue('mode') === 'edit') {
       document.cookie = 'mode=normal'
