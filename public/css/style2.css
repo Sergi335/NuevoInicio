@@ -488,7 +488,9 @@ button#saveImg:hover {
     /* transform: translateX(-176px);
     opacity: 0; */
 }
-
+i.icofont-code-alt, i.icofont-font {
+    display: none;
+}
 #imgOptions img,
 #imgOptions i,
 #limage {
@@ -1044,7 +1046,10 @@ i.icofont-gear {
     min-height: 500px;
     transform: none !important;
 }
-
+#imgMasonry {
+    position: relative;
+    width: 100%;
+}
 h2.ctitle:hover {
     cursor: default;
 }

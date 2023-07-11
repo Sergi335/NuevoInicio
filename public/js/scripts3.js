@@ -1456,81 +1456,11 @@ function escondeDeleteColDialog () {
   const visible = dialog.style.display === 'flex'
   dialog.style.display = visible ? 'none' : 'flex'
 }
-// eslint-disable-next-line no-unused-vars
 function escondeDeleteDeskDialog () {
   const dialog = document.getElementById('deleteDeskForm')
   const visible = dialog.style.display === 'flex'
   dialog.style.display = visible ? 'none' : 'flex'
 }
-// function escondeDialogos (event) {
-//   let cuadros = []
-//   // Introducimos todos los formularios
-//   cuadros.push(Array.from(document.querySelectorAll('.deskForm')))
-//   cuadros = [].concat.apply([], cuadros)
-//   // Introducimos los botones de control de escritorios
-//   cuadros.push(document.getElementById('addDesk'))
-//   cuadros.push(document.getElementById('addCol'))
-//   cuadros.push(document.getElementById('editDesk'))
-//   cuadros.push(document.getElementById('removeDesk'))
-//   cuadros.push(document.getElementById('menuMoveTo'))
-//   cuadros.push(document.getElementById('otherDesk'))
-//   // Introducimos los botones de las columnas para añadir links
-//   cuadros.push(Array.from(document.querySelectorAll('.addlink')))
-//   cuadros.push(Array.from(document.querySelectorAll('.icofont-close-line')))
-//   cuadros = [].concat.apply([], cuadros)
-//   cuadros.forEach(element => {
-//     element.addEventListener('click', (event) => {
-//       event.stopPropagation()
-//     })
-//   })
-//   // Introducimos los botones de las columnas para editar columnas
-//   // cuadros.push(Array.from(document.querySelectorAll('.editcol')))
-//   // cuadros = [].concat.apply([], cuadros)
-//   // cuadros.forEach(element => {
-//   //   element.addEventListener('click', (event) => {
-//   //     event.stopPropagation()
-//   //   })
-//   // })
-//   // Introducimos los botones de los links para editar links
-//   cuadros.push(Array.from(document.querySelectorAll('.editalink')))
-//   cuadros = [].concat.apply([], cuadros)
-//   cuadros.forEach(element => {
-//     element.addEventListener('click', (event) => {
-//       event.stopPropagation()
-//     })
-//   })
-//   // Introducimos los botones de los links para borrar links
-//   cuadros.push(Array.from(document.querySelectorAll('.borralink')))
-//   cuadros = [].concat.apply([], cuadros)
-//   cuadros.forEach(element => {
-//     element.addEventListener('click', (event) => {
-//       event.stopPropagation()
-//     })
-//   })
-//   // Introducimos los botones de las columnas para borrar columna
-//   cuadros.push(Array.from(document.querySelectorAll('.borracol')))
-//   cuadros = [].concat.apply([], cuadros)
-//   cuadros.forEach(element => {
-//     element.addEventListener('click', (event) => {
-//       event.stopPropagation()
-//     })
-//   })
-//   // console.log(cuadros);
-
-//   // Si se ha hecho click fuera de cualquier boton y dialogo
-//   if (!cuadros.includes(event.target)) {
-//     // console.log(event.target);
-//     cuadros.forEach(element => {
-//       element.addEventListener('click', (event) => {
-//         event.stopPropagation()
-//       })
-//       const visible = element.style.display === 'flex' || element.style.display === 'block'
-//       if (visible) {
-//         element.style.display = 'none'
-//       }
-//     })
-//   }
-// }
 function escondeDialogos (event) {
   const cuadros = [
     ...document.querySelectorAll('.deskForm'),

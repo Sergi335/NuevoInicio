@@ -492,6 +492,9 @@ button#pasteImg:hover {
     background-color: white;
     padding: 15px;
     margin: 0 auto;
+    font-family: cursive;
+    max-height: 19vh;
+    overflow-y: scroll;
 
 }
 

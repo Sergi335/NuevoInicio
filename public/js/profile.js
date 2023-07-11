@@ -1,4 +1,4 @@
-import { darHora } from './functions.mjs'
+
 document.addEventListener('DOMContentLoaded', cargaProfile)
 function cargaProfile () {
   console.log('Hay JS')
@@ -238,4 +238,24 @@ async function changePassword () {
 
   const data = await res.json()
   console.log(data)
+}
+function hora () {
+  const fecha = new Date()
+  const hora = fecha.getHours()
+  const min = fecha.getMinutes()
+  const posicion = document.getElementById('reloj')
+
+  if (hora < 10 && min < 10) {
+    posicion.innerHTML = '0' + hora + ':' + '0' + min
+  } else if (min < 10 && hora >= 10) {
+    posicion.innerHTML = hora + ':' + '0' + min
+  } else if (hora < 10 && min >= 10) {
+    posicion.innerHTML = '0' + hora + ':' + min
+  } else {
+    posicion.innerHTML = hora + ':' + min
+  }
+}
+export function darHora () {
+  hora()
+  setInterval(hora, 60000)
 }

@@ -444,5 +444,53 @@ const actualizarOrdenElementos = async (req, res) => {
     res.status(500).json({ message: 'Error al actualizar los elementos' })
   }
 }
+const obtenerStatus = async (req, res) => {
+  const url = req.query.url
+  console.log(req.query.url)
 
-module.exports = { getItemsCount, getItems, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos, getNameByUrl, moveItem, getItem, setNotes, setLinkImg, setImages, deleteImage }
+  try {
+    // Realizar la solicitud HTTP con Axios
+    const response = await axios.get(url)
+    const statusCode = response.status
+
+    let status
+    if (statusCode >= 100 && statusCode <= 199) {
+      status = 'informational'
+    } else if (statusCode >= 200 && statusCode <= 299) {
+      status = 'success'
+    } else if (statusCode >= 300 && statusCode <= 399) {
+      status = 'redirect'
+    } else if (statusCode >= 400 && statusCode <= 499) {
+      status = 'clientErr'
+    } else if (statusCode >= 500 && statusCode <= 599) {
+      status = 'serverErr'
+    }
+
+    res.send({ status })
+  } catch (error) {
+    if (error.response) {
+      // Error de respuesta HTTP con un código de estado
+      const statusCode = error.response.status
+      let status
+
+      if (statusCode >= 100 && statusCode <= 199) {
+        status = 'informational'
+      } else if (statusCode >= 200 && statusCode <= 299) {
+        status = 'success'
+      } else if (statusCode >= 300 && statusCode <= 399) {
+        status = 'redirect'
+      } else if (statusCode >= 400 && statusCode <= 499) {
+        status = 'clientErr'
+      } else if (statusCode >= 500 && statusCode <= 599) {
+        status = 'serverErr'
+      }
+
+      res.send({ status })
+    } else {
+      // Otro tipo de error
+      console.error('Error:', error)
+      res.send({ error: 'Fallo al obtener datos' })
+    }
+  }
+}
+module.exports = { getItemsCount, getItems, createItem, deleteItem, editItem, editdragItem, actualizarOrdenElementos, getNameByUrl, moveItem, getItem, setNotes, setLinkImg, setImages, deleteImage, obtenerStatus }

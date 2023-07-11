@@ -17,6 +17,8 @@ function addPanelEvents () {
   })
   document.getElementById('linkNotes').removeEventListener('click', handleNotes)
   document.getElementById('linkNotes').addEventListener('click', handleNotes)
+  document.getElementById('linkNotes').removeEventListener('keydown', handleNotes)
+  document.getElementById('linkNotes').addEventListener('keydown', handleNotes)
   document.getElementById('sendNotes').removeEventListener('click', sendNotes)
   document.getElementById('sendNotes').addEventListener('click', sendNotes)
   document.getElementById('pasteImg').removeEventListener('click', pasteImg)
@@ -32,26 +34,10 @@ function addPanelEvents () {
   document.getElementById('confDeleteImgSubmit').addEventListener('click', deleteImage)
   document.getElementById('noDeleteImgSubmit').removeEventListener('click', closeConfDeleteImage)
   document.getElementById('noDeleteImgSubmit').addEventListener('click', closeConfDeleteImage)
-
-  document.querySelector('.icofont-code-alt').classList.add('textContActive')
-  document.querySelector('.icofont-code-alt').addEventListener('click', function textFormat () {
-    console.log('Pasamos a texto html')
-    if (document.querySelector('.icofont-font').classList.contains('textContActive')) {
-      document.querySelector('.icofont-font').classList.remove('textContActive')
-      document.querySelector('.icofont-code-alt').classList.add('textContActive')
-    }
-  })
-  document.querySelector('.icofont-font').addEventListener('click', function textFormat () {
-    console.log('Pasamos a texto plano')
-    if (document.querySelector('.icofont-code-alt').classList.contains('textContActive')) {
-      document.querySelector('.icofont-code-alt').classList.remove('textContActive')
-      document.querySelector('.icofont-font').classList.add('textContActive')
-    }
-  })
   document.querySelector('.icofont-delete-alt').addEventListener('click', function textFormat () {
     console.log('Borramos texto')
     const notesDiv = document.getElementById('linkNotes')
-    notesDiv.innerHTML = ''
+    notesDiv.innerHTML = 'Escribe aquí ...'
   })
   document.querySelector('.icofont-delete-alt').addEventListener('mousedown', function () {
     document.querySelector('.icofont-delete-alt').classList.add('textContActive')
@@ -245,7 +231,7 @@ async function showLinkInfo (element) {
     const url = element.childNodes[0].href
     urlHolder.href = url
     urlHolder.innerText = url
-
+    getUrlStatus(url)
     const dateHolder = document.getElementById('ladded')
     dateHolder.innerText = formatDate(json.data[0].createdAt)
 
@@ -253,13 +239,18 @@ async function showLinkInfo (element) {
     notesDiv.innerHTML = notas === undefined || notas === '' ? 'Escribe aquí ...' : notas
 
     const imagesHolder = document.getElementById('linkImages')
+    const masonry = document.createElement('div')
+    masonry.setAttribute('id', 'imgMasonry')
     imagesHolder.style.backgroundImage = "url('../img/placeholderImg.svg')"
     imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
+    imagesHolder.appendChild(masonry)
 
     if (images !== undefined && images.length > 0) {
       imagesHolder.style.backgroundImage = "url('')"
       imagesHolder.innerHTML = '<iframe id="videoFrame" src="" frameborder="0" width="560" height="340" scrolling="no" allowfullscreen></iframe>'
-
+      imagesHolder.innerHTML += '<div id="imgMasonry"></div>'
+      const masonry = document.getElementById('imgMasonry')
+      console.log('🚀 ~ file: sidepanel.js:267 ~ showLinkInfo ~ masonry:', masonry)
       images.forEach(img => {
         const image = document.createElement('img')
         image.src = img
@@ -272,14 +263,14 @@ async function showLinkInfo (element) {
 
         anchor.appendChild(image)
         anchor.appendChild(closer)
-        imagesHolder.appendChild(anchor)
+        masonry.appendChild(anchor)
       })
 
       document.querySelectorAll('.icofont-close-line').forEach(item => {
         item.addEventListener('click', confDeleteImage)
       })
 
-      document.querySelectorAll('#linkImages a').forEach(item => {
+      document.querySelectorAll('#imgMasonry a').forEach(item => {
         item.addEventListener('click', openModal)
       })
     }
@@ -302,17 +293,27 @@ async function showLinkInfo (element) {
 }
 
 async function handleNotes (event) {
-  // El Id del link seleccionado
-  // const id = event.target.parentNode.childNodes[1].innerText
-  // const storeNotes = []
-  // let cont = 0
   const notesDiv = document.getElementById('linkNotes')
   if (notesDiv.innerText === 'Escribe aquí ...') {
     notesDiv.innerText = ''
   }
-  // storeNotes[cont] = { id, text: notesDiv.innerText }
-  // console.log(storeNotes)
-  // cont++
+  if (event.key === 'Enter') {
+    // Evitar el comportamiento predeterminado de la tecla Enter
+    event.preventDefault()
+
+    // Insertar una nueva línea manualmente
+    const selection = window.getSelection()
+    const range = selection.getRangeAt(0)
+    const br = document.createElement('br')
+    const textNode = document.createTextNode('\u00a0') // Agregar un espacio en blanco
+    range.deleteContents()
+    range.insertNode(br)
+    range.collapse(false)
+    range.insertNode(textNode)
+    range.selectNodeContents(textNode)
+    selection.removeAllRanges()
+    selection.addRange(range)
+  }
 }
 async function sendNotes (event) {
   const id = document.getElementById('linkId').innerText
@@ -332,6 +333,18 @@ async function sendNotes (event) {
   })
   const json = await res.json()
   console.log(json)
+  const firstKey = Object.keys(json)[0]
+  const firstValue = json[firstKey]
+
+  if (firstKey === 'error' || firstKey === 'errors') {
+    if (firstKey === 'errors') {
+      sendMessage(false, `Error, valor ${firstValue[0].path} no válido`)
+    } else {
+      sendMessage(false, `${firstKey}, ${firstValue}`)
+    }
+  } else {
+    sendMessage(true, 'Notas guardadas')
+  }
 }
 function pasteImg () {
   navigator.clipboard.read().then((clipboardItems) => {
@@ -352,10 +365,11 @@ function pasteImg () {
             anchor.appendChild(closer)
             // Establecer la URL de datos como el src de la imagen
             document.getElementById('linkImages').style.backgroundImage = 'none'
-            document.getElementById('linkImages').appendChild(anchor)
+            document.getElementById('imgMasonry').appendChild(anchor)
             anchor.addEventListener('click', openModal)
             closer.addEventListener('click', confDeleteImage)
             fetchImage()
+            makeMasonry()
           })
         }
       }
@@ -452,7 +466,7 @@ async function fetchLinkImage () {
 }
 
 async function fetchImage () {
-  const imagesContainer = document.getElementById('linkImages')
+  const imagesContainer = document.getElementById('imgMasonry')
   const imagesCount = imagesContainer.childNodes.length
   console.log(imagesCount)
   const imageToUpload = imagesContainer.childNodes[imagesCount - 1].childNodes[0].src
@@ -534,11 +548,12 @@ async function deleteImage (event) {
         }
       } else {
         anchor.remove()
-        if (document.getElementById('linkImages').children.length === 1) {
+        if (document.getElementById('imgMasonry').children.length === 0) {
           document.getElementById('linkImages').style.backgroundImage = "url('../img/placeholderImg.svg')"
         }
         const confirmBox = document.getElementById('deleteLinkImgForm')
         confirmBox.style.display = 'none'
+        makeMasonry()
         sendMessage(true, 'Imagen borrada correctamente')
       }
     } else {
@@ -596,14 +611,48 @@ function closeConfDeleteImage () {
   const confirmBox = document.getElementById('deleteLinkImgForm')
   confirmBox.style.display = 'none'
 }
-function makeMasonry (loader) {
+function makeMasonry (loader = '') {
   setTimeout(() => {
     // eslint-disable-next-line no-unused-vars, no-undef
     const masonry = new MiniMasonry({
-      container: '#linkImages',
+      container: '#imgMasonry',
       baseWidth: 300
     })
     console.log(masonry)
   }, 100)
-  loader.style.display = 'none'
+  if (loader) {
+    loader.style.display = 'none'
+  }
+}
+async function getUrlStatus (url) {
+  console.log('🚀 ~ file: sidepanel.js:644 ~ getUrlStatus ~ url:', url)
+  console.log('Funciona Status')
+  const query = await fetch(`http://localhost:3001/linkStatus?url=${url}`, {
+    method: 'GET',
+    headers: {
+      'content-type': 'application/json'
+    }
+  })
+  const res = await query.json()
+  console.log(res)
+  const holder = document.getElementById('lactive')
+  const firstKey = Object.keys(res)[0]
+  const firstValue = res[firstKey]
+  let icon
+  if (firstKey === 'error' || firstKey === 'errors') {
+    if (firstKey === 'errors') {
+      icon = '&#x1F198;'
+    } else {
+      icon = '&#x1F198;'
+    }
+    holder.innerHTML = icon
+  } else {
+    if (firstValue === 'success' || firstValue === 'redirect') {
+      icon = '&#x1F197;'
+    }
+    if (firstValue === 'clientErr' || firstValue === 'serverErr') {
+      icon = '&#x1F198;'
+    }
+    holder.innerHTML = icon
+  }
 }

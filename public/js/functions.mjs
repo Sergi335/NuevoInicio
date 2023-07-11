@@ -152,7 +152,7 @@ export function handleSimpleClick () {
     }
   })
   document.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && event.target.nodeName === 'H2') {
       event.preventDefault() // Evitar el comportamiento predeterminado de la tecla Enter (por ejemplo, agregar un salto de línea)
       const element = document.querySelector('h2[contenteditable="true"]') || document.querySelector('button[contenteditable="true"]')
       if (element.innerText === '') {
